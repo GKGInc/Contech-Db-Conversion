@@ -172,8 +172,7 @@ CREATE TABLE [dbo].[po_hdr](
 	[kbstart_dt] [datetime] NULL,
 	[kbrel_qty] [int] NOT NULL,
 	[mfg_locid] [int] NOT NULL,
-	[prepaid] [bit] NOT NULL
-,
+	[prepaid] [bit] NOT NULL,
 	CONSTRAINT [PK_po_hdr] PRIMARY KEY CLUSTERED 
 	(
 		[po_hdrid] ASC
