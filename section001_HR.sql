@@ -13,12 +13,16 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 	
 CREATE TABLE [lookups]
 (
-	[lookupid]	int PRIMARY KEY IDENTITY(1,1),
+	[lookupid]	int IDENTITY(1,1),
 	[code]		char(10) NOT NULL DEFAULT '',
 	[meaning]	char(50) NOT NULL DEFAULT '',
 	[type]		char(20) NOT NULL DEFAULT '',
-	[code_len]	numeric(2,0) NOT NULL DEFAULT 0
-)
+	[code_len]	numeric(2,0) NOT NULL DEFAULT 0,
+	CONSTRAINT [PK_lookups] PRIMARY KEY CLUSTERED 
+	(
+		[lookupid] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] 
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[lookups] ON;
 
@@ -74,7 +78,11 @@ CREATE TABLE [dbo].[vendor](
 	[terms] [char](10) NOT NULL,
 	[grade] [char](2) NOT NULL,
 	[fob] [char](15) NOT NULL,
-	[department] [char](4) NOT NULL
+	[department] [char](4) NOT NULL,
+	CONSTRAINT [PK_vendor] PRIMARY KEY CLUSTERED 
+	(
+		[vendorid] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
@@ -125,8 +133,12 @@ CREATE TABLE [dbo].[assets]
 	[calnoinitl] [char](3) NOT NULL,
 	[rev_rec] [int] NOT NULL,
 	[rev_dt] [datetime] NULL,
-	[rev_emp] [char](10) NOT NULL
-) ON [PRIMARY]
+	[rev_emp] [char](10) NOT NULL,
+	CONSTRAINT [PK_assets] PRIMARY KEY CLUSTERED 
+	(
+		[assetsid] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] 
 GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[assets] ON;
@@ -158,7 +170,7 @@ SELECT [rawUpsize_Contech].[dbo].[assets].[assetsid] -- PK
 	  ,[rawUpsize_Contech].[dbo].[assets].[asset_no]
       ,[rawUpsize_Contech].[dbo].[assets].[asset_desc]
       --,[rawUpsize_Contech].[dbo].[assets].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[pk188]
-	  ,ISNULL([Contech_Test].[dbo].[vendor].[pk], 0) AS [vend_pk]
+	  ,ISNULL([Contech_Test].[dbo].[vendor].[vendorid], 0) AS [vend_pk]
       ,[rawUpsize_Contech].[dbo].[assets].[pur_date]
       --,[rawUpsize_Contech].[dbo].[assets].[location]	-- FK = [lookups].[code] -> ([lookups].[lookupid])
 	  ,ISNULL(assetLocation.[lookupid], 0) AS [location_lookupid]
