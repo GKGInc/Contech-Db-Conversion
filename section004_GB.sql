@@ -48,51 +48,8 @@ create table dbo.customer
 )
 GO
 
-insert into dbo.customer (
-    [cust_no]
-      ,[active]
-      ,[name]
-      ,[address]
-      ,[address2]
-      ,[city]
-      ,[state]
-      ,[zip]
-      ,[terms]
-      ,[country]
-      ,[phone]
-      ,[fax]
-      ,[email]
-      ,[memo]
-      ,[vat]
-      ,[b_address]
-      ,[b_address2]
-      ,[b_city]
-      ,[b_state]
-      ,[b_zip]
-      ,[b_country]
-)
-SELECT [cust_no]
-      ,[active]
-      ,[name]
-      ,[address]
-      ,[address2]
-      ,[city]
-      ,[state]
-      ,[zip]
-      ,[terms]
-      ,[country]
-      ,[phone]
-      ,[fax]
-      ,[email]
-      ,[memo]
-      ,[vat]
-      ,[b_address]
-      ,[b_address2]
-      ,[b_city]
-      ,[b_state]
-      ,[b_zip]
-      ,[b_country]
-  FROM [rawUpsize_Contech].dbo.[customer]
+insert into dbo.customer
+SELECT * FROM [rawUpsize_Contech].dbo.[customer]
 GO
 
 commit
