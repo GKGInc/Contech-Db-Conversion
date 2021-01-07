@@ -1,6 +1,6 @@
 
 -- =========================================================
---Section 1: lookups
+--Section 001: lookups
 -- =========================================================
 
 -- Column changes:
@@ -41,11 +41,11 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[lookups] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[lookups] ORDER BY code
 
 -- =========================================================
---Section 1: vendor
+--Section 001: vendor
 -- =========================================================
 
 -- Column changes:
---	- pk to first column
+--	- vendorid to first column
 
 USE Contech_Test
 
@@ -53,7 +53,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[vendor]
 	
 CREATE TABLE [dbo].[vendor](
-	pk int identity(1,1) not null,
+	vendorid int identity(1,1) not null,
 	[ven_id] [char](6) NOT NULL,
 	[vendor] [char](75) NOT NULL,
 	[active] [bit] NOT NULL,
@@ -84,7 +84,7 @@ INSERT INTO [Contech_Test].[dbo].[vendor]
 --SELECT * FROM [Contech_Test].[dbo].[vendor]
 
 -- =========================================================
---Section 1: assets
+--Section 001: assets
 -- =========================================================
 
 -- Column changes:
@@ -93,7 +93,7 @@ INSERT INTO [Contech_Test].[dbo].[vendor]
 --  - Changed location to int to reference location in lookups table
 --  - Changed asset_type to int to reference type in lookups table
 -- Maps:
---	- [assets].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[pk]
+--	- [assets].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 --	- [assets].[location]	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
 --	- [assets].[asset_type]	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
 
