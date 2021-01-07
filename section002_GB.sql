@@ -13,16 +13,16 @@
 -- other:
 --      added defaults to some fields
 
--- use rawUpsize_Contech
+use Contech_Test
 
 begin transaction
 
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'users')
     BEGIN
-        drop table [Contech_Test].dbo.users
+        drop table dbo.users
     END
 
-CREATE TABLE [Contech_Test].dbo.users
+CREATE TABLE dbo.users
 	(
 	userid int NOT NULL IDENTITY (1, 1),
 	username char(10) NOT NULL,
@@ -37,20 +37,20 @@ CREATE TABLE [Contech_Test].dbo.users
 	)  ON [PRIMARY]
 GO
 
-ALTER TABLE [Contech_Test].dbo.users SET (LOCK_ESCALATION = TABLE)
+ALTER TABLE dbo.users SET (LOCK_ESCALATION = TABLE)
 GO
 
-SET IDENTITY_INSERT [Contech_Test].dbo.users ON
+SET IDENTITY_INSERT dbo.users ON
 GO
 
-INSERT INTO [Contech_Test].dbo.users (userid, username, password, rolelevel, last_name, first_name, mi, empnumber, netuser, mfg_locid)
+INSERT INTO dbo.users (userid, username, password, rolelevel, last_name, first_name, mi, empnumber, netuser, mfg_locid)
 		SELECT userkey, userid, password, [level], last_name, first_name, mi, empnumber, netuser, mfg_locid
-FROM dbo.users WITH (HOLDLOCK TABLOCKX)
+FROM [rawUpsize_Contech].dbo.users WITH (HOLDLOCK TABLOCKX)
 
-SET IDENTITY_INSERT [Contech_Test].dbo.users OFF
+SET IDENTITY_INSERT dbo.users OFF
 GO
 
-ALTER TABLE [Contech_Test].dbo.users ADD CONSTRAINT
+ALTER TABLE dbo.users ADD CONSTRAINT
 	PK_users PRIMARY KEY CLUSTERED
 	(
 	    userid
