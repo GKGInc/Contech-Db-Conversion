@@ -3,13 +3,7 @@
 -- ***************************************************
 
 -- PK:
---
--- column name changes:
---
--- new column mapping:
---
--- other:
---
+--      customerid int
 
 use Contech_Test
 
@@ -44,12 +38,16 @@ create table dbo.customer
 	b_city char(30) default '' not null,
 	b_state char(3) default '' not null,
 	b_zip char(11) default '' not null,
-	b_country char(15) default '' not null
-)
+	b_country char(15) default '' not null,
+    CONSTRAINT [PK_customer] PRIMARY KEY CLUSTERED
+    (
+        [customerid] ASC
+    ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
 GO
 
-insert into dbo.customer
-SELECT * FROM [rawUpsize_Contech].dbo.[customer]
+INSERT into dbo.customer
+    SELECT * FROM [rawUpsize_Contech].dbo.[customer]
 GO
 
 commit
