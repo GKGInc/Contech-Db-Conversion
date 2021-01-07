@@ -2,31 +2,38 @@
 -- Section 2: users
 -- ***************************************************
 
+-- PK:
+--      userid int
 -- column name changes:
 --      userid -> username
 --      level -> rolelevel
--- maps:
+-- new column mapping:
 --      userkey -> userid
 --      userid -> username
+-- other:
+--      added defaults to some fields
 
-use rawUpsize_Contech
+-- use rawUpsize_Contech
 
 begin transaction
 
-drop table [Contech_Test].dbo.users
+IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'users')
+    BEGIN
+        drop table [Contech_Test].dbo.users
+    END
 
 CREATE TABLE [Contech_Test].dbo.users
 	(
 	userid int NOT NULL IDENTITY (1, 1),
 	username char(10) NOT NULL,
 	password char(15) NOT NULL,
-	rolelevel char(2) NOT NULL,
-	last_name char(20) NOT NULL,
-	first_name char(15) NOT NULL,
-	mi char(1) NOT NULL,
-	empnumber char(10) NOT NULL,
-	netuser char(50) NOT NULL,
-	mfg_locid int NOT NULL
+	rolelevel char(2) default '' NOT NULL,
+	last_name char(20) default '' NOT NULL,
+	first_name char(15) default '' NOT NULL,
+	mi char(1) default '' NOT NULL,
+	empnumber char(10) default '' NOT NULL,
+	netuser char(50) default '' NOT NULL,
+	mfg_locid int default 0 NOT NULL
 	)  ON [PRIMARY]
 GO
 
