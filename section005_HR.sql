@@ -4,8 +4,7 @@
 -- =========================================================
 
 -- Column changes:
---	- Changed empnumber int int
---  - Changed empnumber to be primary key
+--	- Changed employeeid to be the primary key
 
 USE Contech_Test
 
@@ -13,7 +12,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[employee]
 	
 CREATE TABLE [dbo].[employee](
-	[empnumber] [int] identity(1,1) NOT NULL,
+	[employeeid] [int] identity(1,1) NOT NULL,
+	[empnumber] [char](10) NOT NULL,
 	[emplastnam] [char](30) NOT NULL,
 	[empfirstna] [char](20) NOT NULL,
 	[empmidinit] [char](1) NOT NULL,
@@ -29,18 +29,13 @@ CREATE TABLE [dbo].[employee](
 	[email] [char](100) NOT NULL,
 	CONSTRAINT [PK_employee] PRIMARY KEY CLUSTERED 
 	(
-		[empnumber] ASC
+		[employeeid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[employee] ON;
-
-INSERT INTO [Contech_Test].[dbo].[employee] ([empnumber],[emplastnam],[empfirstna],[empmidinit],[empstatus],[emptmpfull],[emp_rate],[job_title],[empassword],[department],[manager_of],[last_rvw],[barcode],[email])
-SELECT [empnumber],[emplastnam],[empfirstna],[empmidinit],[empstatus],[emptmpfull],[emp_rate],[job_title],[empassword],[department],[manager_of],[last_rvw],[barcode],[email] 
-FROM [rawUpsize_Contech].[dbo].[employee] order by 1 
-  
-SET IDENTITY_INSERT [Contech_Test].[dbo].[employee] OFF;
+INSERT INTO [Contech_Test].[dbo].[employee]
+	SELECT * FROM [rawUpsize_Contech].[dbo].[employee]
 
 --SELECT * FROM [Contech_Test].[dbo].[employee]
 
@@ -49,7 +44,8 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[employee] OFF;
 -- =========================================================
 
 -- Column changes:
---  - Changed matlin_key to be primary key
+--  - Renamed matlin_key to matlinid
+--  - Set matlinid to be primary key
 
 USE Contech_Test
 
@@ -57,7 +53,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[matlin]
 	
 CREATE TABLE [dbo].[matlin](
-	[matlin_key] [int] identity(1,1) NOT NULL,
+	[matlinid] [int] identity(1,1) NOT NULL,
 	[po_no] [char](8) NOT NULL,
 	[date] [datetime] NULL,
 	[amt_rec] [numeric](10, 0) NOT NULL,
@@ -90,14 +86,14 @@ CREATE TABLE [dbo].[matlin](
 	[mfg_locid] [int] NOT NULL,
 	CONSTRAINT [PK_matlin] PRIMARY KEY CLUSTERED 
 	(
-		[matlin_key] ASC
+		[matlinid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[matlin] ON;
 
-INSERT INTO [Contech_Test].[dbo].[matlin] ([matlin_key],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid])
+INSERT INTO [Contech_Test].[dbo].[matlin] ([matlinid],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid])
 SELECT [matlin_key],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid]
 FROM [rawUpsize_Contech].[dbo].[matlin] order by 1 
     
