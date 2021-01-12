@@ -10,7 +10,7 @@
 --  - Changed empnumber to int to reference employee table
 -- Maps:
 --	- [qrn].[cust_no]	-- FK = [customer].[cust_no] -> [customer].[customerid]
---	- [qrn].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+--	- [qrn].[ven_id]	-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 --	- [qrn].[matlinid]	-- FK = [matlin].[matlin_key] -> [matlin].[matlinid]
 --	- [qrn].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
