@@ -83,9 +83,9 @@ select custpohd.custpohdid,
        custpohd.confirm_contact,
        custpohd.confirm_contactid
 from [rawUpsize_Contech].dbo.custpohd
-    left outer join customer c on custpohd.cust_no = c.cust_no
-    left outer join users addu on custpohd.add_user = addu.username
-    left outer join users modu on custpohd.mod_user = modu.username
+    left outer join customer c on custpohd.cust_no = c.cust_no and rtrim(custpohd.cust_no) != ''
+    left outer join users addu on custpohd.add_user = addu.username and rtrim(custpohd.add_user) != ''
+    left outer join users modu on custpohd.mod_user = modu.username and rtrim(custpohd.mod_user) != ''
 GO
 
 set identity_insert dbo.custpohd OFF
