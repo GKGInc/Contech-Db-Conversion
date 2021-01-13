@@ -12,11 +12,13 @@
 --  - Changed [qrn_no] [char](8) to [qrnid] [int] to reference [qrn] table
 --  - Renamed [matlin_key] to [matlinid]
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [users] table
+--  - Renamed [complnt_no] to [complntid] [to reflect new standards
 -- Maps:
 --	- ??? [corractn].[car_no]		-- FK = [cartrack].[car_no]
 --	- [corractn].[qrn_no]		--  FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 --	- [corractn].[matlinid]		-- FK = [matlin].[matlin_key] --> [matlin].[matlinid]
 --	- [corractn].[comp]			-- FK = [componet].[comp] --> [componet].[componetid]
+--	- [corractn].[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
 
 USE Contech_Test
 
@@ -72,7 +74,8 @@ CREATE TABLE [dbo].[corractn](
 	[issued_to] [char](4) NOT NULL DEFAULT '',
 	[expclosedt] [datetime] NULL,
 	[ref_doc] [char](25) NOT NULL DEFAULT '',
-	[complnt_no] [int] NOT NULL DEFAULT 0,		-- complnts.complnt_no
+	--[complnt_no] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]  
+	[complntid] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]  
 	[c_inconclu] [bit] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_corractn] PRIMARY KEY CLUSTERED 
 	(
@@ -83,7 +86,7 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[corractn] ON;
 
-INSERT INTO [Contech_Test].[dbo].[corractn] ([corractnid],[car_no],[car_date],[qrnid],[matlinid],[source],[componetid],[comp_desc],[qty_rej],[remarks],[ven_cause],[ven_prevnt],[ven_sign],[ven_title],[ven_date],[init_note],[follow_up],[final_note],[revgrpmeet],[issued_by],[evd_effect],[rspns_appr],[c_method],[c_material],[c_manpower],[c_machinry],[close_date],[c_vendor],[urgent],[r_replcmnt],[r_credit],[corr_type],[approve1],[approve1dt],[approve1ti],[approve2],[approve2ti],[approve2dt],[completeby],[completeti],[completedt],[close_by],[issued_to],[expclosedt],[ref_doc],[complnt_no],[c_inconclu])
+INSERT INTO [Contech_Test].[dbo].[corractn] ([corractnid],[car_no],[car_date],[qrnid],[matlinid],[source],[componetid],[comp_desc],[qty_rej],[remarks],[ven_cause],[ven_prevnt],[ven_sign],[ven_title],[ven_date],[init_note],[follow_up],[final_note],[revgrpmeet],[issued_by],[evd_effect],[rspns_appr],[c_method],[c_material],[c_manpower],[c_machinry],[close_date],[c_vendor],[urgent],[r_replcmnt],[r_credit],[corr_type],[approve1],[approve1dt],[approve1ti],[approve2],[approve2ti],[approve2dt],[completeby],[completeti],[completedt],[close_by],[issued_to],[expclosedt],[ref_doc],[complntid],[c_inconclu])
 SELECT [rawUpsize_Contech].[dbo].[corractn].[corractnid]
       ,[rawUpsize_Contech].[dbo].[corractn].[car_no]
       ,[rawUpsize_Contech].[dbo].[corractn].[car_date]
@@ -131,12 +134,14 @@ SELECT [rawUpsize_Contech].[dbo].[corractn].[corractnid]
       ,[rawUpsize_Contech].[dbo].[corractn].[issued_to]
       ,[rawUpsize_Contech].[dbo].[corractn].[expclosedt]
       ,[rawUpsize_Contech].[dbo].[corractn].[ref_doc]
-      ,[rawUpsize_Contech].[dbo].[corractn].[complnt_no]
+      --,[rawUpsize_Contech].[dbo].[corractn].[complnt_no]
+	  ,ISNULL([Contech_Test].[dbo].[complnts].[complntid], 0) AS [complntid] 
       ,[rawUpsize_Contech].[dbo].[corractn].[c_inconclu]
   FROM [rawUpsize_Contech].[dbo].[corractn]
   LEFT JOIN [Contech_Test].[dbo].[qrn] ON [rawUpsize_Contech].[dbo].[corractn].[qrn_no] = [Contech_Test].[dbo].[qrn].[qrn_no] 
   LEFT JOIN [Contech_Test].[dbo].[componet] ON [rawUpsize_Contech].[dbo].[corractn].[comp] = [Contech_Test].[dbo].[componet].[comp] 
-  
+  LEFT JOIN [Contech_Test].[dbo].[complnts] ON [rawUpsize_Contech].[dbo].[corractn].[complnt_no] = [Contech_Test].[dbo].[complnts].[complnt_no] -- FK = [complnts].[complnt_no] --> [complnts].[complntid]  
+
 SET IDENTITY_INSERT [Contech_Test].[dbo].[corractn] OFF;
 
 --SELECT * FROM [Contech_Test].[dbo].[corractn]
