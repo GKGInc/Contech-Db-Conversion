@@ -9,35 +9,35 @@
 --  - Set [fmmasterid] to be primary key
 --  - Changed [fmdesc] from text to varchar(2000)
 
-USE Contech_Test
+--USE Contech_Test
 
-IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fmmaster'))
-    DROP TABLE [dbo].[fmmaster]
+--IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fmmaster'))
+--    DROP TABLE [dbo].[fmmaster]
 
-CREATE TABLE [dbo].[fmmaster](
-	[fmmasterid] [int] identity(1,1) NOT NULL,
-	[fmname] [char](50) NOT NULL DEFAULT '',
-	[fmpdfname] [char](50) NOT NULL DEFAULT '',
-	[fmdesc] varchar(2000) NOT NULL DEFAULT '',
-	CONSTRAINT [PK_fmmaster] PRIMARY KEY CLUSTERED 
-	(
-		[fmmasterid] ASC
-	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] 
-GO
+--CREATE TABLE [dbo].[fmmaster](
+--	[fmmasterid] [int] identity(1,1) NOT NULL,
+--	[fmname] [char](50) NOT NULL DEFAULT '',
+--	[fmpdfname] [char](50) NOT NULL DEFAULT '',
+--	[fmdesc] varchar(2000) NOT NULL DEFAULT '',
+--	CONSTRAINT [PK_fmmaster] PRIMARY KEY CLUSTERED 
+--	(
+--		[fmmasterid] ASC
+--	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+--) ON [PRIMARY] 
+--GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[fmmaster] ON;
+--SET IDENTITY_INSERT [Contech_Test].[dbo].[fmmaster] ON;
 
-INSERT INTO [Contech_Test].[dbo].[fmmaster] ([fmmasterid],[fmname],[fmpdfname],[fmdesc])
-SELECT [fmmasterid]
-      ,[fmname]
-      ,[fmpdfname]
-      ,[fmdesc]
-  FROM [rawUpsize_Contech].[dbo].[fmmaster]
+--INSERT INTO [Contech_Test].[dbo].[fmmaster] ([fmmasterid],[fmname],[fmpdfname],[fmdesc])
+--SELECT [fmmasterid]
+--      ,[fmname]
+--      ,[fmpdfname]
+--      ,[fmdesc]
+--  FROM [rawUpsize_Contech].[dbo].[fmmaster]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[fmmaster] OFF;
+--SET IDENTITY_INSERT [Contech_Test].[dbo].[fmmaster] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[fmmaster]
+----SELECT * FROM [Contech_Test].[dbo].[fmmaster]
 
 -- =========================================================
 --Section 033: ftorders
