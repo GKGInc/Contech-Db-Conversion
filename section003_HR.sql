@@ -1,10 +1,11 @@
 -- =========================================================
---Section 003: class
+-- Section 003: class
 -- =========================================================
 
 -- Column changes:
---	- Moved classid to first column
---  - Changed classid to be primary key
+--	- Moved [classid] to first column
+--  - Changed [classid] to be primary key
+--  - Changed [desc] from [text] to [varchar](2000)
 
 USE Contech_Test
 
@@ -12,30 +13,32 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[class]
 	
 CREATE TABLE [dbo].[class](
-	classid int identity(1,1) not null,
-	[class] [char](4) NOT NULL,
-	[desc] [text] NOT NULL,
+	classid [int] IDENTITY(1,1) NOT NULL,
+	[class] [char](4) NOT NULL DEFAULT '',
+	[desc] [varchar](2000) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_class] PRIMARY KEY CLUSTERED 
 	(
 		[classid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[class]	SELECT * FROM [rawUpsize_Contech].[dbo].[class] 
+INSERT INTO [Contech_Test].[dbo].[class]
+	SELECT * FROM [rawUpsize_Contech].[dbo].[class] 
 
 --SELECT * FROM [Contech_Test].[dbo].[class]
 
 -- =========================================================
---Section 003: componet
+-- Section 003: componet
 -- =========================================================
 
 -- Column changes:
---  - Moved componetid to 1st column
---  - Changed componetid to be primary key
---  - Changed class to int to reference type in class table
+--  - Moved [componetid] to 1st column
+--  - Changed [componetid] to be primary key
+--  - Changed [class] to [int] to reference [type] in [class] table
+--  - Changed [memo] from [text] to [varchar](2000)
 -- Maps:
---	- [componet].[lass]		-- FK = [class].[class] -> [class].[classid]
+--	- [componet].[class]		-- FK = [class].[class] -> [class].[classid]
 
 USE Contech_Test
 
@@ -43,118 +46,118 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[componet]
 	
 CREATE TABLE [dbo].[componet](
-	[componetid] int identity(1,1) not null,
-	[comp] [char](5) NOT NULL,
-	[desc] [char](75) NOT NULL,
-	[desc2] [char](75) NOT NULL,
-	[memo1] [char](51) NOT NULL,
-	[insp] [char](2) NOT NULL,
-	[cust_no] [char](5) NOT NULL,
-	[cost] [numeric](9, 5) NOT NULL,
-	[unit] [char](4) NOT NULL,
-	[ven_id] [char](6) NOT NULL,
-	[price] [numeric](9, 5) NOT NULL,
-	[ctp_min] [numeric](10, 0) NOT NULL,
-	[cmi_inv] [char](1) NOT NULL,
-	[cmi_min] [numeric](10, 0) NOT NULL,
-	[cmi_price] [numeric](9, 5) NOT NULL,
-	[material] [char](3) NOT NULL,
-	[cust_comp] [char](12) NOT NULL,
-	[cus_comp_r] [char](3) NOT NULL,
-	[cust_desc] [char](50) NOT NULL,
-	[memo] [text] NOT NULL,
-	[inventory] [numeric](10, 0) NOT NULL,
-	[drw] [char](8) NOT NULL,
-	[inc] [char](8) NOT NULL,
-	[price_ire] [numeric](9, 5) NOT NULL,
-	[phys_inv] [numeric](10, 0) NOT NULL,
-	[inv_card] [numeric](10, 0) NOT NULL,
-	[quar] [numeric](10, 0) NOT NULL,
-	[hold] [numeric](10, 0) NOT NULL,
-	[reject] [numeric](10, 0) NOT NULL,
-	[class] [int] NOT NULL,
-	[comp_rev] [char](2) NOT NULL,
-	[samp_plan] [char](2) NOT NULL,
-	[lbl] [char](8) NOT NULL,
-	[xinv] [bit] NOT NULL,
-	[pickconv] [numeric](9, 2) NOT NULL,
-	[back_dist] [bit] NOT NULL,
-	[expire] [bit] NOT NULL,
-	[comptype] [char](3) NOT NULL,
-	[color] [char](15) NOT NULL,
-	[color_no] [char](20) NOT NULL,
-	[pantone] [char](15) NOT NULL,
-	[fda_food] [int] NOT NULL,
-	[fda_med] [int] NOT NULL,
-	[coneg] [int] NOT NULL,
-	[prop65] [int] NOT NULL,
-	[rohs] [int] NOT NULL,
-	[eu_94_62] [int] NOT NULL,
-	[rev_rec] [int] NOT NULL,
+	[componetid] [int] IDENTITY(1,1) NOT NULL,
+	[comp] [char](5) NOT NULL DEFAULT '',
+	[desc] [char](75) NOT NULL DEFAULT '',
+	[desc2] [char](75) NOT NULL DEFAULT '',
+	[memo1] [char](51) NOT NULL DEFAULT '',
+	[insp] [char](2) NOT NULL DEFAULT '',
+	[cust_no] [char](5) NOT NULL DEFAULT '',
+	[cost] [numeric](9, 5) NOT NULL DEFAULT 0.0,
+	[unit] [char](4) NOT NULL DEFAULT '',
+	[ven_id] [char](6) NOT NULL DEFAULT '',
+	[price] [numeric](9, 5) NOT NULL DEFAULT 0.0,
+	[ctp_min] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[cmi_inv] [char](1) NOT NULL DEFAULT '',
+	[cmi_min] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[cmi_price] [numeric](9, 5) NOT NULL DEFAULT 0.0,
+	[material] [char](3) NOT NULL DEFAULT '',
+	[cust_comp] [char](12) NOT NULL DEFAULT '',
+	[cus_comp_r] [char](3) NOT NULL DEFAULT '',
+	[cust_desc] [char](50) NOT NULL DEFAULT '',
+	[memo] [varchar](2000) NOT NULL DEFAULT '',
+	[inventory] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[drw] [char](8) NOT NULL DEFAULT '',
+	[inc] [char](8) NOT NULL DEFAULT '',
+	[price_ire] [numeric](9, 5) NOT NULL DEFAULT 0.0,
+	[phys_inv] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[inv_card] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[quar] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[hold] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[reject] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[class] [int] NOT NULL DEFAULT 0,
+	[comp_rev] [char](2) NOT NULL DEFAULT '',
+	[samp_plan] [char](2) NOT NULL DEFAULT '',
+	[lbl] [char](8) NOT NULL DEFAULT '',
+	[xinv] [bit] NOT NULL DEFAULT 0,
+	[pickconv] [numeric](9, 2) NOT NULL DEFAULT 0.0,
+	[back_dist] [bit] NOT NULL DEFAULT 0,
+	[expire] [bit] NOT NULL DEFAULT 0,
+	[comptype] [char](3) NOT NULL DEFAULT '',
+	[color] [char](15) NOT NULL DEFAULT '',
+	[color_no] [char](20) NOT NULL DEFAULT '',
+	[pantone] [char](15) NOT NULL DEFAULT '',
+	[fda_food] [int] NOT NULL DEFAULT 0,
+	[fda_med] [int] NOT NULL DEFAULT 0,
+	[coneg] [int] NOT NULL DEFAULT 0,
+	[prop65] [int] NOT NULL DEFAULT 0,
+	[rohs] [int] NOT NULL DEFAULT 0,
+	[eu_94_62] [int] NOT NULL DEFAULT 0,
+	[rev_rec] [int] NOT NULL DEFAULT 0,
 	[rev_dt] [datetime] NULL,
-	[rev_emp] [char](10) NOT NULL,
+	[rev_emp] [char](10) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_componet] PRIMARY KEY CLUSTERED 
 	(
 		[componetid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY] 
 GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[componet] ON;
 
 INSERT INTO [Contech_Test].[dbo].[componet] ([componetid],[comp],[desc],[desc2],[memo1],[insp],[cust_no],[cost],[unit],[ven_id],[price],[ctp_min],[cmi_inv],[cmi_min],[cmi_price],[material],[cust_comp],[cus_comp_r],[cust_desc],[memo],[inventory],[drw],[inc],[price_ire],[phys_inv],[inv_card],[quar],[hold],[reject],[class],[comp_rev],[samp_plan],[lbl],[xinv],[pickconv],[back_dist],[expire],[comptype],[color],[color_no],[pantone],[fda_food],[fda_med],[coneg],[prop65],[rohs],[eu_94_62],[rev_rec],[rev_dt],[rev_emp])
 SELECT 
-[componetid]
-,[comp]
-,[rawUpsize_Contech].[dbo].[componet].[desc]
-,[desc2]
-,[memo1]
-,[insp]
-,[cust_no]
-,[cost]
-,[unit]
-,[ven_id]
-,[price]
-,[ctp_min]
-,[cmi_inv]
-,[cmi_min]
-,[cmi_price]
-,[material]
-,[cust_comp]
-,[cus_comp_r]
-,[cust_desc]
-,[memo]
-,[inventory]
-,[drw]
-,[inc]
-,[price_ire]
-,[phys_inv]
-,[inv_card]
-,[quar]
-,[hold]
-,[reject]
---,[rawUpsize_Contech].[dbo].[componet].[class]
-,ISNULL([Contech_Test].[dbo].[class].classid, 0) AS [class]
-,[comp_rev]
-,[samp_plan]
-,[lbl]
-,[xinv]
-,[pickconv]
-,[back_dist]
-,[expire]
-,[comptype]
-,[color]
-,[color_no]
-,[pantone]
-,[fda_food]
-,[fda_med]
-,[coneg]
-,[prop65]
-,[rohs]
-,[eu_94_62]
-,[rev_rec]
-,[rev_dt]
-,[rev_emp]
+	[rawUpsize_Contech].[dbo].[componet].[componetid]
+	,[rawUpsize_Contech].[dbo].[componet].[comp]
+	,[rawUpsize_Contech].[dbo].[componet].[desc]
+	,[rawUpsize_Contech].[dbo].[componet].[desc2]
+	,[rawUpsize_Contech].[dbo].[componet].[memo1]
+	,[rawUpsize_Contech].[dbo].[componet].[insp]
+	,[rawUpsize_Contech].[dbo].[componet].[cust_no]
+	,[rawUpsize_Contech].[dbo].[componet].[cost]
+	,[rawUpsize_Contech].[dbo].[componet].[unit]
+	,[rawUpsize_Contech].[dbo].[componet].[ven_id]
+	,[rawUpsize_Contech].[dbo].[componet].[price]
+	,[rawUpsize_Contech].[dbo].[componet].[ctp_min]
+	,[rawUpsize_Contech].[dbo].[componet].[cmi_inv]
+	,[rawUpsize_Contech].[dbo].[componet].[cmi_min]
+	,[rawUpsize_Contech].[dbo].[componet].[cmi_price]
+	,[rawUpsize_Contech].[dbo].[componet].[material]
+	,[rawUpsize_Contech].[dbo].[componet].[cust_comp]
+	,[rawUpsize_Contech].[dbo].[componet].[cus_comp_r]
+	,[rawUpsize_Contech].[dbo].[componet].[cust_desc]
+	,[rawUpsize_Contech].[dbo].[componet].[memo]
+	,[rawUpsize_Contech].[dbo].[componet].[inventory]
+	,[rawUpsize_Contech].[dbo].[componet].[drw]
+	,[rawUpsize_Contech].[dbo].[componet].[inc]
+	,[rawUpsize_Contech].[dbo].[componet].[price_ire]
+	,[rawUpsize_Contech].[dbo].[componet].[phys_inv]
+	,[rawUpsize_Contech].[dbo].[componet].[inv_card]
+	,[rawUpsize_Contech].[dbo].[componet].[quar]
+	,[rawUpsize_Contech].[dbo].[componet].[hold]
+	,[rawUpsize_Contech].[dbo].[componet].[reject]
+	--,[rawUpsize_Contech].[dbo].[componet].[class]
+	,ISNULL([Contech_Test].[dbo].[class].classid, 0) AS [class]
+	,[rawUpsize_Contech].[dbo].[componet].[comp_rev]
+	,[rawUpsize_Contech].[dbo].[componet].[samp_plan]
+	,[rawUpsize_Contech].[dbo].[componet].[lbl]
+	,[rawUpsize_Contech].[dbo].[componet].[xinv]
+	,[rawUpsize_Contech].[dbo].[componet].[pickconv]
+	,[rawUpsize_Contech].[dbo].[componet].[back_dist]
+	,[rawUpsize_Contech].[dbo].[componet].[expire]
+	,[rawUpsize_Contech].[dbo].[componet].[comptype]
+	,[rawUpsize_Contech].[dbo].[componet].[color]
+	,[rawUpsize_Contech].[dbo].[componet].[color_no]
+	,[rawUpsize_Contech].[dbo].[componet].[pantone]
+	,[rawUpsize_Contech].[dbo].[componet].[fda_food]
+	,[rawUpsize_Contech].[dbo].[componet].[fda_med]
+	,[rawUpsize_Contech].[dbo].[componet].[coneg]
+	,[rawUpsize_Contech].[dbo].[componet].[prop65]
+	,[rawUpsize_Contech].[dbo].[componet].[rohs]
+	,[rawUpsize_Contech].[dbo].[componet].[eu_94_62]
+	,[rawUpsize_Contech].[dbo].[componet].[rev_rec]
+	,[rawUpsize_Contech].[dbo].[componet].[rev_dt]
+	,[rawUpsize_Contech].[dbo].[componet].[rev_emp]
 FROM [rawUpsize_Contech].[dbo].[componet] 
 LEFT JOIN [Contech_Test].[dbo].[class] ON [rawUpsize_Contech].[dbo].[componet].[class] = [Contech_Test].[dbo].[class].class
 

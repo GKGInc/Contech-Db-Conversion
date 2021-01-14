@@ -1,18 +1,20 @@
 
 -- =========================================================
---Section 009: qrn
+-- Section 009: qrn
 -- =========================================================
 
 -- Column changes:
---  - Changed qrnid to be primary key
---  - Changed cust_no to int to reference customer table
---  - Changed ven_id to int to reference mfgcat table
---  - Changed empnumber to int to reference employee table
+--  - Changed [qrnid] to be primary key
+--  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
+--  - Changed [ven_id] [char](6) to [vendorid] [int] to reference [vendor] table
+--  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
+--  - Changed [reason] from [text] to [varchar](2000)
+--  - Changed [comments] from [text] to [varchar](2000)
 -- Maps:
---	- [qrn].[cust_no]	-- FK = [customer].[cust_no] -> [customer].[customerid]
---	- [qrn].[ven_id]	-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
---	- [qrn].[matlinid]	-- FK = [matlin].[matlin_key] -> [matlin].[matlinid]
---	- [qrn].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [qrn].[cust_no] --> [customerid]	 -- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [qrn].[ven_id] --> [vendorid]		 -- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+--	- [qrn].[matlinid]					 -- FK = [matlin].[matlin_key] == [matlin].[matlinid]
+--	- [qrn].[empnumber]	--> [employeeid] -- FK = [employee].[empnumber] --> [employee].[employeeid]
 
 USE Contech_Test
 
@@ -20,63 +22,66 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrn]
 	
 CREATE TABLE [dbo].[qrn](
-	[qrnid] [int] identity(1,1) NOT NULL,
-	[qrn_no] [char](8) NOT NULL,
-	[source] [char](2) NOT NULL,
-	[comp] [char](5) NOT NULL,
-	[fin_good] [char](15) NOT NULL,
-	[fin_lot] [char](8) NOT NULL,
-	[ct_lot] [char](4) NOT NULL,
-	[cust_no] [char](5) NOT NULL,	-- FK = [qrn].[cust_no] -> [customer].[customerid]
-	[cust_lot] [char](15) NOT NULL,
-	[ven_id] [int] NOT NULL,		-- FK = [qrn].[ven_id] -> [vendor].[vendorid]
-	[ven_lot] [char](15) NOT NULL,
-	[po_no] [char](8) NOT NULL,
-	[cust_po] [char](15) NOT NULL,
-	[recd] [numeric](10, 0) NOT NULL,
-	[rejected] [numeric](10, 0) NOT NULL,
-	[inspected] [numeric](10, 0) NOT NULL,
-	[defective] [numeric](10, 0) NOT NULL,
-	[inspector] [char](10) NOT NULL,
+	[qrnid] [int] IDENTITY(1,1) NOT NULL,
+	[qrn_no] [char](8) NOT NULL DEFAULT '',
+	[source] [char](2) NOT NULL DEFAULT '',
+	[comp] [char](5) NOT NULL DEFAULT '',
+	[fin_good] [char](15) NOT NULL DEFAULT '',
+	[fin_lot] [char](8) NOT NULL DEFAULT '',
+	[ct_lot] [char](4) NOT NULL DEFAULT '',
+	--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] --> [customer].[customerid]
+	[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]	
+	[cust_lot] [char](15) NOT NULL DEFAULT '',
+	--[ven_id] [char](6) NOT NULL DEFAULT 0,		-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+	[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+	[ven_lot] [char](15) NOT NULL DEFAULT '',
+	[po_no] [char](8) NOT NULL DEFAULT '',
+	[cust_po] [char](15) NOT NULL DEFAULT '',
+	[recd] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[rejected] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[inspected] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[defective] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[inspector] [char](10) NOT NULL DEFAULT '',
 	[qrn_date] [datetime] NULL,
-	[reason] [text] NOT NULL,
-	[ct_cpa] [char](10) NOT NULL,
-	[action] [bit] NOT NULL,
-	[post] [bit] NOT NULL,
-	[matlinid] [int] NOT NULL,			-- FK = [matlin].[matlinid]
-	[matlincrid] [int] NOT NULL,
-	[use_as] [bit] NOT NULL,
-	[rework] [bit] NOT NULL,
-	[return] [bit] NOT NULL,
-	[scrap] [bit] NOT NULL,
-	[mrc] [bit] NOT NULL,
-	[returned] [numeric](10, 0) NOT NULL,
-	[kept] [numeric](10, 0) NOT NULL,
-	[comments] [text] NOT NULL,
+	[reason] [varchar](2000) NOT NULL DEFAULT '',
+	[ct_cpa] [char](10) NOT NULL DEFAULT '',
+	[action] [bit] NOT NULL DEFAULT 0,
+	[post] [bit] NOT NULL DEFAULT 0,
+	[matlinid] [int] NOT NULL DEFAULT 0,			-- FK = [matlin].[matlinid]
+	[matlincrid] [int] NOT NULL DEFAULT 0,
+	[use_as] [bit] NOT NULL DEFAULT 0,
+	[rework] [bit] NOT NULL DEFAULT 0,
+	[return] [bit] NOT NULL DEFAULT 0,
+	[scrap] [bit] NOT NULL DEFAULT 0,
+	[mrc] [bit] NOT NULL DEFAULT 0,
+	[returned] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[kept] [numeric](10, 0) NOT NULL DEFAULT 0,
+	[comments] [varchar](2000) NOT NULL DEFAULT '',
 	[rev_dt] [datetime] NULL,
-	[hold] [bit] NOT NULL,
-	[reopen_po] [bit] NOT NULL,
-	[internal] [bit] NOT NULL,
-	[comp_desc] [char](75) NOT NULL,
-	[empnumber] [int] NOT NULL,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
-	[external] [bit] NOT NULL,
-	[rework_no] [char](10) NOT NULL,
+	[hold] [bit] NOT NULL DEFAULT 0,
+	[reopen_po] [bit] NOT NULL DEFAULT 0,
+	[internal] [bit] NOT NULL DEFAULT 0,
+	[comp_desc] [char](75) NOT NULL DEFAULT '',
+	--[empnumber] [char](10) NOT NULL DEFAULT 0,	-- FK = [employee].[empnumber] --> [employee].[employeeid]
+	[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] --> [employee].[employeeid]
+	[external] [bit] NOT NULL DEFAULT 0,
+	[rework_no] [char](10) NOT NULL DEFAULT '',
 	[rjct_close] [datetime] NULL,
 	[keep_close] [datetime] NULL,
 	[vndnotfied] [datetime] NULL,
 	[vndrsponse] [datetime] NULL,
-	[sort] [bit] NOT NULL,
-	[regrade] [bit] NOT NULL,
+	[sort] [bit] NOT NULL DEFAULT 0,
+	[regrade] [bit] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_qrn] PRIMARY KEY CLUSTERED 
 	(
 		[qrnid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY] 
 GO
   
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrn] ON;
 
-INSERT INTO [Contech_Test].[dbo].[qrn] ([qrnid],[qrn_no],[source],[comp],[fin_good],[fin_lot],[ct_lot],[cust_no],[cust_lot],[ven_id],[ven_lot],[po_no],[cust_po],[recd],[rejected],[inspected],[defective],[inspector],[qrn_date],[reason],[ct_cpa],[action],[post],[matlinid],[matlincrid],[use_as],[rework],[return],[scrap],[mrc],[returned],[kept],[comments],[rev_dt],[hold],[reopen_po],[internal],[comp_desc],[empnumber],[external],[rework_no],[rjct_close],[keep_close],[vndnotfied],[vndrsponse],[sort],[regrade])
+INSERT INTO [Contech_Test].[dbo].[qrn] ([qrnid],[qrn_no],[source],[comp],[fin_good],[fin_lot],[ct_lot],[customerid],[cust_lot],[vendorid],[ven_lot],[po_no],[cust_po],[recd],[rejected],[inspected],[defective],[inspector],[qrn_date],[reason],[ct_cpa],[action],[post],[matlinid],[matlincrid],[use_as],[rework],[return],[scrap],[mrc],[returned],[kept],[comments],[rev_dt],[hold],[reopen_po],[internal],[comp_desc],[employeeid],[external],[rework_no],[rjct_close],[keep_close],[vndnotfied],[vndrsponse],[sort],[regrade])
 SELECT [rawUpsize_Contech].[dbo].[qrn].[qrnid]
       ,[rawUpsize_Contech].[dbo].[qrn].[qrn_no]
       ,[rawUpsize_Contech].[dbo].[qrn].[source]
@@ -85,10 +90,10 @@ SELECT [rawUpsize_Contech].[dbo].[qrn].[qrnid]
       ,[rawUpsize_Contech].[dbo].[qrn].[fin_lot]
       ,[rawUpsize_Contech].[dbo].[qrn].[ct_lot]
       --,[rawUpsize_Contech].[dbo].[qrn].[cust_no]	
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) AS [customerid] -- [orders].[cust_no]	-- FK = [customer].[cust_no] -> [customer].[customerid]
+	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) AS [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[qrn].[cust_lot]
       --,[rawUpsize_Contech].[dbo].[qrn].[ven_id]		
-	  ,ISNULL([Contech_Test].[dbo].[vendor].[vendorid], 0) AS [vendorid]	-- [orders].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+	  ,ISNULL([Contech_Test].[dbo].[vendor].[vendorid], 0) AS [vendorid]		-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
       ,[rawUpsize_Contech].[dbo].[qrn].[ven_lot]
       ,[rawUpsize_Contech].[dbo].[qrn].[po_no]
       ,[rawUpsize_Contech].[dbo].[qrn].[cust_po]
@@ -103,7 +108,7 @@ SELECT [rawUpsize_Contech].[dbo].[qrn].[qrnid]
       ,[rawUpsize_Contech].[dbo].[qrn].[action]
       ,[rawUpsize_Contech].[dbo].[qrn].[post]
       --,[rawUpsize_Contech].[dbo].[qrn].[matlinid]	
-	  ,ISNULL([Contech_Test].[dbo].[matlin].[matlinid], 0) AS [matlinid]		-- [orders].[matlinid]	-- FK = [matlin].[matlin_key] -> [matlin].[matlinid]
+	  ,ISNULL([Contech_Test].[dbo].[matlin].[matlinid], 0) AS [matlinid]		-- FK = [matlin].[matlin_key] == [matlin].[matlinid]
       ,[rawUpsize_Contech].[dbo].[qrn].[matlincrid]
       ,[rawUpsize_Contech].[dbo].[qrn].[use_as]
       ,[rawUpsize_Contech].[dbo].[qrn].[rework]
@@ -119,7 +124,7 @@ SELECT [rawUpsize_Contech].[dbo].[qrn].[qrnid]
       ,[rawUpsize_Contech].[dbo].[qrn].[internal]
       ,[rawUpsize_Contech].[dbo].[qrn].[comp_desc]
       --,[rawUpsize_Contech].[dbo].[qrn].[empnumber]	
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- [orders].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[qrn].[external]
       ,[rawUpsize_Contech].[dbo].[qrn].[rework_no]
       ,[rawUpsize_Contech].[dbo].[qrn].[rjct_close]
@@ -139,14 +144,15 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[qrn] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[qrn]
 
 -- =========================================================
---Section 009: qrn_dtl
+-- Section 009: qrn_dtl
 -- =========================================================
 
 -- Column changes:
---  - Changed qrn_dtlid to  primary key
+--  - Changed [qrn_dtlid] to be primary key
+--  - Changed [qrn_no] [char](8) to [qrnid] [int] to reference [qrn] table
 -- Maps:
+--	- [qrn_dtl].[qrnid]			-- FK = [qrn].[qrnid]
 --	- [qrn_dtl].[cmpcasesid]	-- FK = [cmpcases].[cmpcasesid]
---	- [qrn_dtl].[qrn_no]		--> [qrn].[qrn_no]
 
 USE Contech_Test
 
@@ -154,13 +160,14 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrn_dtl]
 	
 CREATE TABLE [dbo].[qrn_dtl](
-	[qrn_dtlid] [int] identity(1,1) NOT NULL,		-- PK
-	[qrn_no] [char](8) NOT NULL,	-- FK = [qrn].[qrn_no]  ?? [qrnid] (see qrnexcpt)
-	[cmpcasesid] [int] NOT NULL,	-- FK = [cmpcases].[cmpcasesid]
-	[qty_rej] [int] NOT NULL,
-	[id_type] [char](5) NOT NULL,
-	[picked] [bit] NOT NULL,
-	[bar_code] [char](13) NOT NULL,
+	[qrn_dtlid] [int] IDENTITY(1,1) NOT NULL,	-- PK
+	--[qrn_no] [char](8) NOT NULL DEFAULT '',	-- FK = [qrn].[qrn_no]  
+	[qrnid] [int] NOT NULL DEFAULT '',			-- FK = [qrn].[qrnid]
+	[cmpcasesid] [int] NOT NULL DEFAULT 0,		-- FK = [cmpcases].[cmpcasesid]
+	[qty_rej] [int] NOT NULL DEFAULT 0,
+	[id_type] [char](5) NOT NULL DEFAULT '',
+	[picked] [bit] NOT NULL DEFAULT 0,
+	[bar_code] [char](13) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_qrn_dtl] PRIMARY KEY CLUSTERED 
 	(
 		[qrn_dtlid] ASC
@@ -170,29 +177,31 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrn_dtl] ON;
 
-INSERT INTO [Contech_Test].[dbo].[qrn_dtl] ([qrn_dtlid],[qrn_no],[cmpcasesid],[qty_rej],[id_type],[picked],[bar_code])
-SELECT [qrn_dtlid]
-      ,[qrn_no]			--> [qrn].[qrn_no]	?? [qrnid] (see qrnexcpt)
-      ,[cmpcasesid]		-- FK = [cmpcases].[cmpcasesid]
-      ,[qty_rej]
-      ,[id_type]
-      ,[picked]
-      ,[bar_code]
+INSERT INTO [Contech_Test].[dbo].[qrn_dtl] ([qrn_dtlid],[qrnid],[cmpcasesid],[qty_rej],[id_type],[picked],[bar_code])
+SELECT [rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_dtlid]
+      --,[rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_no]				
+	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]	-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+      ,[rawUpsize_Contech].[dbo].[qrn_dtl].[cmpcasesid]			-- FK = [cmpcases].[cmpcasesid]
+      ,[rawUpsize_Contech].[dbo].[qrn_dtl].[qty_rej]
+      ,[rawUpsize_Contech].[dbo].[qrn_dtl].[id_type]
+      ,[rawUpsize_Contech].[dbo].[qrn_dtl].[picked]
+      ,[rawUpsize_Contech].[dbo].[qrn_dtl].[bar_code]
   FROM [rawUpsize_Contech].[dbo].[qrn_dtl]
+  LEFT JOIN [Contech_Test].[dbo].[qrn] ON [rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_no] = [Contech_Test].[dbo].[qrn].[qrn_no]
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrn_dtl] OFF;
 
 --SELECT * FROM [Contech_Test].[dbo].[qrn_dtl]
 
 -- =========================================================
---Section 009: qrnexcpt
+-- Section 009: qrnexcpt
 -- =========================================================
 
 -- Column changes:
---  - Set qrnexcptid as primary key
+--  - Set [qrnexcptid] as primary key
 -- Maps:
 --	- [qrnexcpt].[qrnid]	-- FK = [qrn].[qrnid]
---	- [qrnexcpt].[bom_no]	--> bom_hdr.bom_no
+--	- [qrnexcpt].[bom_no]	-- FK = [bom_hdr].[bom_no]
 
 USE Contech_Test
 
@@ -200,10 +209,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrnexcpt]
 	
 CREATE TABLE [dbo].[qrnexcpt](
-	[qrnexcptid] [int] identity(1,1) NOT NULL,
-	[qrnid] [int] NOT NULL,				--> FK = [qrn].[qrnid]
-	[extype] [char](1) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL,	-->	bom_hdr.bom_no
+	[qrnexcptid] [int] IDENTITY(1,1) NOT NULL,
+	[qrnid] [int] NOT NULL DEFAULT 0,				-- FK = [qrn].[qrnid]
+	[extype] [char](1) NOT NULL DEFAULT '',
+	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
 	CONSTRAINT [PK_qrnexcpt] PRIMARY KEY CLUSTERED 
 	(
 		[qrnexcptid] ASC
@@ -214,10 +223,10 @@ GO
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnexcpt] ON;
 
 INSERT INTO [Contech_Test].[dbo].[qrnexcpt] ([qrnexcptid],[qrnid],[extype],[bom_no])
-SELECT [qrnexcptid]
-      ,[qrnid]		--> FK = [qrn].[qrnid]
-      ,[extype]
-      ,[bom_no]		-->	bom_hdr.bom_no
+SELECT [rawUpsize_Contech].[dbo].[qrnexcpt].[qrnexcptid]
+      ,[rawUpsize_Contech].[dbo].[qrnexcpt].[qrnid]		-- FK = [qrn].[qrnid]
+      ,[rawUpsize_Contech].[dbo].[qrnexcpt].[extype]
+      ,[rawUpsize_Contech].[dbo].[qrnexcpt].[bom_no]	-- FK = [bom_hdr].[bom_no]
   FROM [rawUpsize_Contech].[dbo].[qrnexcpt]
   
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnexcpt] OFF;
@@ -225,14 +234,14 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnexcpt] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[qrnexcpt]
 
 -- =========================================================
---Section 009: qrnissue
+-- Section 009: qrnissue
 -- =========================================================
 
 -- Column changes:
 --  - Set qrnissue as primary key
 -- Maps:
 --	- [qrnissue].[issuesid]		-- FK = [issues].[issuesid]
---	- [qrnissue].[qrn_no]		--> [qrn].[qrn_no]
+--	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 --	- [qrnissue].[issuesdtid]	-- FK = [issuesdt].[issuesdtid]
 
 USE Contech_Test
@@ -241,10 +250,11 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrnissue]
 		
 CREATE TABLE [dbo].[qrnissue](
-	[qrnissueid] [int] identity(1,1) NOT NULL,
-	[issuesid] [int] NOT NULL,		--> FK = [issues].[issuesid]
-	[qrn_no] [char](8) NOT NULL,	--> [qrn].[qrn_no]
-	[issuesdtid] [int] NOT NULL,	--> FK = [issuesdt].[issuesdtid]
+	[qrnissueid] [int] IDENTITY(1,1) NOT NULL,
+	[issuesid] [int] NOT NULL DEFAULT 0,			-- FK = [issues].[issuesid]
+	--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
+	[qrnid] [int] NOT NULL DEFAULT '',				-- FK = [qrn].[qrnid]
+	[issuesdtid] [int] NOT NULL DEFAULT 0,			-- FK = [issuesdt].[issuesdtid]
 	CONSTRAINT [PK_qrnissue] PRIMARY KEY CLUSTERED 
 	(
 		[qrnissueid] ASC
@@ -254,25 +264,27 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnissue] ON;
 
-INSERT INTO [Contech_Test].[dbo].[qrnissue] ([qrnissueid],[issuesid],[qrn_no],[issuesdtid])
-SELECT [qrnissueid]
-      ,[issuesid]
-      ,[qrn_no]
-      ,[issuesdtid]
+INSERT INTO [Contech_Test].[dbo].[qrnissue] ([qrnissueid],[issuesid],[qrnid],[issuesdtid])
+SELECT [rawUpsize_Contech].[dbo].[qrnissue].[qrnissueid]
+      ,[rawUpsize_Contech].[dbo].[qrnissue].[issuesid]
+      --,[rawUpsize_Contech].[dbo].[qrnmachn].[qrn_no]			-- FK = [qrn].[qrn_no]
+	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]	-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+      ,[rawUpsize_Contech].[dbo].[qrnissue].[issuesdtid]
   FROM [rawUpsize_Contech].[dbo].[qrnissue]
+  LEFT JOIN [Contech_Test].[dbo].[qrn] ON [rawUpsize_Contech].[dbo].[qrnissue].[qrn_no] = [Contech_Test].[dbo].[qrn].[qrn_no]
   
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnissue] OFF;
 
 --SELECT * FROM [Contech_Test].[dbo].[qrnissue]
 
 -- =========================================================
---Section 009: qrnmachn
+-- Section 009: qrnmachn
 -- =========================================================
 
 -- Column changes:
---  - Set qrnmachnid as primary key
+--  - Set [qrnmachnid] as primary key
 -- Maps:
---	- [qrnissue].[qrn_no]		--> [qrn].[qrn_no]
+--	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrnid]
 
 USE Contech_Test
 
@@ -280,9 +292,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrnmachn]
 
 CREATE TABLE [dbo].[qrnmachn](
-	[qrnmachnid] [int] identity(1,1) NOT NULL,
-	[qrn_no] [char](8) NOT NULL,	--> [qrn].[qrn_no]
-	[machine] [char](10) NOT NULL,
+	[qrnmachnid] [int] IDENTITY(1,1) NOT NULL,
+	--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
+	[qrnid] [int] NOT NULL DEFAULT '',				-- FK = [qrn].[qrnid]
+	[machine] [char](10) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_qrnmachn] PRIMARY KEY CLUSTERED 
 	(
 		[qrnmachnid] ASC
@@ -292,22 +305,24 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnmachn] ON;
 
-INSERT INTO [Contech_Test].[dbo].[qrnmachn] ([qrnmachnid],[qrn_no],[machine])
-SELECT [qrnmachnid]
-      ,[qrn_no]		--> [qrn].[qrn_no]
-      ,[machine]
+INSERT INTO [Contech_Test].[dbo].[qrnmachn] ([qrnmachnid],[qrnid],[machine])
+SELECT [rawUpsize_Contech].[dbo].[qrnmachn].[qrnmachnid]
+      --,[rawUpsize_Contech].[dbo].[qrnmachn].[qrn_no]			-- FK = [qrn].[qrn_no]
+	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]	-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+      ,[rawUpsize_Contech].[dbo].[qrnmachn].[machine]
   FROM [rawUpsize_Contech].[dbo].[qrnmachn]
+  LEFT JOIN [Contech_Test].[dbo].[qrn] ON [rawUpsize_Contech].[dbo].[qrnmachn].[qrn_no] = [Contech_Test].[dbo].[qrn].[qrn_no]
   
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrnmachn] OFF;
 
 --SELECT * FROM [Contech_Test].[dbo].[qrnmachn]
 
 -- =========================================================
---Section 009: qrnsource
+-- Section 009: qrnsource
 -- =========================================================
 
 -- Column changes:
---  - Added qrnsourceid as primary key
+--  - Added [qrnsourceid] as primary key
 
 USE Contech_Test
 
@@ -316,8 +331,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 	
 CREATE TABLE [dbo].[qrnsource](
 	[qrnsourceid] [int] identity(1,1) NOT NULL,
-	[source] [char](2) NOT NULL,
-	[descript] [char](25) NOT NULL,
+	[source] [char](2) NOT NULL DEFAULT '',
+	[descript] [char](25) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_qrnsource] PRIMARY KEY CLUSTERED 
 	(
 		[qrnsourceid] ASC
@@ -331,13 +346,13 @@ INSERT INTO [Contech_Test].[dbo].[qrnsource]
 --SELECT * FROM [Contech_Test].[dbo].[qrnsource]
 
 -- =========================================================
---Section 009: qrntable
+-- Section 009: qrntable
 -- =========================================================
 
 -- Column changes:
---  - Set qrntableid as primary key
+--  - Set [qrntableid] as primary key
 -- Maps:
---	- [qrnissue].[qrn_no]		--> [qrn].[qrn_no]
+--	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrnid]
 
 USE Contech_Test
 
@@ -345,10 +360,11 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[qrntable]
 	
 CREATE TABLE [dbo].[qrntable](
-	[qrntableid] [int] identity(1,1) NOT NULL,
-	[qrn_no] [char](8) NOT NULL,	--> [qrn].[qrn_no]
-	[table] [char](10) NOT NULL,
-	[insertused] [bit] NOT NULL,
+	[qrntableid] [int] IDENTITY(1,1) NOT NULL,
+	--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
+	[qrnid] [int] NOT NULL DEFAULT '',				-- FK = [qrn].[qrnid]
+	[table] [char](10) NOT NULL DEFAULT '',
+	[insertused] [bit] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_qrntable] PRIMARY KEY CLUSTERED 
 	(
 		[qrntableid] ASC
@@ -358,12 +374,14 @@ GO
 	
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrntable] ON;
 
-INSERT INTO [Contech_Test].[dbo].[qrntable] ([qrntableid],[qrn_no],[table],[insertused])
-SELECT [qrntableid]
-      ,[qrn_no]
-      ,[table]
-      ,[insertused]
+INSERT INTO [Contech_Test].[dbo].[qrntable] ([qrntableid],[qrnid],[table],[insertused])
+SELECT [rawUpsize_Contech].[dbo].[qrntable].[qrntableid]
+      --,[rawUpsize_Contech].[dbo].[qrntable].[qrn_no]			-- FK = [qrn].[qrn_no]
+	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]	-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+      ,[rawUpsize_Contech].[dbo].[qrntable].[table]
+      ,[rawUpsize_Contech].[dbo].[qrntable].[insertused]
   FROM [rawUpsize_Contech].[dbo].[qrntable]
+  LEFT JOIN [Contech_Test].[dbo].[qrn] ON [rawUpsize_Contech].[dbo].[qrntable].[qrn_no] = [Contech_Test].[dbo].[qrn].[qrn_no]
   
 SET IDENTITY_INSERT [Contech_Test].[dbo].[qrntable] OFF;
 
