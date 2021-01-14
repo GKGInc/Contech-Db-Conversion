@@ -44,7 +44,7 @@
 -- =========================================================
 
 -- Column changes:
---  - Added [ftordersid] to be primary key
+--  - Added [ftordersid] to be primary key to replace [job_no] [int]
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 -- Maps:
 --	- [ftorders].[bom_no]	-- FK = [bom_hdr].[bom_no]
@@ -58,8 +58,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[ftorders]
 
 CREATE TABLE [dbo].[ftorders](
+	--[job_no] [int] NOT NULL,	
 	[ftordersid] [int] identity(1,1) NOT NULL,
-	[job_no] [int] NOT NULL,
 	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
 	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_hdrid]
@@ -86,9 +86,9 @@ CREATE TABLE [dbo].[ftorders](
 ) ON [PRIMARY]
 GO
 
---SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] ON;
+SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ftorders] ([job_no],[bom_no],[bom_rev],[status],[part_no],[part_rev],[customerid],[qty_ord],[price],[requested],[awk_date],[cust_no],[entered],[unit],[bo],[part_desc],[qty_firm_po],[mfg_locid])
+INSERT INTO [Contech_Test].[dbo].[ftorders] ([ftordersid],[bom_no],[bom_rev],[status],[part_no],[part_rev],[customerid],[qty_ord],[price],[requested],[awk_date],[cust_no],[entered],[unit],[bo],[part_desc],[qty_firm_po],[mfg_locid])
 SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
       ,[rawUpsize_Contech].[dbo].[ftorders].[bom_no]
       ,[rawUpsize_Contech].[dbo].[ftorders].[bom_rev]	  
@@ -115,9 +115,9 @@ SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
 	--	AND [rawUpsize_Contech].[dbo].[ftorders].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev]
   LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[ftorders].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
 	
---SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] OFF;
+SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ftorders]
+SELECT * FROM [Contech_Test].[dbo].[ftorders]
 
 -- =========================================================
 --Section 033: holidays
