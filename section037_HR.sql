@@ -1,6 +1,6 @@
 
 -- =========================================================
---Section 037: jobsetup
+-- Section 037: jobsetup
 -- =========================================================
 
 -- *** NOT USED ***
@@ -17,7 +17,7 @@
 --    DROP TABLE [dbo].[jobsetup]
 
 --CREATE TABLE [dbo].[jobsetup](
---	[jobsetupid] [int] identity(1,1) NOT NULL,
+--	[jobsetupid] [int] IDENTITY(1,1) NOT NULL,
 --	[tooldate] [datetime] NULL,
 --	--[job_no] [int] NOT NULL DEFAULT 0,
 --	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
@@ -79,7 +79,7 @@
 --SELECT * FROM [Contech_Test].[dbo].[jobsetup]
 
 -- =========================================================
---Section 037: lab001
+-- Section 037: lab001
 -- =========================================================
 
 -- *** NOT USED ***
@@ -98,7 +98,7 @@
 --    DROP TABLE [dbo].[lab001]
 
 --CREATE TABLE [dbo].[lab001](
---	[lab001id] [int] identity(1,1) NOT NULL,
+--	[lab001id] [int] IDENTITY(1,1) NOT NULL,
 --	[shppack_id] [int] NOT NULL DEFAULT 0,			-- FK ???
 --	--[job_no] [int] NOT NULL DEFAULT 0,
 --	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
@@ -131,7 +131,7 @@
 --SELECT * FROM [Contech_Test].[dbo].[lab001]
 
 -- =========================================================
---Section 037: ladinghd
+-- Section 037: ladinghd
 -- =========================================================
 
 -- Column changes:
@@ -139,8 +139,8 @@
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 --  - Changed [ship_to] [char](1) to [custshipid] [int] to reference [custship] table
 -- Maps:
---	- [ladinghd].[cust_no]		-- FK = [customer].[cust_no] --> [customer].[customerid]
---	- [ladinghd].[ship_to]		-- FK = [custship].[ship_to] --> [custship].[custshipid] {composite key with [cust_no] to [custship] table}
+--	- [ladinghd].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [ladinghd].[ship_to] --> [custshipid]	-- FK = [custship].[ship_to] --> [custship].[custshipid] {composite key with [cust_no] to [custship] table}
 
 USE Contech_Test
 
@@ -149,11 +149,11 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[ladinghd](
 	--[shipper_no] [char](6) NOT NULL DEFAULT '',
-	[ladinghdid] [int] identity(1,1) NOT NULL,
+	[ladinghdid] [int] IDENTITY(1,1) NOT NULL,
 	[carrier] [char](20) NOT NULL DEFAULT '',
-	--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] --> [customer].[customerid]
+	--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
 	[customerid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] --> [customer].[customerid]			
-	--[ship_to] [char](1) NOT NULL DEFAULT '',	-- FK = [custship].[ship_to] --> [custship].[custshipid]
+	--[ship_to] [char](1) NOT NULL DEFAULT '',	-- FK = [custship].[ship_to] 
 	[custshipid] [int] NOT NULL DEFAULT 0,		-- FK = [custship].[ship_to] --> [custship].[custshipid]	
 	[ship_date] [datetime] NULL,
 	[skids] [numeric](2, 0) NOT NULL DEFAULT 0,
@@ -203,7 +203,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ladinghd] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[ladinghd]
 
 -- =========================================================
---Section 037: ladingdt
+-- Section 037: ladingdt
 -- =========================================================
 
 -- Column changes:
@@ -211,8 +211,8 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ladinghd] OFF;
 --  - Replace [shipper_no] [char](6) to [ladinghdid] [int] to match updated standards
 --  - Replace [invoice_no] [numeric](9, 0) to [aropenid] [int] to match updated standards
 -- Maps:
---	- [ladingdt].[ladinghdid]		-- FK = [ladinghd].[shipper_no] --> [ladinghd].[ladinghdid]
---	- [ladingdt].[invoice_no]		-- FK = [aropen].[invoice_no]
+--	- [ladingdt].[shipper_no] --> [ladinghdid]	-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
+--	- [ladingdt].[invoice_no] --> [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 
 USE Contech_Test
 
@@ -220,10 +220,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[ladingdt]
 
 CREATE TABLE [dbo].[ladingdt](
-	[ladingdtid] [int] identity(1,1) NOT NULL,
-	--[shipper_no] [char](6) NOT NULL DEFAULT '',		-- FK = [ladinghd].[shipper_no] --> [ladinghd].[ladinghdid]
+	[ladingdtid] [int] IDENTITY(1,1) NOT NULL,
+	--[shipper_no] [char](6) NOT NULL DEFAULT '',		-- FK = [ladinghd].[shipper_no] 
 	[ladinghdid] [int] NOT NULL DEFAULT '',				-- FK = [ladinghd].[shipper_no] --> [ladinghd].[ladinghdid]
-	--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+	--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no] 
 	[aropenid] [int] NOT NULL DEFAULT 0,				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 	[rev_relid] [int] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_ladingdt] PRIMARY KEY CLUSTERED 
@@ -250,7 +250,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ladingdt] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[ladingdt]
 
 -- =========================================================
---Section 037: lblrecon
+-- Section 037: lblrecon
 -- =========================================================
 
 -- Column changes:
@@ -269,8 +269,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[lblrecon]
 
 CREATE TABLE [dbo].[lblrecon](
-	[lblreconid] [int] identity(1,1) NOT NULL,
-	--[cust_no] [char](5) NOT NULL DEFAULT '',		--
+	[lblreconid] [int] IDENTITY(1,1) NOT NULL,
+	--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
 	[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
 	[cus_lot] [char](12) NOT NULL DEFAULT '',
 	[add_dt] [datetime] NULL,
@@ -300,9 +300,9 @@ SELECT [rawUpsize_Contech].[dbo].[lblrecon].[lblreconid]
       --,[rawUpsize_Contech].[dbo].[lblrecon].[mod_user]
 	  ,ISNULL(modUser.[userid] , 0) as [userid]			
   FROM [rawUpsize_Contech].[dbo].[lblrecon]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[lblrecon].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
-  LEFT JOIN [Contech_Test].[dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]	-- FK = [users].[userid]
-  LEFT JOIN [Contech_Test].[dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]	-- FK = [users].[userid]
+  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[lblrecon].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+  LEFT JOIN [Contech_Test].[dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]					-- FK = [users].[userid]
+  LEFT JOIN [Contech_Test].[dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]					-- FK = [users].[userid]
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[lblrecon] OFF;
 

@@ -1,6 +1,6 @@
 
 -- =========================================================
---Section 029: corractn
+-- Section 029: corractn
 -- =========================================================
 
 -- Column changes:
@@ -147,7 +147,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[corractn] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[corractn]
 
 -- =========================================================
---Section 029: cractdtl
+-- Section 029: cractdtl
 -- =========================================================
 
 -- Column changes:
@@ -200,7 +200,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cractdtl] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[cractdtl]
 
 -- =========================================================
---Section 029: cuslblft
+-- Section 029: cuslblft
 -- =========================================================
 
 -- Column changes:
@@ -267,7 +267,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cuslblft] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[cuslblft]
 
 -- =========================================================
---Section 029: custctct
+-- Section 029: custctct
 -- =========================================================
 
 -- Column changes:
@@ -337,7 +337,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[custctct] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[custctct]
 
 -- =========================================================
---Section 029: custship
+-- Section 029: custship
 -- =========================================================
 
 -- Column changes:

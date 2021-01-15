@@ -1,6 +1,6 @@
 
 -- =========================================================
---Section 035: issuetyp
+-- Section 035: issuetyp
 -- =========================================================
 
 -- Column changes:
@@ -12,7 +12,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[issuetyp]
 
 CREATE TABLE [dbo].[issuetyp](
-	[issuetypid] [int] identity(1,1) NOT NULL,
+	[issuetypid] [int] IDENTITY(1,1) NOT NULL,
 	[issue_type] [char](15) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_issuetyp] PRIMARY KEY CLUSTERED 
 	(
@@ -28,7 +28,7 @@ SELECT [issue_type]
 --SELECT * FROM [Contech_Test].[dbo].[issuetyp]
 
 -- =========================================================
---Section 035: job_hist
+-- Section 035: job_hist
 -- =========================================================
 
 -- *** NOT USED ***
@@ -48,7 +48,7 @@ SELECT [issue_type]
 --    DROP TABLE [dbo].[job_hist]
 
 --CREATE TABLE [dbo].[job_hist](
---	[job_histid] [int] identity(1,1) NOT NULL,
+--	[job_histid] [int] IDENTITY(1,1) NOT NULL,
 --	--[job_no] [int] NOT NULL DEFAULT 0,			
 --	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
 --	[notes] varchar(2000) NOT NULL DEFAULT '',
@@ -83,7 +83,7 @@ SELECT [issue_type]
 --SELECT * FROM [Contech_Test].[dbo].[job_hist]
 
 -- =========================================================
---Section 035: job_rels
+-- Section 035: job_rels
 -- =========================================================
 
 -- *** NOT USED ***
@@ -104,7 +104,7 @@ SELECT [issue_type]
 --    DROP TABLE [dbo].[job_rels]
 
 --CREATE TABLE [dbo].[job_rels](
---	[job_relsid] [int] identity(1,1) NOT NULL,
+--	[job_relsid] [int] IDENTITY(1,1) NOT NULL,
 --	--[job_no] [int] NOT NULL DEFAULT 0,
 --	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
 --	[rel_date] [datetime] NULL,
@@ -150,14 +150,14 @@ SELECT [issue_type]
 --SELECT * FROM [Contech_Test].[dbo].[job_rels]
 
 -- =========================================================
---Section 035: joblabel
+-- Section 035: joblabel
 -- =========================================================
 
 -- Column changes:
 --  - Added [joblabelid] to be primary key
 --  - Changed [job_no] to [ordersid] to match updated standards
 -- Maps:
---	- [joblabel].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [joblabel].[job_no] --> [ordersid]	-- FK = [orders].[job_no] --> [orders].[ordersid]
 
 USE Contech_Test
 
@@ -165,8 +165,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[joblabel]
 
 CREATE TABLE [dbo].[joblabel](
-	[joblabelid] [int] identity(1,1) NOT NULL,
-	--[job_no] [int] NOT NULL DEFAULT 0,
+	[joblabelid] [int] IDENTITY(1,1) NOT NULL,
+	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
 	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
 	[flag] [char](1) NOT NULL DEFAULT '',
 	[lic] [char](4) NOT NULL DEFAULT '',
@@ -222,18 +222,18 @@ SELECT --[rawUpsize_Contech].[dbo].[joblabel].[job_no]
 --SELECT * FROM [Contech_Test].[dbo].[joblabel]
 
 -- =========================================================
---Section 035: joblabor
+-- Section 035: joblabor
 -- =========================================================
 
 -- Column changes:
 --  - Set [joblaborid] to be primary key
 --  - Changed [job_no] to [ordersid] to match updated standards
---  - Changed [empnumber] to [int] to reference [employee] table
+--  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
 --  - Changed [notes] from text to varchar(2000)
 -- Maps:
---	- [joblabor].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
---	- [joblabor].[mfgstageid]	-- FK = [mfgstage].[mfgstageid]
---	- [joblabor].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [joblabor].[job_no] --> [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [joblabor].[mfgstageid]					-- FK = [mfgstage].[mfgstageid]
+--	- [joblabor].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 USE Contech_Test
 
@@ -241,12 +241,12 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[joblabor]
 
 CREATE TABLE [dbo].[joblabor](
-	[joblaborid] [int] identity(1,1) NOT NULL,
-	--[job_no] [int] NOT NULL DEFAULT 0,
+	[joblaborid] [int] IDENTITY(1,1) NOT NULL,
+	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
 	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
 	[mfgstageid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgstage].[mfgstageid]
-	--[empnumber] [char](10) NOT NULL DEFAULT '',
-	[empnumber] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
+	[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	[emp_rate] [numeric](5, 2) NOT NULL DEFAULT 0.0,
 	[labor_date] [datetime] NULL,
 	[timein] [char](6) NOT NULL DEFAULT '',
@@ -257,7 +257,7 @@ CREATE TABLE [dbo].[joblabor](
 	[inc_pay] [numeric](6, 2) NOT NULL DEFAULT 0.0,
 	[time_cost] [numeric](9, 2) NOT NULL DEFAULT 0.0,
 	[lunch] [bit] NOT NULL DEFAULT 0,
-	[quota] [numeric](6, 0) NOT NULL,
+	[quota] [numeric](6, 0) NOT NULL DEFAULT 0,
 	[notes] varchar(2000) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_joblabor] PRIMARY KEY CLUSTERED 
 	(
@@ -268,12 +268,12 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[joblabor] ON;
 
-INSERT INTO [Contech_Test].[dbo].[joblabor] ([joblaborid],[ordersid],[mfgstageid],[empnumber],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
+INSERT INTO [Contech_Test].[dbo].[joblabor] ([joblaborid],[ordersid],[mfgstageid],[employeeid],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
 SELECT [rawUpsize_Contech].[dbo].[joblabor].[joblaborid]
-      --,[rawUpsize_Contech].[dbo].[joblabor].[job_no]
+      --,[rawUpsize_Contech].[dbo].[joblabor].[job_no]							-- FK = [orders].[job_no]
 	  ,ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid] 
       ,[rawUpsize_Contech].[dbo].[joblabor].[mfgstageid]						-- FK = [mfgstage].[mfgstageid]
-      --,[rawUpsize_Contech].[dbo].[joblabor].[empnumber]
+      --,[rawUpsize_Contech].[dbo].[joblabor].[empnumber]						-- FK = [employee].[empnumber] 
 	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[joblabor].[emp_rate]
       ,[rawUpsize_Contech].[dbo].[joblabor].[labor_date]
