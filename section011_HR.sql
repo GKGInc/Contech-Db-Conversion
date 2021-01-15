@@ -1,14 +1,19 @@
 -- =========================================================
---Section 011: tbom_hdr
+-- Section 011: tbom_hdr
 -- =========================================================
 
 -- Column changes:
---  - Added tbom_hdrid as primary key
---  - Changed cust_no to int to reference customer table
---  - Changed mfg_cat to int to reference mfgcat table
+--  - Added [tbom_hdrid] as primary key
+--  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
+--  - Changed [mfg_cat] [char](2) to [mfgcatid] [int] to reference [mfgcat] table
+--  - Changed [notes] from [text] to [varchar](2000)
+--  - Changed [price_note] from [text] to [varchar](2000)
 -- Maps:
---	- [tbom_hdr].[cust_no]	-- FK = [customer].[cust_no] -> [vendor].[customerid]
---	- [tbom_hdr].[mfg_cat]	-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
+--	- [orders].[bom_no]		-- FK = [bom_hdr].[bom_no] 
+--	- [orders].[bom_rev]	-- FK = [bom_hdr].[bom_rev] 
+--	- ?[orders].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+--	- [tbom_hdr].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [tbom_hdr].[mfg_cat] --> [mfgcatid]	-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
 
 USE Contech_Test
 
@@ -16,51 +21,55 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[tbom_hdr]
 
 CREATE TABLE [dbo].[tbom_hdr](
-	[tbom_hdrid] [int] identity(1,1) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL,
-	[bom_rev] [numeric](2, 0) NOT NULL,
-	[part_no] [char](15) NOT NULL,
-	[part_rev] [char](10) NOT NULL,
-	[part_desc] [char](50) NOT NULL,
-	[price] [numeric](8, 4) NOT NULL,
-	[price_ire] [numeric](8, 4) NOT NULL,
+	[tbom_hdrid] [int] IDENTITY(1,1) NOT NULL,
+	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] 
+	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev] 
+	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	[part_no] [char](15) NOT NULL DEFAULT '',
+	[part_rev] [char](10) NOT NULL DEFAULT '',
+	[part_desc] [char](50) NOT NULL DEFAULT '',
+	[price] [numeric](8, 4) NOT NULL DEFAULT 0.0,
+	[price_ire] [numeric](8, 4) NOT NULL DEFAULT 0.0,
 	[price_rev] [datetime] NULL,
-	[unit] [char](4) NOT NULL,
+	[unit] [char](4) NOT NULL DEFAULT '',
 	[date_rev] [datetime] NULL,
-	[sts] [char](1) NOT NULL,
-	[cust_no] [int] NOT NULL,			-- customer.cust_no
+	[sts] [char](1) NOT NULL DEFAULT '',
+	--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] --> [customer].[customerid]	
+	[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]	
 	[date_ent] [datetime] NULL,
-	[code_info] [numeric](1, 0) NOT NULL,
-	[tube_lenth] [char](40) NOT NULL,
-	[tube_dim] [char](50) NOT NULL,
-	[assembly] [char](15) NOT NULL,
-	[scr_code] [char](1) NOT NULL,
-	[quota] [char](5) NOT NULL,
-	[notes] [text] NOT NULL,
-	[mfg_no] [numeric](5, 0) NOT NULL,
-	[spec_no] [char](5) NOT NULL,
-	[spec_rev] [char](2) NOT NULL,
+	[code_info] [numeric](1, 0) NOT NULL DEFAULT 0,
+	[tube_lenth] [char](40) NOT NULL DEFAULT '',
+	[tube_dim] [char](50) NOT NULL DEFAULT '',
+	[assembly] [char](15) NOT NULL DEFAULT '',
+	[scr_code] [char](1) NOT NULL DEFAULT '',
+	[quota] [char](5) NOT NULL DEFAULT '',
+	[notes] [varchar](2000) NOT NULL DEFAULT '',
+	[mfg_no] [numeric](5, 0) NOT NULL DEFAULT 0,
+	[spec_no] [char](5) NOT NULL DEFAULT '',
+	[spec_rev] [char](2) NOT NULL DEFAULT '',
 	[dspec_rev] [datetime] NULL,
-	[doc_no] [char](5) NOT NULL,
-	[doc_rev] [char](2) NOT NULL,
+	[doc_no] [char](5) NOT NULL DEFAULT '',
+	[doc_rev] [char](2) NOT NULL DEFAULT '',
 	[ddoc_rev] [datetime] NULL,
-	[computer] [char](1) NOT NULL,
-	[waste] [char](10) NOT NULL,
-	[qty_case] [numeric](6, 0) NOT NULL,
-	[price_note] [text] NOT NULL,
-	[mfg_cat] [int] NOT NULL,		-- mfgcat.mfg_cat
-	[rbom_no] [numeric](5, 0) NOT NULL,
-	[sts_loc] [char](20) NOT NULL,
+	[computer] [char](1) NOT NULL DEFAULT '',
+	[waste] [char](10) NOT NULL DEFAULT '',
+	[qty_case] [numeric](6, 0) NOT NULL DEFAULT 0,
+	[price_note] [varchar](2000) NOT NULL DEFAULT '',
+	--[mfg_cat] [char](2) NOT NULL DEFAULT 0,			-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
+	[mfgcatid] [int] NOT NULL DEFAULT 0,				-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
+	[rbom_no] [numeric](5, 0) NOT NULL DEFAULT 0,
+	[sts_loc] [char](20) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_tbom_hdr] PRIMARY KEY CLUSTERED 
 	(
 		[tbom_hdrid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY] 
 GO
 
 INSERT INTO [Contech_Test].[dbo].[tbom_hdr] 
 SELECT [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[bom_rev]
+	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) as [bom_hdrid]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[part_no]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[part_rev]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[part_desc]
@@ -70,8 +79,8 @@ SELECT [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[unit]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[date_rev]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[sts]
-      --,[rawUpsize_Contech].[dbo].[tbom_hdr].[cust_no]		-- customer.cust_no
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+      --,[rawUpsize_Contech].[dbo].[tbom_hdr].[cust_no]		
+	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[date_ent]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[code_info]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[tube_lenth]
@@ -91,26 +100,27 @@ SELECT [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[waste]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[qty_case]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[price_note]
-      --,[rawUpsize_Contech].[dbo].[tbom_hdr].[mfg_cat]		-- mfgcat.mfg_cat
-	  ,ISNULL([Contech_Test].[dbo].[mfgcat].[mfgcatid], 0) AS [mfgcatid] -- Note: mfg_cat 40 is not found in [mfgcat] table
+      --,[rawUpsize_Contech].[dbo].[tbom_hdr].[mfg_cat]		
+	  ,ISNULL([Contech_Test].[dbo].[mfgcat].[mfgcatid], 0) AS [mfgcatid]		-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[rbom_no]
       ,[rawUpsize_Contech].[dbo].[tbom_hdr].[sts_loc]
   FROM [rawUpsize_Contech].[dbo].[tbom_hdr]
+  --LEFT JOIN [Contech_Test].[dbo].[bom_hdr] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev] 
   LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
   LEFT JOIN [Contech_Test].[dbo].[mfgcat] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[mfg_cat] = [Contech_Test].[dbo].[mfgcat].[mfg_cat] 
 
 --SELECT * FROM [Contech_Test].[dbo].[tbom_hdr]
 
 -- =========================================================
---Section 011: tbom_dtl
+-- Section 011: tbom_dtl
 -- =========================================================
 
 -- Column changes:
---  - Added tbom_dtlid as primary key
---  - Added tbom_hdrid as foreign key to reference tbom_hdr table
---  - Changed comp to int to reference componet table
+--  - Added [tbom_dtlid] as primary key
+--  - Added [tbom_hdrid] as foreign key to reference [tbom_hdr] table using [bom_no] + [bom_rev]
+--  - Changed [comp] [char](5) to [componetid] [int] to reference [componet] table
 -- Maps:
---	- [tbom_dtl].[comp]		-- FK = [componet].[comp] -> [componet].[componetid]
+--	- [tbom_dtl].[comp]	--> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 --	- [tbom_dtl].[bom_no]	-- FK = [bom_hdr].[bom_no] 
 --	- [tbom_dtl].[bom_rev]	-- FK = [bom_hdr].[bom_rev] 
 
@@ -120,14 +130,15 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[tbom_dtl]
 
 CREATE TABLE [dbo].[tbom_dtl](
-	[tbom_dtlid] [int] identity(1,1) NOT NULL,
-	[tbom_hdrid] [int] NOT NULL,		-- FK = [tbom_hdr].[tbom_hdrid]
-	[order] [numeric](2, 0) NOT NULL,
-	[comp] [char](5) NOT NULL,			-- componet.comp
-	[quan] [numeric](8, 6) NOT NULL,	
-	[coc] [char](1) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL,	-- tbom_hdr.bom_no --> link to tbom_hdr
-	[bom_rev] [numeric](2, 0) NOT NULL, -- tbom_hdr.bom_rev --> link to tbom_hdr
+	[tbom_dtlid] [int] IDENTITY(1,1) NOT NULL,
+	[tbom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [tbom_hdr].[tbom_hdrid]
+	[order] [numeric](2, 0) NOT NULL DEFAULT 0,
+	--[comp] [char](5) NOT NULL DEFAULT '',			
+	[componetid] [int] NOT NULL,					-- FK = [componet].[comp] --> [componet].[componetid]
+	[quan] [numeric](8, 6) NOT NULL DEFAULT 0.0,	
+	[coc] [char](1) NOT NULL DEFAULT '',
+	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]  --> [tbom_hdr].[bom_no]
+	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev] --> [tbom_hdr].[bom_rev]
 	CONSTRAINT [PK_tbom_dtl] PRIMARY KEY CLUSTERED 
 	(
 		[tbom_dtlid] ASC
@@ -144,10 +155,10 @@ SELECT ISNULL([Contech_Test].[dbo].[tbom_hdr].[tbom_hdrid], 0) AS [tbom_hdrid]
       ,[rawUpsize_Contech].[dbo].[tbom_dtl].[coc]
       ,[rawUpsize_Contech].[dbo].[tbom_dtl].[bom_no]
       ,[rawUpsize_Contech].[dbo].[tbom_dtl].[bom_rev]	  
-  FROM [rawUpsize_Contech].[dbo].[tbom_dtl]
+  FROM [rawUpsize_Contech].[dbo].[tbom_dtl] -- SELECT * FROM [rawUpsize_Contech].[dbo].[tbom_dtl]
   LEFT JOIN [Contech_Test].[dbo].[componet] ON [rawUpsize_Contech].[dbo].[tbom_dtl].[comp] = [Contech_Test].[dbo].[componet].[comp] 
   LEFT JOIN [Contech_Test].[dbo].[tbom_hdr] ON [rawUpsize_Contech].[dbo].[tbom_dtl].[bom_no] = [Contech_Test].[dbo].[tbom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[tbom_dtl].[bom_rev] = [Contech_Test].[dbo].[tbom_hdr].[bom_rev]
-  
+
 --SELECT * FROM [Contech_Test].[dbo].[tbom_dtl]
 
 -- =========================================================

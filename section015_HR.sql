@@ -1,10 +1,10 @@
 
 -- =========================================================
---Section 015: issues
+-- Section 015: issues
 -- =========================================================
 
 -- Column changes:
---  - Changed issuesid to be primary key
+--  - Changed [issuesid] to be primary key
 
 USE Contech_Test
 
@@ -12,9 +12,9 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[issues]
 
 CREATE TABLE [dbo].[issues](
-	[issuesid] [int] identity(1,1) NOT NULL,
-	[issue_type] [char](15) NOT NULL,
-	[issue_desc] [char](35) NOT NULL,
+	[issuesid] [int] IDENTITY(1,1) NOT NULL,
+	[issue_type] [char](15) NOT NULL DEFAULT '',
+	[issue_desc] [char](35) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_issues] PRIMARY KEY CLUSTERED 
 	(
 		[issuesid] ASC
@@ -35,11 +35,11 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[issues] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[issues]
 
 -- =========================================================
---Section 015: issuesdt
+-- Section 015: issuesdt
 -- =========================================================
 
 -- Column changes:
---  - Changed issuesdtid to be primary key
+--  - Changed [issuesdtid] to be primary key
 -- Maps:
 --	- [issuesdtid].[issuesid]	-- FK = [issues].[issuesid] 
 
@@ -49,10 +49,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[issuesdt]
 
 CREATE TABLE [dbo].[issuesdt](
-	[issuesdtid] [int] identity(1,1) NOT NULL,
-	[issuesid] [int] NOT NULL,			-- FK = [issues].[issuesid] 
-	[dtl_code] [char](2) NOT NULL,
-	[issue_dtl] [char](50) NOT NULL,
+	[issuesdtid] [int] IDENTITY(1,1) NOT NULL,
+	[issuesid] [int] NOT NULL DEFAULT 0,			-- FK = [issues].[issuesid] 
+	[dtl_code] [char](2) NOT NULL DEFAULT '',
+	[issue_dtl] [char](50) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_issuesdt] PRIMARY KEY CLUSTERED 
 	(
 		[issuesdtid] ASC
