@@ -9,9 +9,9 @@
 --  - Changed [notes] from [text] to [varchar](2000)
 --  - Changed [price_note] from [text] to [varchar](2000)
 -- Maps:
---	- [orders].[bom_no]		-- FK = [bom_hdr].[bom_no] 
---	- [orders].[bom_rev]	-- FK = [bom_hdr].[bom_rev] 
---	- ?[orders].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+--	- [tbom_hdr].[bom_no]		-- FK = [bom_hdr].[bom_no] 
+--	- [tbom_hdr].[bom_rev]	-- FK = [bom_hdr].[bom_rev] 
+--	- ?[tbom_hdr].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [tbom_hdr].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 --	- [tbom_hdr].[mfg_cat] --> [mfgcatid]	-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
 
