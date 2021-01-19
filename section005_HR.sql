@@ -178,7 +178,20 @@ CREATE TABLE [dbo].[po_hdr](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[po_hdr] SELECT * FROM [rawUpsize_Contech].[dbo].[po_hdr]
+INSERT INTO [Contech_Test].[dbo].[po_hdr] 
+	SELECT [pohdr].* FROM 
+		(SELECT [po_no]
+			  ,MAX([po_rev]) AS [po_rev]
+			  ,MAX([date]) AS [date]
+			  ,MAX([tot_recd]) AS [tot_recd]
+		  FROM [rawUpsize_Contech].[dbo].[po_hdr]
+		  GROUP BY [po_no]) AS [latest_pohdr]
+	INNER JOIN [rawUpsize_Contech].[dbo].[po_hdr] [pohdr]
+		ON [pohdr].[po_no] = [latest_pohdr].[po_no] 
+			AND [pohdr].[po_rev] = [latest_pohdr].[po_rev]
+			AND [pohdr].[date] = [latest_pohdr].[date]
+			AND [pohdr].[tot_recd] = [latest_pohdr].[tot_recd]
+	ORDER BY [pohdr].[date],[pohdr].[po_no]	
 
 --SELECT * FROM [Contech_Test].[dbo].[po_hdr]
   
