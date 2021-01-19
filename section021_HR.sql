@@ -1,15 +1,16 @@
 
 -- =========================================================
---Section 021: asstevnt
+-- Section 021: asstevnt
 -- =========================================================
 
 -- Column changes:
---  - Set asstevntid to be primary key
---  - Changed asset_no to int to reference assets table
+--  - Set [asstevntid] to be primary key
+--  - Changed [asset_no] [char](10) to [assetsid] [int] to reference [assets] table
+--  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
 --  - Changed empnumber to int to reference employee table
 -- Maps:
---	- [asstevnt].[asstevntid]	-- FK = [assets].[asset_no] -> [assets].[assetsid]
---	- [asstevnt].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [asstevnt].[asset_no] --> [asstevntid]	-- FK = [assets].[asset_no] -> [assets].[assetsid]
+--	- [asstevnt].[evntperson] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 USE Contech_Test
 
@@ -17,22 +18,24 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[asstevnt]
 
 CREATE TABLE [dbo].[asstevnt](
-	[asstevntid] [int] identity(1,1) NOT NULL,
-	[asset_no] [int] NOT NULL,			-- FK = [assets].[asset_no] -> [assets].[assetsid]
-	[evnt_type] [char](2) NOT NULL,
-	[evnt_name] [char](30) NOT NULL,
-	[interval] [char](2) NOT NULL,
-	[intervalno] [int] NOT NULL,
-	[rmndr_days] [int] NOT NULL,
-	[evntperson] [char](10) NOT NULL,	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-	[document] [char](10) NOT NULL,
+	[asstevntid] [int] IDENTITY(1,1) NOT NULL,
+	--[asset_no] [char](10) NOT NULL DEFAULT '',	-- FK = [assets].[asset_no]
+	[assetsid] [int] NOT NULL DEFAULT 0,			-- FK = [assets].[asset_no] -> [assets].[assetsid]
+	[evnt_type] [char](2) NOT NULL DEFAULT '',
+	[evnt_name] [char](30) NOT NULL DEFAULT '',
+	[interval] [char](2) NOT NULL DEFAULT '',
+	[intervalno] [int] NOT NULL DEFAULT 0,
+	[rmndr_days] [int] NOT NULL DEFAULT 0,
+	--[evntperson] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber] 
+	[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	[document] [char](10) NOT NULL DEFAULT '',
 	[future_due] [datetime] NULL,
 	[lastaction] [datetime] NULL,
 	[rmndr_date] [datetime] NULL,
-	[evntmpltid] [int] NOT NULL,
-	[rev_rec] [int] NOT NULL,
+	[evntmpltid] [int] NOT NULL DEFAULT 0,
+	[rev_rec] [int] NOT NULL DEFAULT 0,
 	[rev_dt] [datetime] NULL,
-	[rev_emp] [char](10) NOT NULL,
+	[rev_emp] [char](10) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_asstevnt] PRIMARY KEY CLUSTERED 
 	(
 		[asstevntid] ASC
@@ -42,7 +45,7 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[asstevnt] ON;
 
-INSERT INTO [Contech_Test].[dbo].[asstevnt] ([asstevntid],[asset_no],[evnt_type],[evnt_name],[interval],[intervalno],[rmndr_days],[evntperson],[document],[future_due],[lastaction],[rmndr_date],[evntmpltid],[rev_rec],[rev_dt],[rev_emp])
+INSERT INTO [Contech_Test].[dbo].[asstevnt] ([asstevntid],[assetsid],[evnt_type],[evnt_name],[interval],[intervalno],[rmndr_days],[employeeid],[document],[future_due],[lastaction],[rmndr_date],[evntmpltid],[rev_rec],[rev_dt],[rev_emp])
 SELECT [rawUpsize_Contech].[dbo].[asstevnt].[asstevntid]
       --,[rawUpsize_Contech].[dbo].[asstevnt].[asset_no]
 	  ,ISNULL([Contech_Test].[dbo].[assets].[assetsid], 0) AS [assetsid]		-- FK = [assets].[asset_no] -> [assets].[assetsid]
@@ -52,7 +55,7 @@ SELECT [rawUpsize_Contech].[dbo].[asstevnt].[asstevntid]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[intervalno]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[rmndr_days]
       --,[rawUpsize_Contech].[dbo].[asstevnt].[evntperson]
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- [asstevnt].[evntperson]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[document]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[future_due]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[lastaction]

@@ -1,6 +1,6 @@
 
 -- =========================================================
---Section 029: corractn
+-- Section 029: corractn
 -- =========================================================
 
 -- Column changes:
@@ -14,8 +14,8 @@
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [users] table
 --  - Renamed [complnt_no] to [complntid] [to reflect new standards
 -- Maps:
---	- ??? [corractn].[car_no]		-- FK = [cartrack].[car_no]
---	- [corractn].[qrn_no]		--  FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+--	- [corractn].[car_no]		-- FK = [cartrack].[car_no]
+--	- [corractn].[qrn_no]		-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 --	- [corractn].[matlinid]		-- FK = [matlin].[matlin_key] --> [matlin].[matlinid]
 --	- [corractn].[comp]			-- FK = [componet].[comp] --> [componet].[componetid]
 --	- [corractn].[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
@@ -27,14 +27,14 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[corractn](
 	[corractnid] [int] identity(1,1) NOT NULL,
-	[car_no] [char](8) NOT NULL DEFAULT '',	-- ??? FK = [cartrack].[car_no] 
+	[car_no] [char](8) NOT NULL DEFAULT '',	-- FK = [cartrack].[car_no] 
 	[car_date] [datetime] NULL,
-	--[qrn_no] [char](8) NOT NULL,			-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+	--[qrn_no] [char](8) NOT NULL,			-- FK = [qrn].[qrn_no] 
 	[qrnid] [int] NOT NULL DEFAULT 0,		-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
-	--[matlin_key] [int] NOT NULL DEFAULT 0,	-- FK = [matlin].[matlin_key]
+	--[matlin_key] [int] NOT NULL DEFAULT 0,-- FK = [matlin].[matlin_key]
 	[matlinid] [int] NOT NULL DEFAULT 0,	-- FK = [matlin].[matlin_key] --> [matlin].[matlinid]
 	[source] [char](2) NOT NULL DEFAULT '',
-	--[comp] [char](5) NOT NULL,			-- FK = [componet].[comp] --> [componet].[componetid]	
+	--[comp] [char](5) NOT NULL,			-- FK = [componet].[comp] 
 	[componetid] [int] NOT NULL,			-- FK = [componet].[comp] --> [componet].[componetid]
 	[comp_desc] [char](75) NOT NULL DEFAULT '',
 	[qty_rej] [int] NOT NULL DEFAULT '',
@@ -74,7 +74,7 @@ CREATE TABLE [dbo].[corractn](
 	[issued_to] [char](4) NOT NULL DEFAULT '',
 	[expclosedt] [datetime] NULL,
 	[ref_doc] [char](25) NOT NULL DEFAULT '',
-	--[complnt_no] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]  
+	--[complnt_no] [int] NOT NULL DEFAULT 0,	-- FK = [complnts].[complnt_no]
 	[complntid] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]  
 	[c_inconclu] [bit] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_corractn] PRIMARY KEY CLUSTERED 
@@ -90,11 +90,11 @@ INSERT INTO [Contech_Test].[dbo].[corractn] ([corractnid],[car_no],[car_date],[q
 SELECT [rawUpsize_Contech].[dbo].[corractn].[corractnid]
       ,[rawUpsize_Contech].[dbo].[corractn].[car_no]
       ,[rawUpsize_Contech].[dbo].[corractn].[car_date]
-      --,[rawUpsize_Contech].[dbo].[corractn].[qrn_no]						-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
-	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]					-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+      --,[rawUpsize_Contech].[dbo].[corractn].[qrn_no]						-- FK = [qrn].[qrn_no] 
+	  ,ISNULL([Contech_Test].[dbo].[qrn].[qrnid], 0) AS [qrnid]				-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
       ,[rawUpsize_Contech].[dbo].[corractn].[matlin_key]					-- FK = [matlin].[matlin_key] --> [matlin].[matlinid]		
       ,[rawUpsize_Contech].[dbo].[corractn].[source]
-      --,[rawUpsize_Contech].[dbo].[corractn].[comp]							-- FK = [componet].[comp] --> [componet].[componetid]
+      --,[rawUpsize_Contech].[dbo].[corractn].[comp]							-- FK = [componet].[comp] 
 	  ,ISNULL([Contech_Test].[dbo].[componet].[componetid], 0) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
       ,[rawUpsize_Contech].[dbo].[corractn].[comp_desc]
       ,[rawUpsize_Contech].[dbo].[corractn].[qty_rej]
@@ -147,13 +147,13 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[corractn] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[corractn]
 
 -- =========================================================
---Section 029: cractdtl
+-- Section 029: cractdtl
 -- =========================================================
 
 -- Column changes:
 --  - Set [cractdtlid] to be primary key
 -- Maps:
---	- ??? [cractdtl].[car_no]		-- FK = [cartrack].[car_no]
+--	- [cractdtl].[car_no]		-- FK = [cartrack].[car_no]
 
 USE Contech_Test
 
@@ -162,7 +162,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[cractdtl](
 	[cractdtlid] [int] identity(1,1) NOT NULL,
-	[car_no] [char](8) NOT NULL DEFAULT '',		-- ??? FK = [cartrack].[car_no] 
+	[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [cartrack].[car_no] 
 	[requiremnt] [char](100) NOT NULL DEFAULT '',
 	[actual] [char](100) NOT NULL DEFAULT '',
 	[sampl_size] [int] NOT NULL DEFAULT 0,
@@ -200,7 +200,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cractdtl] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[cractdtl]
 
 -- =========================================================
---Section 029: cuslblft
+-- Section 029: cuslblft
 -- =========================================================
 
 -- Column changes:
@@ -209,8 +209,8 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cractdtl] OFF;
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 --  - Changed [rev_emp] [char](5) to [employeeid] [int] to reference [employee] table
 -- Maps:
---	- [custctct].[customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
---	- [custctct].[employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [custctct].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
+--	- [custctct].[rev_emp] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 USE Contech_Test
 
@@ -219,8 +219,8 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[cuslblft](
 	[cuslblftid] [int] identity(1,1) NOT NULL,
-	--[cust_no] [char](5) NOT NULL,			-- FK = [customer].[cust_no] -> [customer].[customerid]
-	[customerid] int NOT NULL DEFAULT 0,	-- FK = [customer].[cust_no] -> [customer].[customerid]
+	--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
+	[customerid] int NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] -> [customer].[customerid]
 	[flag] [char](1) NOT NULL DEFAULT '',
 	[lic] [char](4) NOT NULL DEFAULT '',
 	[r] [char](2) NOT NULL DEFAULT '',
@@ -231,8 +231,8 @@ CREATE TABLE [dbo].[cuslblft](
 	[umid4] [char](1) NOT NULL DEFAULT '',
 	[rev_rec] [int] NOT NULL DEFAULT 0,
 	[rev_dt] [datetime] NULL,
-	--[rev_emp] [char](10) NOT NULL,	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-	[employeeid] int NOT NULL,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	--[rev_emp] [char](10) NOT NULL,			-- FK = [employee].[empnumber] -
+	[employeeid] int NOT NULL,					-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	CONSTRAINT [PK_cuslblft] PRIMARY KEY CLUSTERED 
 	(
 		[cuslblftid] ASC
@@ -244,7 +244,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cuslblft] ON;
 
 INSERT INTO [Contech_Test].[dbo].[cuslblft] ([cuslblftid],[customerid],[flag],[lic],[r],[q],[umid1],[umid2],[umid3],[umid4],[rev_rec],[rev_dt],[employeeid])
 SELECT [rawUpsize_Contech].[dbo].[cuslblft].[cuslblftid]
-      --,[rawUpsize_Contech].[dbo].[cuslblft].[cust_no]							-- FK = [customer].[cust_no] -> [customer].[customerid]
+      --,[rawUpsize_Contech].[dbo].[cuslblft].[cust_no]							-- FK = [customer].[cust_no]
 	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[cuslblft].[flag]
       ,[rawUpsize_Contech].[dbo].[cuslblft].[lic]
@@ -256,10 +256,10 @@ SELECT [rawUpsize_Contech].[dbo].[cuslblft].[cuslblftid]
       ,[rawUpsize_Contech].[dbo].[cuslblft].[umid4]
       ,[rawUpsize_Contech].[dbo].[cuslblft].[rev_rec]
       ,[rawUpsize_Contech].[dbo].[cuslblft].[rev_dt]
-      --,[rawUpsize_Contech].[dbo].[cuslblft].[rev_emp]							-- FK = [employee].[empnumber] -> [employee].[employeeid]		
+      --,[rawUpsize_Contech].[dbo].[cuslblft].[rev_emp]							-- FK = [employee].[empnumber] 		
 	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
   FROM [rawUpsize_Contech].[dbo].[cuslblft]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[cuslblft].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
+  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[cuslblft].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no]	-- FK = [customer].[cust_no] -> [customer].[customerid]
   LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[cuslblft].[rev_emp] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[cuslblft] OFF;
@@ -267,7 +267,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cuslblft] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[cuslblft]
 
 -- =========================================================
---Section 029: custctct
+-- Section 029: custctct
 -- =========================================================
 
 -- Column changes:
@@ -275,7 +275,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cuslblft] OFF;
 --  - Moved [custctctid] field to first column
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 -- Maps:
---	- [custctct].[customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
+--	- [custctct].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 
 USE Contech_Test
 
@@ -284,7 +284,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[custctct](
 	[custctctid] [int] identity(1,1) NOT NULL,
-	--[cust_no] [char](5) NOT NULL,			-- FK = [customer].[cust_no] -> [customer].[customerid]
+	--[cust_no] [char](5) NOT NULL,			-- FK = [customer].[cust_no] 
 	[customerid] int NOT NULL DEFAULT 0,	-- FK = [customer].[cust_no] -> [customer].[customerid]
 	[first_name] [char](15) NOT NULL DEFAULT '',
 	[last_name] [char](25) NOT NULL DEFAULT '',
@@ -313,7 +313,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[custctct] ON;
 INSERT INTO [Contech_Test].[dbo].[custctct] ([custctctid],[customerid],[first_name],[last_name],[mi],[department],[email],[ext],[phone],[fax],[address],[address2],[city],[state],[zip],[country],[job_title])
 SELECT [rawUpsize_Contech].[dbo].[custctct].[custctctid]
       --,[rawUpsize_Contech].[dbo].[custctct].[cust_no]		
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[custctct].[first_name]
       ,[rawUpsize_Contech].[dbo].[custctct].[last_name]
       ,[rawUpsize_Contech].[dbo].[custctct].[mi]
@@ -337,15 +337,15 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[custctct] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[custctct]
 
 -- =========================================================
---Section 029: custship
+-- Section 029: custship
 -- =========================================================
 
 -- Column changes:
 --  - Added [custshipid] to be primary key
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 -- Maps:
---	- [custship].[customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
---	- [custship].[fplocatnid]	-- FK = [fplocatn].[fplocatnid]
+--	- [custship].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
+--	- [custship].[fplocatnid]				-- FK = [fplocatn].[fplocatnid]
 
 USE Contech_Test
 
@@ -354,7 +354,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 
 CREATE TABLE [dbo].[custship](
 	[custshipid] [int] identity(1,1) NOT NULL,
-	--[cust_no] [char](5) NOT NULL,				-- FK = [customer].[cust_no] -> [customer].[customerid]
+	--[cust_no] [char](5) NOT NULL,				-- FK = [customer].[cust_no] 
 	[customerid] int NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] -> [customer].[customerid]
 	[ship_to] [char](1) NOT NULL DEFAULT '',	
 	[ship_via] [char](20) NOT NULL DEFAULT '',
@@ -378,7 +378,7 @@ CREATE TABLE [dbo].[custship](
 GO
 
 INSERT INTO [Contech_Test].[dbo].[custship] ([customerid],[ship_to],[ship_via],[name],[address],[address2],[city],[state],[zip],[country],[acct_no],[fob_point],[phone],[fax],[fplocatnid])
-SELECT --[rawUpsize_Contech].[dbo].[custship].[cust_no]	-						-- FK = [customer].[cust_no] -> [customer].[customerid]
+SELECT --[rawUpsize_Contech].[dbo].[custship].[cust_no]							-- FK = [customer].[cust_no] 
 	  ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[custship].[ship_to]
       ,[rawUpsize_Contech].[dbo].[custship].[ship_via]

@@ -1,14 +1,14 @@
 
 -- =========================================================
---Section 025: cartrack
+-- Section 025: cartrack
 -- =========================================================
 
 -- Column changes:
---  - Set cartrackid to be primary key
+--  - Set [cartrackid] to be primary key
 --  - Changed [mod_reason] from text to varchar(2000)
---  - Changed user_id to int to reference users table
+--  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
 -- Maps:
---	- [rev_rel].[add_user]		-- FK = [users].[username] --> [users].[userid]
+--	- [rev_rel].[mod_user] --> [mod_userid]		-- FK = [users].[username] --> [users].[userid]
 
 USE Contech_Test
 
@@ -16,10 +16,11 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[cartrack]
 
 CREATE TABLE [dbo].[cartrack](
-	[cartrackid] [int] identity(1,1) NOT NULL,
+	[cartrackid] [int] IDENTITY(1,1) NOT NULL,
 	[car_no] [char](8) NOT NULL DEFAULT '',
 	[mod_reason] varchar(2000) NOT NULL DEFAULT '',
-	[mod_user] [char](10) NOT NULL,		-- FK = [users].[username] --> [users].[userid]
+	--[mod_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
+	[mod_userid] [int]  NOT NULL DEFAULT '',		-- FK = [users].[username] --> [users].[userid]
 	[mod_dt] [datetime] NULL,
 	CONSTRAINT [PK_cartrack] PRIMARY KEY CLUSTERED 
 	(
@@ -30,22 +31,22 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[cartrack] ON;
 
-INSERT INTO [Contech_Test].[dbo].[cartrack] ([cartrackid],[car_no],[mod_reason],[mod_user],[mod_dt])
+INSERT INTO [Contech_Test].[dbo].[cartrack] ([cartrackid],[car_no],[mod_reason],[mod_userid],[mod_dt])
 SELECT [rawUpsize_Contech].[dbo].[cartrack].[cartrackid]
       ,[rawUpsize_Contech].[dbo].[cartrack].[car_no]
       ,[rawUpsize_Contech].[dbo].[cartrack].[mod_reason]
       --,[rawUpsize_Contech].[dbo].[cartrack].[mod_user]
-	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]	 -- Note: Multiple users are not found in [users] table	
+	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]	 
       ,[rawUpsize_Contech].[dbo].[cartrack].[mod_dt]
   FROM [rawUpsize_Contech].[dbo].[cartrack]
-    LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[cartrack].[mod_user] = [Contech_Test].[dbo].[users].[username]	-- FK = [users].[userid]
+    LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[cartrack].[mod_user] = [Contech_Test].[dbo].[users].[username]	-- FK = [users].[username] --> [users].[userid]
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[cartrack] OFF;
 
 --SELECT * FROM [Contech_Test].[dbo].[cartrack]
 
 -- =========================================================
---Section 025: car_empe
+-- Section 025: car_empe
 -- =========================================================
 
 -- Column changes:
@@ -53,8 +54,8 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[cartrack] OFF;
 --  - Changed [car_no] to int to reference [cartrack] table
 --  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
 -- Maps:
---	- ??? [car_empe].[car_no]		-- FK = [cartrack].[car_no]
---	- [car_empe].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [car_empe].[car_no]						-- FK = [cartrack].[car_no]
+--	- [car_empe].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 USE Contech_Test
 
@@ -62,10 +63,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[car_empe]
 
 CREATE TABLE [dbo].[car_empe](
-	[car_empeid] [int] identity(1,1) NOT NULL,
-	[car_no] [char](8) NOT NULL,		-- ??? FK = [cartrack].[car_no] | Note: empty column
-	--[empnumber] [char](10) NOT NULL,	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-	[employeeid] [int] NOT NULL DEFAULT 0,	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	[car_empeid] [int] IDENTITY(1,1) NOT NULL,
+	[car_no] [char](8) NOT NULL DEFAULT '',			-- FK = [cartrack].[car_no] 
+	--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
+	[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	CONSTRAINT [PK_car_empe] PRIMARY KEY CLUSTERED 
 	(
 		[car_empeid] ASC
@@ -88,12 +89,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[car_empe] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[car_empe]
 
 -- =========================================================
---Section 017: carcmpls
+-- Section 025: carcmpls
 -- =========================================================
 
 -- Column changes:
---  - Set carcmplsid to be primary key
---  - Changed [complnt_no] to int to reference [complnts] table
+--  - Set [carcmplsid] to be primary key
+--  - Changed [complnt_no] to [complntid] to reference [complnts] table
 -- Maps:
 --	- [prodctra].[car_no]		-- FK = [cartrack].[car_no]
 --	- [prodctra].[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
@@ -104,9 +105,10 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[carcmpls]
 
 CREATE TABLE [dbo].[carcmpls](
-	[carcmplsid] [int] identity(1,1) NOT NULL,
-	[car_no] [char](8) NOT NULL DEFAULT '',	-- FK = [cartrack].[car_no]
-	[complnt_no] [int] NOT NULL DEFAULT 0,	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
+	[carcmplsid] [int] IDENTITY(1,1) NOT NULL,
+	[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [cartrack].[car_no]
+	--[complnt_no] [int] NOT NULL DEFAULT 0,	-- FK = [complnts].[complnt_no] 
+	[complntid] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
 	CONSTRAINT [PK_carcmpls] PRIMARY KEY CLUSTERED 
 	(
 		[carcmplsid] ASC
@@ -116,7 +118,7 @@ GO
 
 SET IDENTITY_INSERT [Contech_Test].[dbo].[carcmpls] ON;
 
-INSERT INTO [Contech_Test].[dbo].[carcmpls] ([carcmplsid],[car_no],[complnt_no])
+INSERT INTO [Contech_Test].[dbo].[carcmpls] ([carcmplsid],[car_no],[complntid])
 SELECT [rawUpsize_Contech].[dbo].[carcmpls].[carcmplsid]
       ,[rawUpsize_Contech].[dbo].[carcmpls].[car_no]
       --,[rawUpsize_Contech].[dbo].[carcmpls].[complnt_no]
@@ -129,11 +131,11 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[carcmpls] OFF;
 --SELECT * FROM [Contech_Test].[dbo].[carcmpls]
 
 -- =========================================================
---Section 025: cashtype
+-- Section 025: cashtype
 -- =========================================================
 
 -- Column changes:
---  - Added cashtypeid to be primary key
+--  - Added [cashtypeid] to be primary key
 
 USE Contech_Test
 
@@ -141,7 +143,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[cashtype]
 
 CREATE TABLE [dbo].[cashtype](
-	[cashtypeid] [int] identity(1,1) NOT NULL,
+	[cashtypeid] [int] IDENTITY(1,1) NOT NULL,
 	[code] [char](2) NOT NULL DEFAULT '',
 	[desc] [char](20) NOT NULL DEFAULT '',
 	[diff_sign] [int] NOT NULL DEFAULT '',
@@ -161,11 +163,11 @@ SELECT [code]
 --SELECT * FROM [Contech_Test].[dbo].[cashtype]
 
 -- =========================================================
---Section 025: changelog
+-- Section 025: changelog
 -- =========================================================
 
 -- Column changes:
---  - Added changelogid to be primary key
+--  - Added [changelogid] to be primary key
 --  - Changed [username] [char](10) to [userid] [int] to reference users table
 --  - Changed [oldvalue] from text to varchar(2000)
 --  - Changed [newvalue] from text to varchar(2000)
@@ -179,12 +181,12 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [dbo].[changelog]
 
 CREATE TABLE [dbo].[changelog](
-	[changelogid] [int] identity(1,1) NOT NULL,
+	[changelogid] [int] IDENTITY(1,1) NOT NULL,
 	[updatetype] [char](1) NOT NULL DEFAULT '',
 	[trx_id] [char](10) NULL DEFAULT '',
 	[netmachine] [char](30) NOT NULL DEFAULT '',
-	--[username] [char](10) NOT NULL DEFAULT '',
-	[userid] [int] NOT NULL DEFAULT 0,
+	--[username] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
+	[userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
 	[updatetime] [datetime] NULL,
 	[tablename] [char](15) NOT NULL DEFAULT '',
 	[recordid] [char](15) NOT NULL DEFAULT '',
@@ -196,7 +198,7 @@ CREATE TABLE [dbo].[changelog](
 	(
 		[changelogid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] -- TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY] 
 GO
 
 INSERT INTO [Contech_Test].[dbo].[changelog] ([updatetype],[trx_id],[netmachine],[userid],[updatetime],[tablename],[recordid],[fieldname],[oldvalue],[newvalue],[curprogram])
@@ -204,7 +206,7 @@ SELECT [rawUpsize_Contech].[dbo].[changelog].[updatetype]
       ,[rawUpsize_Contech].[dbo].[changelog].[trx_id]
       ,[rawUpsize_Contech].[dbo].[changelog].[netmachine]
       --,[rawUpsize_Contech].[dbo].[changelog].[username]
-	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]	-- Note: User ANGEL not fould in [users] table
+	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]	-- FK = [users].[username] --> [users].[userid]
       ,[rawUpsize_Contech].[dbo].[changelog].[updatetime]
       ,[rawUpsize_Contech].[dbo].[changelog].[tablename]
       ,[rawUpsize_Contech].[dbo].[changelog].[recordid]
@@ -214,7 +216,7 @@ SELECT [rawUpsize_Contech].[dbo].[changelog].[updatetype]
       ,[rawUpsize_Contech].[dbo].[changelog].[curprogram]
   FROM [rawUpsize_Contech].[dbo].[changelog]
   LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[changelog].[username] = [Contech_Test].[dbo].[users].[username]	-- FK = [users].[userid]
-  	
+
 --SELECT * FROM [Contech_Test].[dbo].[changelog]
 
 -- =========================================================
