@@ -5,23 +5,23 @@
 
 -- Column changes:
 --  - Set [rev_relid] to be primary key
---  - Renamed [job_no] to [ordersid] to reference [orders] table
+--  - Renamed [job_no] to [orderid] to reference [orders] table
 --  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 --  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
 -- Maps:
---	- [rev_rel].[job_no] --> [ordersid]			-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [rev_rel].[job_no] --> [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]
 --	- [rev_rel].[add_user] --> [add_userid]		-- FK = [users].[username] --> [users].[userid]
 --	- [rev_rel].[mod_user] --> [mod_userid]		-- FK = [users].[username] --> [users].[userid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'rev_rel'))
-    DROP TABLE [dbo].[rev_rel]
+    DROP TABLE [rev_rel]
 
-CREATE TABLE [dbo].[rev_rel](
+CREATE TABLE [rev_rel](
 	[rev_relid] [int] IDENTITY(1,1) NOT NULL,
 	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] 
-	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
+	[orderid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[orderid]
 	[rel_qty] [int] NOT NULL DEFAULT 0,		
 	[jobstatus] [char](1) NOT NULL DEFAULT '',
 	[postatus] [char](1) NOT NULL DEFAULT '',
@@ -44,12 +44,12 @@ CREATE TABLE [dbo].[rev_rel](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[rev_rel] ON;
+SET IDENTITY_INSERT [rev_rel] ON;
 
-INSERT INTO [Contech_Test].[dbo].[rev_rel] ([rev_relid],[ordersid],[rel_qty],[jobstatus],[postatus],[price],[add_dt],[add_userid],[mod_dt],[mod_userid],[ship_dt],[lading],[nolading],[freight],[sched_ship])
+INSERT INTO [rev_rel] ([rev_relid],[orderid],[rel_qty],[jobstatus],[postatus],[price],[add_dt],[add_userid],[mod_dt],[mod_userid],[ship_dt],[lading],[nolading],[freight],[sched_ship])
 SELECT [rawUpsize_Contech].[dbo].[rev_rel].[rev_relid]
       --,[rawUpsize_Contech].[dbo].[rev_rel].[job_no]
-	  ,ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid] -- FK = [orders].[job_no] --> [orders].[ordersid]
+	  ,ISNULL(orders.[orderid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[orderid]
       ,[rawUpsize_Contech].[dbo].[rev_rel].[rel_qty]
       ,[rawUpsize_Contech].[dbo].[rev_rel].[jobstatus]
       ,[rawUpsize_Contech].[dbo].[rev_rel].[postatus]
@@ -66,12 +66,12 @@ SELECT [rawUpsize_Contech].[dbo].[rev_rel].[rev_relid]
       ,[rawUpsize_Contech].[dbo].[rev_rel].[freight]
       ,[rawUpsize_Contech].[dbo].[rev_rel].[sched_ship]
   FROM [rawUpsize_Contech].[dbo].[rev_rel]
-  LEFT JOIN [Contech_Test].[dbo].[orders] ON [rawUpsize_Contech].[dbo].[rev_rel].[job_no] = [Contech_Test].[dbo].[orders].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
-  LEFT JOIN [Contech_Test].[dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[rev_rel].[add_user] = addUser.[username]					-- FK = [users].[username] --> [users].[userid]
-  LEFT JOIN [Contech_Test].[dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[rev_rel].[mod_user] = modUser.[username]					-- FK = [users].[username] --> [users].[userid]
+  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[rev_rel].[job_no] = orders.[job_no]		-- FK = [orders].[job_no] --> [orders].[orderid]
+  LEFT JOIN [users] addUser ON [rawUpsize_Contech].[dbo].[rev_rel].[add_user] = addUser.[username]	-- FK = [users].[username] --> [users].[userid]
+  LEFT JOIN [users] modUser ON [rawUpsize_Contech].[dbo].[rev_rel].[mod_user] = modUser.[username]	-- FK = [users].[username] --> [users].[userid]
     
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prdlindt] OFF;
+SET IDENTITY_INSERT [rev_rel] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[rev_rel]
+--SELECT * FROM [rev_rel]
 
 -- =========================================================

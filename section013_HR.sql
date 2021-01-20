@@ -5,12 +5,12 @@
 -- Column changes:
 --  - Change [fplocatnid] to be primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fplocatn'))
-    DROP TABLE [dbo].[fplocatn]
+    DROP TABLE [fplocatn]
 
-CREATE TABLE [dbo].[fplocatn](
+CREATE TABLE [fplocatn](
 	[fplocatnid] [int] IDENTITY(1,1) NOT NULL,
 	[staging] [bit] NOT NULL DEFAULT 0,
 	[location] [char](5) NOT NULL DEFAULT '',
@@ -23,9 +23,9 @@ CREATE TABLE [dbo].[fplocatn](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[fplocatn] ON;
+SET IDENTITY_INSERT [fplocatn] ON;
 
-INSERT INTO [Contech_Test].[dbo].[fplocatn] ([fplocatnid],[staging],[location],[locfloor],[allowmix])
+INSERT INTO [fplocatn] ([fplocatnid],[staging],[location],[locfloor],[allowmix])
 SELECT [fplocatnid]
       ,[staging]
       ,[location]
@@ -33,9 +33,9 @@ SELECT [fplocatnid]
       ,[allowmix]
   FROM [rawUpsize_Contech].[dbo].[fplocatn]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[fplocatn] OFF;
+SET IDENTITY_INSERT [fplocatn] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[fplocatn]
+--SELECT * FROM [fplocatn]
 
 -- =========================================================
 -- Section 013: prodctra
@@ -46,7 +46,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[fplocatn] OFF;
 --  - Changed [prodctraid] to be primary key
 --  - Changed [invoice_no] [numeric](9, 0) to [aropenid] [int] to reference [aropen] table
 --  - Renamed [complnt_no] to [complntid] to reference [complnts] table
---  - Renamed [job_no] to [ordersid] to reference [orders] table
+--  - Renamed [job_no] to [orderid] to reference [orders] table
 
 --  - Changed [inspection] from [text] to [varchar](2000)
 --  - Changed [mrc_disp] from [text] to [varchar](2000)
@@ -54,14 +54,14 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[fplocatn] OFF;
 -- Maps:
 --	- [prodctra].[invoice_no] --> [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 --	- [prodctra].[complnt_no] --> [complntid]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
---	- [prodctra].[job_no] --> [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [prodctra].[job_no] --> [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodctra'))
-    DROP TABLE [dbo].[prodctra]
+    DROP TABLE [prodctra]
 
-CREATE TABLE [dbo].[prodctra](
+CREATE TABLE [prodctra](
 	[prodctraid] [int] IDENTITY(1,1) NOT NULL,
 	[ra_no] [char](9) NOT NULL DEFAULT '',
 	[ra_dt] [datetime] NULL,
@@ -90,7 +90,7 @@ CREATE TABLE [dbo].[prodctra](
 	[freight] [numeric](1, 0) NOT NULL DEFAULT 0,
 	[cust_issue] [varchar](2000) NOT NULL DEFAULT '',
 	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] 
-	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
+	[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
 	[rework_no] [char](10) NOT NULL DEFAULT '',
 	[viapay] [char](1) NOT NULL DEFAULT '',
 	[shpcustvia] [char](30) NOT NULL DEFAULT '',
@@ -107,17 +107,17 @@ CREATE TABLE [dbo].[prodctra](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodctra] ON;
+SET IDENTITY_INSERT [prodctra] ON;
 
-INSERT INTO [Contech_Test].[dbo].[prodctra] ([prodctraid],[ra_no],[ra_dt],[aropenid],[ra_qty],[complntid],[contact],[ship_via],[rcvd_dt],[rcvd_qty],[rcvr_init],[rcvd_cond],[inspection],[qasign],[qasign_dt],[mrc_disp],[sign2],[sign2_dt],[sign1],[sign1_dt],[cr_invoice],[officeinit],[credit],[freight],[cust_issue],[ordersid],[rework_no],[viapay],[shpcustvia],[materltobe],[special],[jobstatus],[disposition],[disp_doc],[inspresult])
+INSERT INTO [prodctra] ([prodctraid],[ra_no],[ra_dt],[aropenid],[ra_qty],[complntid],[contact],[ship_via],[rcvd_dt],[rcvd_qty],[rcvr_init],[rcvd_cond],[inspection],[qasign],[qasign_dt],[mrc_disp],[sign2],[sign2_dt],[sign1],[sign1_dt],[cr_invoice],[officeinit],[credit],[freight],[cust_issue],[orderid],[rework_no],[viapay],[shpcustvia],[materltobe],[special],[jobstatus],[disposition],[disp_doc],[inspresult])
 SELECT [rawUpsize_Contech].[dbo].[prodctra].[prodctraid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[ra_no]
       ,[rawUpsize_Contech].[dbo].[prodctra].[ra_dt]
       --,[rawUpsize_Contech].[dbo].[prodctra].[invoice_no]
-	  ,ISNULL([Contech_Test].[dbo].[aropen].[aropenid], 0) AS [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+	  ,ISNULL(aropen.[aropenid], 0) AS [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[ra_qty]
       --,[rawUpsize_Contech].[dbo].[prodctra].[complnt_no]
-	  ,ISNULL([Contech_Test].[dbo].[complnts].[complntid], 0) AS [complntid] -- FK = [complnts].[complnt_no] --> [complnts].[complntid]
+	  ,ISNULL(complnts.[complntid], 0) AS [complntid]		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[contact]
       ,[rawUpsize_Contech].[dbo].[prodctra].[ship_via]
       ,[rawUpsize_Contech].[dbo].[prodctra].[rcvd_dt]
@@ -138,7 +138,7 @@ SELECT [rawUpsize_Contech].[dbo].[prodctra].[prodctraid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[freight]
       ,[rawUpsize_Contech].[dbo].[prodctra].[cust_issue]
       --,[rawUpsize_Contech].[dbo].[prodctra].[job_no]
-	  ,ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid]	-- FK = [orders].[job_no] --> [orders].[ordersid]
+	  ,ISNULL(orders.[orderid], 0) AS [ordersid]			-- FK = [orders].[job_no] --> [orders].[orderid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[rework_no]
       ,[rawUpsize_Contech].[dbo].[prodctra].[viapay]
       ,[rawUpsize_Contech].[dbo].[prodctra].[shpcustvia]
@@ -149,13 +149,13 @@ SELECT [rawUpsize_Contech].[dbo].[prodctra].[prodctraid]
       ,[rawUpsize_Contech].[dbo].[prodctra].[disp_doc]
       ,[rawUpsize_Contech].[dbo].[prodctra].[inspresult]
   FROM [rawUpsize_Contech].[dbo].[prodctra]
-  LEFT JOIN [Contech_Test].[dbo].[aropen] ON [rawUpsize_Contech].[dbo].[prodctra].[invoice_no] = [Contech_Test].[dbo].[aropen].[invoice_no]		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
-  LEFT JOIN [Contech_Test].[dbo].[complnts] ON [rawUpsize_Contech].[dbo].[prodctra].[complnt_no] = [Contech_Test].[dbo].[complnts].[complnt_no] -- FK = [complnts].[complnt_no] --> [complnts].[complntid]
-  LEFT JOIN [Contech_Test].[dbo].[orders] ON [rawUpsize_Contech].[dbo].[prodctra].[job_no] = [Contech_Test].[dbo].[orders].[job_no]				-- FK = [orders].[job_no] --> [orders].[ordersid]
+  LEFT JOIN [aropen] aropen ON [rawUpsize_Contech].[dbo].[prodctra].[invoice_no] = aropen.[invoice_no]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+  LEFT JOIN [complnts] complnts ON [rawUpsize_Contech].[dbo].[prodctra].[complnt_no] = complnts.[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
+  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[prodctra].[job_no] = orders.[job_no]					-- FK = [orders].[job_no] --> [orders].[orderid]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodctra] OFF;
+SET IDENTITY_INSERT [prodctra] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[prodctra]
+--SELECT * FROM [prodctra]
 
 -- =========================================================
 -- Section 013: prodschd
@@ -165,23 +165,23 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[prodctra] OFF;
 --  - Changed prodschdid to be primary key
 --  - Changed empnumber to int to reference employee table
 --  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
---  - Renamed [job_no] to [ordersid] to reference [orders] table
+--  - Renamed [job_no] to [orderid] to reference [orders] table
 --  - Changed [comments] from [text] to [varchar](2000)
 -- Maps:
 --	- [prodschd].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid] 
---	- [prodschd].[job_no] --> [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [prodschd].[job_no] --> [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodschd'))
-    DROP TABLE [dbo].[prodschd]
+    DROP TABLE [prodschd]
 
-CREATE TABLE [dbo].[prodschd](
+CREATE TABLE [prodschd](
 	[prodschdid] [int] IDENTITY(1,1) NOT NULL,
 	--[empnumber] [char](10) NOT NULL DEFAULT '', -- FK = [employee].[empnumber] 
 	[employeeid] [int] NOT NULL DEFAULT 0,		-- FK = [employee].[empnumber] --> [employee].[employeeid] 
 	--[job_no] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] 
-	[ordersid] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] --> [orders].[ordersid]
+	[orderid] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] --> [orders].[orderid]
 	[start_date] [datetime] NULL,
 	[end_date] [datetime] NULL,
 	[qty_comp] [numeric](7, 0) NOT NULL DEFAULT 0,
@@ -195,14 +195,14 @@ CREATE TABLE [dbo].[prodschd](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodschd] ON;
+SET IDENTITY_INSERT [prodschd] ON;
 
-INSERT INTO [Contech_Test].[dbo].[prodschd] ([prodschdid],[employeeid],[ordersid],[start_date],[end_date],[qty_comp],[comments],[totemps],[calcdstart])
+INSERT INTO [prodschd] ([prodschdid],[employeeid],[orderid],[start_date],[end_date],[qty_comp],[comments],[totemps],[calcdstart])
 SELECT [rawUpsize_Contech].[dbo].[prodschd].[prodschdid]
       --,[rawUpsize_Contech].[dbo].[prodschd].[empnumber]
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid] 
+	  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid] 
       --,[rawUpsize_Contech].[dbo].[prodschd].[job_no]
-	  ,ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+	  ,ISNULL(orders.[orderid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
       ,[rawUpsize_Contech].[dbo].[prodschd].[start_date]
       ,[rawUpsize_Contech].[dbo].[prodschd].[end_date]
       ,[rawUpsize_Contech].[dbo].[prodschd].[qty_comp]
@@ -210,12 +210,12 @@ SELECT [rawUpsize_Contech].[dbo].[prodschd].[prodschdid]
       ,[rawUpsize_Contech].[dbo].[prodschd].[totemps]
       ,[rawUpsize_Contech].[dbo].[prodschd].[calcdstart]
   FROM [rawUpsize_Contech].[dbo].[prodschd]  
-  LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[prodschd].[empnumber] = [Contech_Test].[dbo].[employee].[empnumber]
-  LEFT JOIN [Contech_Test].[dbo].[orders] ON [rawUpsize_Contech].[dbo].[prodschd].[job_no] = [Contech_Test].[dbo].[orders].[job_no]
+  LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[prodschd].[empnumber] = employee.[empnumber]
+  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[prodschd].[job_no] = orders.[job_no]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodschd] OFF;
+SET IDENTITY_INSERT [prodschd] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[prodschd]
+--SELECT * FROM [prodschd]
 
 -- =========================================================
 -- Section 013: prodtabl
@@ -226,12 +226,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[prodschd] OFF;
 -- Maps:
 --	- [prodtabl].[prodschdid]	-- FK = [prodschd].[prodschdid] 
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodtabl'))
-    DROP TABLE [dbo].[prodtabl]
+    DROP TABLE [prodtabl]
 
-CREATE TABLE [dbo].[prodtabl](
+CREATE TABLE [prodtabl](
 	[prodtablid] [int] IDENTITY(1,1) NOT NULL,
 	[prodschdid] [int] NOT NULL DEFAULT 0,	-- FK = [prodschd].[prodschdid]
 	[table] [char](10) NOT NULL DEFAULT '',
@@ -242,16 +242,16 @@ CREATE TABLE [dbo].[prodtabl](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodtabl] ON;
+SET IDENTITY_INSERT [prodtabl] ON;
 
-INSERT INTO [Contech_Test].[dbo].[prodtabl] ([prodtablid],[prodschdid],[table])
+INSERT INTO [prodtabl] ([prodtablid],[prodschdid],[table])
 SELECT [prodtablid]
       ,[prodschdid]
       ,[table]
   FROM [rawUpsize_Contech].[dbo].[prodtabl]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[prodtabl] OFF;
+SET IDENTITY_INSERT [prodtabl] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[prodtabl]
+--SELECT * FROM [prodtabl]
 
 -- =========================================================
