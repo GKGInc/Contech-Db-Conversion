@@ -6,10 +6,10 @@
 -- Column changes:
 --	- Set lookupid as primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lookups'))
-    DROP TABLE [dbo].[lookups]
+    DROP TABLE [lookups]
 	
 CREATE TABLE [lookups]
 (
@@ -24,25 +24,20 @@ CREATE TABLE [lookups]
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[lookups] ON;
+SET IDENTITY_INSERT [lookups] ON;
 
-INSERT INTO [Contech_Test].[dbo].[lookups]
-([lookupid] -- PK
-      ,[code]
-      ,[meaning]
-      ,[type]
-      ,[code_len])
-SELECT [lookupid] -- PK
+INSERT INTO [lookups] ([lookupid],[code],[meaning],[type],[code_len])
+SELECT [lookupid]
       ,[code]
       ,[meaning]
       ,[type]
       ,[code_len]
   FROM [rawUpsize_Contech].[dbo].[lookups]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[lookups] OFF;
+SET IDENTITY_INSERT [lookups] OFF;
   
---SELECT * FROM [Contech_Test].[dbo].[lookups] WHERE code  = 'PRO'
---SELECT * FROM [Contech_Test].[dbo].[lookups] ORDER BY code
+--SELECT * FROM [lookups] WHERE code  = 'PRO'
+--SELECT * FROM [lookups] ORDER BY code
 
 -- =========================================================
 -- Section 001: vendor
@@ -52,7 +47,7 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[lookups] OFF;
 --	- vendorid to first column
 --  - Changed [memo] from [text] to [varchar](2000)
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'vendor'))
     DROP TABLE [dbo].[vendor]
@@ -87,39 +82,43 @@ CREATE TABLE [dbo].[vendor](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[vendor]
+INSERT INTO [vendor]
 	SELECT * FROM [rawUpsize_Contech].[dbo].[vendor] 
 
---SELECT * FROM [Contech_Test].[dbo].[vendor]
+--SELECT * FROM [vendor]
 
 -- =========================================================
 -- Section 001: assets
 -- =========================================================
 
 -- Column changes:
---	- Moved assetsid (primary key) to first column
---  - Changed ven_id to int to reference vendor table
---  - Changed location to int to reference location in lookups table
---  - Changed asset_type to int to reference type in lookups table
+--	- Moved [assetid] (primary key) to first column
+--	- Renamed [assetsid] to [assetid]
+--  - Changed [ven_id] [char](10) to [vendorid] [int] to reference [vendor] table
+--  - Changed [location] [char](3) to [locationid] [int] to reference [location] in [lookups] table
+--  - Changed [asset_type] [char](3) to [asset_typeid] [int] to reference [type] in [lookups] table
 -- Maps:
---	- [assets].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
---	- [assets].[location]	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
---	- [assets].[asset_type]	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
+--	- [assets].[ven_id]	--> [vendorid]			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+--	- [assets].[location] --> [locationid]		-- FK = [lookups].[code]  -> ([lookups].[lookupid])
+--	- [assets].[asset_type] --> [asset_typeid]	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT *FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'assets'))
-    DROP TABLE [dbo].[assets]
+    DROP TABLE [assets]
 
-CREATE TABLE [dbo].[assets]
+CREATE TABLE [assets]
 (
-	[assetsid] [int] IDENTITY(1,1) NOT NULL,
+	[assetid] [int] IDENTITY(1,1) NOT NULL,
 	[asset_no] [char](10) NOT NULL DEFAULT '',
 	[asset_desc] [char](75) NOT NULL DEFAULT '',
-	[ven_id] [int] NOT NULL DEFAULT 0,
+	--[ven_id] [char](10) NOT NULL DEFAULT 0,		-- FK = [vendor].[ven_id] 
+	[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 	[pur_date] [datetime] NULL,
-	[location] [int] NOT NULL DEFAULT 0,
-	[asset_type] [int] NOT NULL DEFAULT 0,
+	--[location] [char](3) NOT NULL DEFAULT 0,		-- FK = [lookups].[code]  -> ([lookups].[lookupid])
+	[locationid] [int] NOT NULL DEFAULT 0,			-- FK = [lookups].[code]  -> ([lookups].[lookupid])
+	--[asset_type] [char](3) NOT NULL DEFAULT 0,	-- FK = [lookups].[code]  -> ([lookups].[lookupid])
+	[asset_typeid] [int] NOT NULL DEFAULT 0,		-- FK = [lookups].[code]  -> ([lookups].[lookupid])
 	[pur_cost] [numeric](9, 2) NOT NULL,
 	[contact] [char](50) NOT NULL DEFAULT '',
 	[serial_no] [char](30) NOT NULL DEFAULT '',
@@ -137,46 +136,24 @@ CREATE TABLE [dbo].[assets]
 	[rev_emp] [char](10) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_assets] PRIMARY KEY CLUSTERED 
 	(
-		[assetsid] ASC
+		[assetid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[assets] ON;
+SET IDENTITY_INSERT [dbo].[assets] ON;
 
-INSERT INTO [Contech_Test].[dbo].[assets]
-	([assetsid]
-      ,[asset_no]
-      ,[asset_desc]
-      ,[ven_id]
-      ,[pur_date]
-      ,[location]
-      ,[asset_type]
-      ,[pur_cost]
-      ,[contact]
-      ,[serial_no]
-      ,[model_no]
-      ,[status]
-      ,[status_dt]
-      ,[building]
-      ,[qty]
-      ,[owner]
-      ,[cal_notreq]
-      ,[calnorsn]
-      ,[calnoinitl]
-      ,[rev_rec]
-      ,[rev_dt]
-      ,[rev_emp])
-SELECT [rawUpsize_Contech].[dbo].[assets].[assetsid] -- PK
+INSERT INTO [dbo].[assets] ([assetid],[asset_no],[asset_desc],[vendorid],[pur_date],[locationid],[asset_typeid],[pur_cost],[contact],[serial_no],[model_no],[status],[status_dt],[building],[qty],[owner],[cal_notreq],[calnorsn],[calnoinitl],[rev_rec],[rev_dt],[rev_emp])
+SELECT [rawUpsize_Contech].[dbo].[assets].[assetsid]				-- PK
 	  ,[rawUpsize_Contech].[dbo].[assets].[asset_no]
       ,[rawUpsize_Contech].[dbo].[assets].[asset_desc]
-      --,[rawUpsize_Contech].[dbo].[assets].[ven_id]		-- FK = [vendor].[ven_id] -> [vendor].[pk188]
-	  ,ISNULL([Contech_Test].[dbo].[vendor].[vendorid], 0) AS [vend_pk]
+      --,[rawUpsize_Contech].[dbo].[assets].[ven_id]		
+	  ,ISNULL(vendor.[vendorid], 0) AS [vend_pk]					-- FK = [vendor].[ven_id] -> [vendor].[pk188]
       ,[rawUpsize_Contech].[dbo].[assets].[pur_date]
-      --,[rawUpsize_Contech].[dbo].[assets].[location]	-- FK = [lookups].[code] -> ([lookups].[lookupid])
-	  ,ISNULL(assetLocation.[lookupid], 0) AS [location_lookupid]
-      --,[rawUpsize_Contech].[dbo].[assets].[asset_type]	-- FK = [lookups].[code] -> ([lookups].[lookupid])
-	  ,ISNULL(assetType.[lookupid], 0) AS [type_lookupid]
+      --,[rawUpsize_Contech].[dbo].[assets].[location]		
+	  ,ISNULL(assetLocation.[lookupid], 0) AS [location_lookupid]	-- FK = [lookups].[code] -> ([lookups].[lookupid])
+      --,[rawUpsize_Contech].[dbo].[assets].[asset_type]	
+	  ,ISNULL(assetType.[lookupid], 0) AS [type_lookupid]			-- FK = [lookups].[code] -> ([lookups].[lookupid])
       ,[rawUpsize_Contech].[dbo].[assets].[pur_cost]
       ,[rawUpsize_Contech].[dbo].[assets].[contact]
       ,[rawUpsize_Contech].[dbo].[assets].[serial_no]
@@ -193,12 +170,12 @@ SELECT [rawUpsize_Contech].[dbo].[assets].[assetsid] -- PK
       ,[rawUpsize_Contech].[dbo].[assets].[rev_dt]
       ,[rawUpsize_Contech].[dbo].[assets].[rev_emp]
   FROM [rawUpsize_Contech].[dbo].[assets] 
-  LEFT JOIN [Contech_Test].[dbo].[vendor] ON [rawUpsize_Contech].[dbo].[assets].[ven_id] = [Contech_Test].[dbo].[vendor].[ven_id]
-  LEFT JOIN [Contech_Test].[dbo].[lookups] assetLocation ON [rawUpsize_Contech].[dbo].[assets].[asset_type] = assetLocation.[code] AND assetLocation.[type] = 'ASSET LOCATION'
-  LEFT JOIN [Contech_Test].[dbo].[lookups] assetType ON [rawUpsize_Contech].[dbo].[assets].[asset_type] = assetType.[code] AND assetType.[type] = 'ASSET TYPE'
+  LEFT JOIN [vendor] vendor ON [rawUpsize_Contech].[dbo].[assets].[ven_id] = vendor.[ven_id]
+  LEFT JOIN [lookups] assetLocation ON [rawUpsize_Contech].[dbo].[assets].[asset_type] = assetLocation.[code] AND assetLocation.[type] = 'ASSET LOCATION'
+  LEFT JOIN [lookups] assetType ON [rawUpsize_Contech].[dbo].[assets].[asset_type] = assetType.[code] AND assetType.[type] = 'ASSET TYPE'
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[assets] ON;
+SET IDENTITY_INSERT [assets] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[assets]
+--SELECT * FROM [assets]
 
 -- =========================================================
