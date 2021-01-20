@@ -129,7 +129,7 @@ CREATE TABLE [dbo].[assthist](
 	-- [assthistid] [int] NOT NULL,
 	[assthistid] [int] identity (1, 1),
 	-- [asset_no] [char](10) NOT NULL,
-	[assetsid] int not null,
+	[assetid] int not null,
 	[asstevntid] [int] NOT NULL,
 	[location] [char](3) default '' NOT NULL,
 	[comments] varchar(2000) default '' NOT NULL,
@@ -157,10 +157,10 @@ GO
 set identity_insert dbo.assthist ON
 
 insert into dbo.assthist
-(assthistid, assetsid, asstevntid, location, comments, inspect_by, evnt_date, evnt_type, employeeid, add_dt, add_employeeid, evntaction, evnt_name, rev_rec, rev_dt, rev_employeeid)
+(assthistid, assetid, asstevntid, location, comments, inspect_by, evnt_date, evnt_type, employeeid, add_dt, add_employeeid, evntaction, evnt_name, rev_rec, rev_dt, rev_employeeid)
 select assthistid,
        -- asset_no,
-       a.assetsid,
+       a.assetid,
        asstevntid,
        assthist.location,
        comments,
