@@ -7,12 +7,12 @@
 --  - Changed [classid] to be primary key
 --  - Changed [desc] from [text] to [varchar](2000)
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'class'))
-    DROP TABLE [dbo].[class]
+    DROP TABLE [class]
 	
-CREATE TABLE [dbo].[class](
+CREATE TABLE [class](
 	classid [int] IDENTITY(1,1) NOT NULL,
 	[class] [char](4) NOT NULL DEFAULT '',
 	[desc] [varchar](2000) NOT NULL DEFAULT '',
@@ -23,10 +23,10 @@ CREATE TABLE [dbo].[class](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[class]
+INSERT INTO [class]
 	SELECT * FROM [rawUpsize_Contech].[dbo].[class] 
 
---SELECT * FROM [Contech_Test].[dbo].[class]
+--SELECT * FROM [class]
 
 -- =========================================================
 -- Section 003: componet
@@ -35,19 +35,19 @@ INSERT INTO [Contech_Test].[dbo].[class]
 -- Column changes:
 --  - Moved [componetid] to 1st column
 --  - Changed [componetid] to be primary key
---  - Changed [class] to [int] to reference [type] in [class] table
+--  - Changed [class] [char](4) to [classid] [int] to reference [class] in [class] table
 --  - Changed [memo] from [text] to [varchar](2000)
 -- Maps:
---	- [componet].[class]		-- FK = [class].[class] -> [class].[classid]
+--	- [componet].[class] --> [classid]		-- FK = [class].[class] -> [class].[classid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'componet'))
     DROP TABLE [dbo].[componet]
 	
 CREATE TABLE [dbo].[componet](
 	[componetid] [int] IDENTITY(1,1) NOT NULL,
-	[comp] [char](5) NOT NULL DEFAULT '',
+	[comp] [char](5) NOT NULL DEFAULT '',			
 	[desc] [char](75) NOT NULL DEFAULT '',
 	[desc2] [char](75) NOT NULL DEFAULT '',
 	[memo1] [char](51) NOT NULL DEFAULT '',
@@ -75,7 +75,8 @@ CREATE TABLE [dbo].[componet](
 	[quar] [numeric](10, 0) NOT NULL DEFAULT 0,
 	[hold] [numeric](10, 0) NOT NULL DEFAULT 0,
 	[reject] [numeric](10, 0) NOT NULL DEFAULT 0,
-	[class] [int] NOT NULL DEFAULT 0,
+	--[class] [char](4) NOT NULL DEFAULT 0,
+	[classid] [int] NOT NULL DEFAULT 0,					-- FK = [class].[class] -> [class].[classid]
 	[comp_rev] [char](2) NOT NULL DEFAULT '',
 	[samp_plan] [char](2) NOT NULL DEFAULT '',
 	[lbl] [char](8) NOT NULL DEFAULT '',
@@ -103,9 +104,9 @@ CREATE TABLE [dbo].[componet](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[componet] ON;
+SET IDENTITY_INSERT [componet] ON;
 
-INSERT INTO [Contech_Test].[dbo].[componet] ([componetid],[comp],[desc],[desc2],[memo1],[insp],[cust_no],[cost],[unit],[ven_id],[price],[ctp_min],[cmi_inv],[cmi_min],[cmi_price],[material],[cust_comp],[cus_comp_r],[cust_desc],[memo],[inventory],[drw],[inc],[price_ire],[phys_inv],[inv_card],[quar],[hold],[reject],[class],[comp_rev],[samp_plan],[lbl],[xinv],[pickconv],[back_dist],[expire],[comptype],[color],[color_no],[pantone],[fda_food],[fda_med],[coneg],[prop65],[rohs],[eu_94_62],[rev_rec],[rev_dt],[rev_emp])
+INSERT INTO [componet] ([componetid],[comp],[desc],[desc2],[memo1],[insp],[cust_no],[cost],[unit],[ven_id],[price],[ctp_min],[cmi_inv],[cmi_min],[cmi_price],[material],[cust_comp],[cus_comp_r],[cust_desc],[memo],[inventory],[drw],[inc],[price_ire],[phys_inv],[inv_card],[quar],[hold],[reject],[classid],[comp_rev],[samp_plan],[lbl],[xinv],[pickconv],[back_dist],[expire],[comptype],[color],[color_no],[pantone],[fda_food],[fda_med],[coneg],[prop65],[rohs],[eu_94_62],[rev_rec],[rev_dt],[rev_emp])
 SELECT 
 	[rawUpsize_Contech].[dbo].[componet].[componetid]
 	,[rawUpsize_Contech].[dbo].[componet].[comp]
@@ -137,7 +138,7 @@ SELECT
 	,[rawUpsize_Contech].[dbo].[componet].[hold]
 	,[rawUpsize_Contech].[dbo].[componet].[reject]
 	--,[rawUpsize_Contech].[dbo].[componet].[class]
-	,ISNULL([Contech_Test].[dbo].[class].classid, 0) AS [class]
+	,ISNULL(class.classid, 0) AS [class]
 	,[rawUpsize_Contech].[dbo].[componet].[comp_rev]
 	,[rawUpsize_Contech].[dbo].[componet].[samp_plan]
 	,[rawUpsize_Contech].[dbo].[componet].[lbl]
@@ -159,10 +160,10 @@ SELECT
 	,[rawUpsize_Contech].[dbo].[componet].[rev_dt]
 	,[rawUpsize_Contech].[dbo].[componet].[rev_emp]
 FROM [rawUpsize_Contech].[dbo].[componet] 
-LEFT JOIN [Contech_Test].[dbo].[class] ON [rawUpsize_Contech].[dbo].[componet].[class] = [Contech_Test].[dbo].[class].class
+LEFT JOIN [class] class ON [rawUpsize_Contech].[dbo].[componet].[class] = class.[class]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[componet] OFF;
+SET IDENTITY_INSERT [componet] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[componet]
+--SELECT * FROM [componet]
 
 -- =========================================================

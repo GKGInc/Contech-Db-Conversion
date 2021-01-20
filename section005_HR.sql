@@ -6,12 +6,12 @@
 -- Column changes:
 --	- Changed [employeeid] to be the primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'employee'))
-    DROP TABLE [dbo].[employee]
+    DROP TABLE [employee]
 	
-CREATE TABLE [dbo].[employee](
+CREATE TABLE [employee](
 	[employeeid] [int] IDENTITY(1,1) NOT NULL,
 	[empnumber] [char](10) NOT NULL DEFAULT '',
 	[emplastnam] [char](30) NOT NULL DEFAULT '',
@@ -34,7 +34,7 @@ CREATE TABLE [dbo].[employee](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[employee]
+INSERT INTO [employee]
 	SELECT * FROM [rawUpsize_Contech].[dbo].[employee]
 
 --SELECT * FROM [Contech_Test].[dbo].[employee]
@@ -47,12 +47,12 @@ INSERT INTO [Contech_Test].[dbo].[employee]
 --  - Renamed [matlin_key] to [matlinid]
 --  - Set [matlinid] to be primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'matlin'))
-    DROP TABLE [dbo].[matlin]
+    DROP TABLE [matlin]
 	
-CREATE TABLE [dbo].[matlin](
+CREATE TABLE [matlin](
 	[matlinid] [int] IDENTITY(1,1) NOT NULL,
 	[po_no] [char](8) NOT NULL DEFAULT '',
 	[date] [datetime] NULL,
@@ -91,15 +91,15 @@ CREATE TABLE [dbo].[matlin](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[matlin] ON;
+SET IDENTITY_INSERT [matlin] ON;
 
-INSERT INTO [Contech_Test].[dbo].[matlin] ([matlinid],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid])
+INSERT INTO [matlin] ([matlinid],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid])
 SELECT [matlin_key],[po_no],[date],[amt_rec],[amt_acc],[amt_rej],[ct_lot],[ven_lot],[ven_inv],[ven_id],[ven_frt],[ven_cos_ea],[ven_memo],[ct_control],[qrn_no],[comp],[cust_vendor],[cust_po],[rcvr_id],[rcvr_mod],[upd_dt],[inspector],[expires],[scrap],[dlvrnotnum],[consign],[po_price],[vet_cert],[id_marks],[dscope_lot],[mfg_locid]
 FROM [rawUpsize_Contech].[dbo].[matlin] order by 1 
     
-SET IDENTITY_INSERT [Contech_Test].[dbo].[matlin] OFF;
+SET IDENTITY_INSERT [matlin] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[matlin]
+--SELECT * FROM [matlin]
 
 -- =========================================================
 -- Section 005: po_hdr
@@ -110,12 +110,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[matlin] OFF;
 --  - Changed [memo] from [text] to [varchar](2000)
 --  - Changed [cpmr] from [text] to [varchar](2000)
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'po_hdr'))
-    DROP TABLE [dbo].[po_hdr]
+    DROP TABLE [po_hdr]
 	
-CREATE TABLE [dbo].[po_hdr](
+CREATE TABLE [po_hdr](
 	[po_hdrid] [int] IDENTITY(1,1) NOT NULL,
 	[po_no] [char](8) NOT NULL DEFAULT '',
 	[status] [char](1) NOT NULL DEFAULT '',
@@ -178,7 +178,7 @@ CREATE TABLE [dbo].[po_hdr](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[po_hdr] 
+INSERT INTO [po_hdr] 
 	SELECT [pohdr].* FROM 
 		(SELECT [po_no]
 			  ,MAX([po_rev]) AS [po_rev]
@@ -193,7 +193,7 @@ INSERT INTO [Contech_Test].[dbo].[po_hdr]
 			AND [pohdr].[tot_recd] = [latest_pohdr].[tot_recd]
 	ORDER BY [pohdr].[date],[pohdr].[po_no]	
 
---SELECT * FROM [Contech_Test].[dbo].[po_hdr]
+--SELECT * FROM [po_hdr]
   
 -- =========================================================
 -- Section 005: po_dtl
@@ -204,12 +204,12 @@ INSERT INTO [Contech_Test].[dbo].[po_hdr]
 --  - Added [po_hdrid] as the FK to reference [po_hdr]
 --  - Changed [exp] from [text] to [varchar](3000) | Note: raised amount because there was a truncation error
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'po_dtl'))
-    DROP TABLE [dbo].[po_dtl]
+    DROP TABLE [po_dtl]
 	
-CREATE TABLE [dbo].[po_dtl](
+CREATE TABLE [po_dtl](
 	[po_dtlid] [int] IDENTITY(1,1) NOT NULL,
 	[po_hdrid] [int] NOT NULL DEFAULT 0,
 	[po_no] [char](8) NOT NULL DEFAULT '',
@@ -227,8 +227,8 @@ CREATE TABLE [dbo].[po_dtl](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[po_dtl] (po_hdrid,[po_no],[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
-SELECT ISNULL([Contech_Test].[dbo].[po_hdr].[po_hdrid], 0) AS [po_hdrid]
+INSERT INTO [po_dtl] (po_hdrid,[po_no],[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
+SELECT ISNULL(po_hdr.[po_hdrid], 0) AS [po_hdrid]
       ,[rawUpsize_Contech].[dbo].[po_dtl].[po_no]
       ,[rawUpsize_Contech].[dbo].[po_dtl].[ref_no]
       ,[rawUpsize_Contech].[dbo].[po_dtl].[due_date]
@@ -238,7 +238,7 @@ SELECT ISNULL([Contech_Test].[dbo].[po_hdr].[po_hdrid], 0) AS [po_hdrid]
       ,[rawUpsize_Contech].[dbo].[po_dtl].[exp]
       ,[rawUpsize_Contech].[dbo].[po_dtl].[kbfixed]
 FROM [rawUpsize_Contech].[dbo].[po_dtl]
-LEFT JOIN [Contech_Test].[dbo].[po_hdr] ON [rawUpsize_Contech].[dbo].[po_dtl].po_no = [Contech_Test].[dbo].[po_hdr].po_no
+LEFT JOIN [po_hdr] po_hdr ON [rawUpsize_Contech].[dbo].[po_dtl].po_no = po_hdr.[po_no]
 
 --SELECT * FROM [Contech_Test].[dbo].[po_dtl]
 

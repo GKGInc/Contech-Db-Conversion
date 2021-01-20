@@ -5,12 +5,12 @@
 -- Column changes:
 --  - Added [mfgcatid] as primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'mfgcat'))
-    DROP TABLE [dbo].[mfgcat]
+    DROP TABLE [mfgcat]
 	
-CREATE TABLE [dbo].[mfgcat](
+CREATE TABLE [mfgcat](
 	[mfgcatid] [int] IDENTITY(1,1) NOT NULL,
 	[acct_code] [char](1) NOT NULL DEFAULT '',
 	[mfg_cat] [char](2) NOT NULL DEFAULT '',
@@ -22,9 +22,9 @@ CREATE TABLE [dbo].[mfgcat](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[mfgcat] SELECT * FROM [rawUpsize_Contech].[dbo].[mfgcat] 
+INSERT INTO [mfgcat] SELECT * FROM [rawUpsize_Contech].[dbo].[mfgcat] 
 
---SELECT * FROM [Contech_Test].[dbo].[mfgcat]
+--SELECT * FROM [mfgcat]
 
 -- =========================================================
 -- Section 007: mfg_loc
@@ -33,12 +33,12 @@ INSERT INTO [Contech_Test].[dbo].[mfgcat] SELECT * FROM [rawUpsize_Contech].[dbo
 -- Column changes:
 --  - Changed [mfg_locid] to be primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'mfg_loc'))
-    DROP TABLE [dbo].[mfg_loc]
+    DROP TABLE [mfg_loc]
 	
-CREATE TABLE [dbo].[mfg_loc](
+CREATE TABLE [mfg_loc](
 	[mfg_locid] [int] IDENTITY(1,1) NOT NULL,
 	[loc_description] [char](50) NOT NULL DEFAULT '',
 	[lot_suffix] [char](2) NOT NULL DEFAULT '',
@@ -60,15 +60,15 @@ CREATE TABLE [dbo].[mfg_loc](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[mfg_loc] ON;
+SET IDENTITY_INSERT [mfg_loc] ON;
 
-INSERT INTO [Contech_Test].[dbo].[mfg_loc] ([mfg_locid],[loc_description],[lot_suffix],[address],[address2],[city],[state],[country],[phone],[fax],[email],[zip],[cust_no],[ven_id]) 
+INSERT INTO [mfg_loc] ([mfg_locid],[loc_description],[lot_suffix],[address],[address2],[city],[state],[country],[phone],[fax],[email],[zip],[cust_no],[ven_id]) 
 SELECT [mfg_locid],[loc_description],[lot_suffix],[address],[address2],[city],[state],[country],[phone],[fax],[email],[zip],[cust_no],[ven_id]
 FROM [rawUpsize_Contech].[dbo].[mfg_loc] ORDER BY 1
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[mfg_loc] ON;
+SET IDENTITY_INSERT [mfg_loc] ON;
 
---SELECT * FROM [Contech_Test].[dbo].[mfg_loc]
+--SELECT * FROM [mfg_loc]
 
 -- =========================================================
 -- Section 007: orders
@@ -76,32 +76,31 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[mfg_loc] ON;
 
 -- Column changes:
 --  - Added [ordersid] as primary key
---  - ?Added [bom_hdrid] [int] to reference [bom_hdr] table
+--  - Added [bom_hdrid] [int] to reference [bom_hdr] table using [bom_no] and [bom_rev] 
+--  - Removed columns [bom_no] and [bom_rev] 
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 --  - Changed [mfg_cat] [char](2) to [mfgcatid] [int] to reference [mfgcat] table
 --  - Changed [memo] from [text] to [varchar](2000)
 --  - Changed [ar_memo] from [text] to [varchar](2000)
 --  - Changed [coc_memo] from [text] to [varchar](2000)
 -- Maps:
---	- [orders].[cust_no]	-- FK = [customer].[cust_no] --> [vendor].[customerid]
---	- [orders].[bom_no]		-- FK = [bom_hdr].[bom_no] 
---	- [orders].[bom_rev]	-- FK = [bom_hdr].[bom_rev] 
---	- ?[orders].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+--	- [orders].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [vendor].[customerid]
+--	- [orders].[bom_hdrid]					-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [orders].[mfg_cat]	-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
 --	- [orders].[mfg_locid]	-- FK = [mfg_loc].[mfg_locid] 
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'orders'))
-    DROP TABLE [dbo].[orders]
+    DROP TABLE [orders]
 	
-CREATE TABLE [dbo].[orders](
+CREATE TABLE [orders](
 	[ordersid] [int] IDENTITY(1,1) NOT NULL,		-- new PK
 	[job_no] [int] NOT NULL DEFAULT 0,
 	[job_rev] [numeric](2, 0) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL,				-- FK = [bom_hdr].[bom_no] 
-	[bom_rev] [numeric](2, 0) NOT NULL,				-- FK = [bom_hdr].[bom_rev] 
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	--[bom_no] [numeric](5, 0) NOT NULL,			-- FK = [bom_hdr].[bom_no] 
+	--[bom_rev] [numeric](2, 0) NOT NULL,			-- FK = [bom_hdr].[bom_rev] 
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
 	[status] [char](1) NOT NULL DEFAULT '',
 	[cus_lot] [char](12) NOT NULL DEFAULT '',
 	[ct_lot] [char](8) NOT NULL DEFAULT '',
@@ -112,7 +111,7 @@ CREATE TABLE [dbo].[orders](
 	[price] [numeric](9, 4) NOT NULL DEFAULT 0.0,
 	[requested] [datetime] NULL,
 	[awk_date] [datetime] NULL,
-	--[cust_no] [int] NOT NULL,						-- FK = [customer].[cust_no] --> [vendor].[customerid]
+	--[cust_no] [int] NOT NULL,						-- FK = [customer].[cust_no]
 	[customerid] [int] NOT NULL,					-- FK = [customer].[cust_no] --> [vendor].[customerid]
 	[ship_to] [char](1) NOT NULL DEFAULT '',
 	[entered] [datetime] NULL,
@@ -122,7 +121,7 @@ CREATE TABLE [dbo].[orders](
 	[code] [char](1) NOT NULL DEFAULT '',
 	[memo] [varchar](2000) NOT NULL DEFAULT '',
 	[rev] [numeric](1, 0) NOT NULL DEFAULT 0,
-	--[mfg_cat] [char](2) NOT NULL DEFAULT 0,		-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
+	--[mfg_cat] [char](2) NOT NULL DEFAULT 0,		-- FK = [mfgcat].[mfg_cat] 
 	[mfgcatid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
 	[ar_qty_shi] [numeric](7, 0) NOT NULL DEFAULT 0,
 	[ar_qty_cr] [numeric](7, 0) NOT NULL DEFAULT 0,
@@ -153,12 +152,12 @@ CREATE TABLE [dbo].[orders](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[orders]
+INSERT INTO [orders]
 SELECT [rawUpsize_Contech].[dbo].[orders].[job_no]
       ,[rawUpsize_Contech].[dbo].[orders].[job_rev]
-      ,[rawUpsize_Contech].[dbo].[orders].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[orders].[bom_rev]
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) as [bom_hdrid]
+      --,[rawUpsize_Contech].[dbo].[orders].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[orders].[bom_rev]
+	  ,ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
       ,[rawUpsize_Contech].[dbo].[orders].[status]
       ,[rawUpsize_Contech].[dbo].[orders].[cus_lot]
       ,[rawUpsize_Contech].[dbo].[orders].[ct_lot]
@@ -170,7 +169,7 @@ SELECT [rawUpsize_Contech].[dbo].[orders].[job_no]
       ,[rawUpsize_Contech].[dbo].[orders].[requested]
       ,[rawUpsize_Contech].[dbo].[orders].[awk_date]
       --,[rawUpsize_Contech].[dbo].[orders].[cust_no] --
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]
       ,[rawUpsize_Contech].[dbo].[orders].[ship_to]
       ,[rawUpsize_Contech].[dbo].[orders].[entered]
       ,[rawUpsize_Contech].[dbo].[orders].[unit]
@@ -180,7 +179,7 @@ SELECT [rawUpsize_Contech].[dbo].[orders].[job_no]
       ,[rawUpsize_Contech].[dbo].[orders].[memo]
       ,[rawUpsize_Contech].[dbo].[orders].[rev]
       --,[rawUpsize_Contech].[dbo].[orders].[mfg_cat] --
-	  ,ISNULL([Contech_Test].[dbo].[mfgcat].[mfgcatid], 0) AS [mfgcatid]
+	  ,ISNULL(mfgcat.[mfgcatid], 0) AS [mfgcatid]
       ,[rawUpsize_Contech].[dbo].[orders].[ar_qty_shi]
       ,[rawUpsize_Contech].[dbo].[orders].[ar_qty_cr]
       ,[rawUpsize_Contech].[dbo].[orders].[part_desc]
@@ -204,11 +203,11 @@ SELECT [rawUpsize_Contech].[dbo].[orders].[job_no]
       ,[rawUpsize_Contech].[dbo].[orders].[bill_to]
       ,[rawUpsize_Contech].[dbo].[orders].[mfg_locid] 
   FROM [rawUpsize_Contech].[dbo].[orders] -- 119,815
-  --LEFT JOIN [Contech_Test].[dbo].[bom_hdr] ON [rawUpsize_Contech].[dbo].[orders].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[orders].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev] 
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[orders].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
-  LEFT JOIN [Contech_Test].[dbo].[mfgcat] ON [rawUpsize_Contech].[dbo].[orders].[mfg_cat] = [Contech_Test].[dbo].[mfgcat].[mfg_cat] 
-  --LEFT JOIN [Contech_Test].[dbo].[mfg_loc] ON [rawUpsize_Contech].[dbo].[orders].[mfg_locid] = [Contech_Test].[dbo].[mfg_loc].[mfg_locid] 
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[orders].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[orders].[bom_rev] = bom_hdr.[bom_rev] 
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[orders].[cust_no] = customer.[cust_no] 
+  LEFT JOIN [mfgcat] mfgcat ON [rawUpsize_Contech].[dbo].[orders].[mfg_cat] = mfgcat.[mfg_cat] 
+  --LEFT JOIN [mfg_loc] mfg_loc ON [rawUpsize_Contech].[dbo].[orders].[mfg_locid] = mfg_loc.[mfg_locid] 
 
-SELECT * FROM [Contech_Test].[dbo].[orders]
+--SELECT * FROM [orders]
 
 -- =========================================================
