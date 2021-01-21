@@ -6,12 +6,12 @@
 -- Column changes:
 --  - Added [issuetypid] to be primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'issuetyp'))
-    DROP TABLE [dbo].[issuetyp]
+    DROP TABLE [issuetyp]
 
-CREATE TABLE [dbo].[issuetyp](
+CREATE TABLE [issuetyp](
 	[issuetypid] [int] IDENTITY(1,1) NOT NULL,
 	[issue_type] [char](15) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_issuetyp] PRIMARY KEY CLUSTERED 
@@ -21,11 +21,11 @@ CREATE TABLE [dbo].[issuetyp](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[issuetyp] ([issue_type])
+INSERT INTO [issuetyp] ([issue_type])
 SELECT [issue_type]
   FROM [rawUpsize_Contech].[dbo].[issuetyp]
   
---SELECT * FROM [Contech_Test].[dbo].[issuetyp]
+--SELECT * FROM [issuetyp]
 
 -- =========================================================
 -- Section 035: job_hist
@@ -42,7 +42,7 @@ SELECT [issue_type]
 --	- [job_hist].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
 --	- [job_hist].[userid]		-- FK = [users].[username] --> [users].[userid]
 
---USE Contech_Test
+--USE [Contech_Test]
 
 --IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'job_hist'))
 --    DROP TABLE [dbo].[job_hist]
@@ -98,7 +98,7 @@ SELECT [issue_type]
 --	- [job_hist].[add_user]		-- FK = [users].[username] --> [users].[userid]
 --	- [job_hist].[mod_user]		-- FK = [users].[username] --> [users].[userid]
 
---USE Contech_Test
+--USE [Contech_Test]
 
 --IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'job_rels'))
 --    DROP TABLE [dbo].[job_rels]
@@ -155,19 +155,19 @@ SELECT [issue_type]
 
 -- Column changes:
 --  - Added [joblabelid] to be primary key
---  - Changed [job_no] to [ordersid] to match updated standards
+--  - Changed [job_no] to [orderid] to match updated standards
 -- Maps:
 --	- [joblabel].[job_no] --> [ordersid]	-- FK = [orders].[job_no] --> [orders].[ordersid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabel'))
-    DROP TABLE [dbo].[joblabel]
+    DROP TABLE [joblabel]
 
-CREATE TABLE [dbo].[joblabel](
+CREATE TABLE [joblabel](
 	[joblabelid] [int] IDENTITY(1,1) NOT NULL,
-	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
-	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
+	--[job_no] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no]
+	[orderid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[orderid]
 	[flag] [char](1) NOT NULL DEFAULT '',
 	[lic] [char](4) NOT NULL DEFAULT '',
 	[pcn] [char](13) NOT NULL DEFAULT '',
@@ -194,9 +194,9 @@ CREATE TABLE [dbo].[joblabel](
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[joblabel] ([ordersid],[flag],[lic],[pcn],[r],[q],[ct_lot],[cust_lot],[expyyyy],[expyy],[expmm],[expdd],[expjjj],[created],[modified],[umid1],[umid2],[umid3],[umid4],[expcmonth])
+INSERT INTO [joblabel] ([orderid],[flag],[lic],[pcn],[r],[q],[ct_lot],[cust_lot],[expyyyy],[expyy],[expmm],[expdd],[expjjj],[created],[modified],[umid1],[umid2],[umid3],[umid4],[expcmonth])
 SELECT --[rawUpsize_Contech].[dbo].[joblabel].[job_no]
-	  ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid] -- FK = [orders].[job_no] --> [orders].[ordersid] 
+	  ISNULL(orders.[orderid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[orderid] 
       ,[rawUpsize_Contech].[dbo].[joblabel].[flag]
       ,[rawUpsize_Contech].[dbo].[joblabel].[lic]
       ,[rawUpsize_Contech].[dbo].[joblabel].[pcn]
@@ -217,9 +217,9 @@ SELECT --[rawUpsize_Contech].[dbo].[joblabel].[job_no]
       ,[rawUpsize_Contech].[dbo].[joblabel].[umid4]
       ,[rawUpsize_Contech].[dbo].[joblabel].[expcmonth]
   FROM [rawUpsize_Contech].[dbo].[joblabel]
-  LEFT JOIN [Contech_Test].[dbo].[orders] ON [rawUpsize_Contech].[dbo].[joblabel].[job_no] = [Contech_Test].[dbo].[orders].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[joblabel].[job_no] = orders.[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
 
---SELECT * FROM [Contech_Test].[dbo].[joblabel]
+--SELECT * FROM [joblabel]
 
 -- =========================================================
 -- Section 035: joblabor
@@ -227,23 +227,23 @@ SELECT --[rawUpsize_Contech].[dbo].[joblabel].[job_no]
 
 -- Column changes:
 --  - Set [joblaborid] to be primary key
---  - Changed [job_no] to [ordersid] to match updated standards
+--  - Changed [job_no] to [orderid] to match updated standards
 --  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
 --  - Changed [notes] from text to varchar(2000)
 -- Maps:
---	- [joblabor].[job_no] --> [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+--	- [joblabor].[job_no] --> [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]
 --	- [joblabor].[mfgstageid]					-- FK = [mfgstage].[mfgstageid]
 --	- [joblabor].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabor'))
-    DROP TABLE [dbo].[joblabor]
+    DROP TABLE [joblabor]
 
-CREATE TABLE [dbo].[joblabor](
+CREATE TABLE [joblabor](
 	[joblaborid] [int] IDENTITY(1,1) NOT NULL,
 	--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
-	[ordersid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[ordersid]
+	[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
 	[mfgstageid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgstage].[mfgstageid]
 	--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
 	[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
@@ -263,18 +263,18 @@ CREATE TABLE [dbo].[joblabor](
 	(
 		[joblaborid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] --TEXTIMAGE_ON [PRIMARY]
+) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[joblabor] ON;
+SET IDENTITY_INSERT [joblabor] ON;
 
-INSERT INTO [Contech_Test].[dbo].[joblabor] ([joblaborid],[ordersid],[mfgstageid],[employeeid],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
+INSERT INTO [joblabor] ([joblaborid],[orderid],[mfgstageid],[employeeid],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
 SELECT [rawUpsize_Contech].[dbo].[joblabor].[joblaborid]
-      --,[rawUpsize_Contech].[dbo].[joblabor].[job_no]							-- FK = [orders].[job_no]
-	  ,ISNULL([Contech_Test].[dbo].[orders].[ordersid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[ordersid] 
-      ,[rawUpsize_Contech].[dbo].[joblabor].[mfgstageid]						-- FK = [mfgstage].[mfgstageid]
-      --,[rawUpsize_Contech].[dbo].[joblabor].[empnumber]						-- FK = [employee].[empnumber] 
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+      --,[rawUpsize_Contech].[dbo].[joblabor].[job_no]		-- FK = [orders].[job_no]
+	  ,ISNULL(orders.[orderid], 0) AS [ordersid]			-- FK = [orders].[job_no] --> [orders].[ordersid] 
+      ,[rawUpsize_Contech].[dbo].[joblabor].[mfgstageid]	-- FK = [mfgstage].[mfgstageid]
+      --,[rawUpsize_Contech].[dbo].[joblabor].[empnumber]	-- FK = [employee].[empnumber] 
+	  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[joblabor].[emp_rate]
       ,[rawUpsize_Contech].[dbo].[joblabor].[labor_date]
       ,[rawUpsize_Contech].[dbo].[joblabor].[timein]
@@ -288,11 +288,11 @@ SELECT [rawUpsize_Contech].[dbo].[joblabor].[joblaborid]
       ,[rawUpsize_Contech].[dbo].[joblabor].[quota]
       ,[rawUpsize_Contech].[dbo].[joblabor].[notes]
   FROM [rawUpsize_Contech].[dbo].[joblabor]
-  LEFT JOIN [Contech_Test].[dbo].[orders] ON [rawUpsize_Contech].[dbo].[joblabor].[job_no] = [Contech_Test].[dbo].[orders].[job_no]				-- FK = [orders].[job_no] --> [orders].[ordersid]
-  LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[joblabor].[empnumber] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[joblabor].[job_no] = orders.[job_no]				-- FK = [orders].[job_no] --> [orders].[ordersid]
+  LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[joblabor].[empnumber] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[joblabor] OFF;
+SET IDENTITY_INSERT [joblabor] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[joblabor]
+--SELECT * FROM [joblabor]
 
 -- =========================================================

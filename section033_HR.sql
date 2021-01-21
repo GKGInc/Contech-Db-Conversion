@@ -9,7 +9,7 @@
 --  - Set [fmmasterid] to be primary key
 --  - Changed [fmdesc] from text to varchar(2000)
 
---USE Contech_Test
+--USE [Contech_Test]
 
 --IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fmmaster'))
 --    DROP TABLE [dbo].[fmmaster]
@@ -45,15 +45,14 @@
 
 -- Column changes:
 --  - Changed [job_no] to [ftordersid] to be primary key 
+--  - Added [bom_hdrid] to be foreign key to link [bom_no] & [bom_rev]
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 -- Maps:
---	- [ftorders].[bom_no]					-- FK = [bom_hdr].[bom_no]
---	- [ftorders].[bom_rev]					-- FK = [bom_hdr].[bom_rev]
---	- ?[tbom_hdr].[bom_hdrid]				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+--	- [tbom_hdr].[bom_hdrid]				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [ftorders].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 --	- [ftorders].[mfg_locid]				-- FK = [mfg_loc].[mfg_locid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ftorders'))
     DROP TABLE [dbo].[ftorders]
@@ -61,9 +60,9 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
 CREATE TABLE [dbo].[ftorders](
 	--[job_no] [int] NOT NULL,	
 	[ftordersid] [int] IDENTITY(1,1) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
-	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
+	--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 	[status] [char](1) NOT NULL DEFAULT '',
 	[part_no] [char](15) NOT NULL DEFAULT '',
 	[part_rev] [char](10) NOT NULL DEFAULT '',
@@ -87,13 +86,13 @@ CREATE TABLE [dbo].[ftorders](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] ON;
+SET IDENTITY_INSERT [ftorders] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ftorders] ([ftordersid],[bom_no],[bom_rev],[status],[part_no],[part_rev],[cust_po],[qty_ord],[price],[requested],[awk_date],[customerid],[entered],[unit],[bo],[part_desc],[qty_firm_po],[mfg_locid])
+INSERT INTO [ftorders] ([ftordersid],[bom_hdrid],[status],[part_no],[part_rev],[cust_po],[qty_ord],[price],[requested],[awk_date],[customerid],[entered],[unit],[bo],[part_desc],[qty_firm_po],[mfg_locid])
 SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
-      ,[rawUpsize_Contech].[dbo].[ftorders].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[ftorders].[bom_rev]	  
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) AS [bom_hdrid] -- FK = [bom_hdr].[bom_hdrid]
+	  ,ISNULL(bom_hdr.[bom_hdrid], 0) AS [bom_hdrid]		-- FK = [bom_hdr].[bom_hdrid]
+      --,[rawUpsize_Contech].[dbo].[ftorders].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[ftorders].[bom_rev]	  
       ,[rawUpsize_Contech].[dbo].[ftorders].[status]
       ,[rawUpsize_Contech].[dbo].[ftorders].[part_no]
       ,[rawUpsize_Contech].[dbo].[ftorders].[part_rev]
@@ -103,7 +102,7 @@ SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
       ,[rawUpsize_Contech].[dbo].[ftorders].[requested]
       ,[rawUpsize_Contech].[dbo].[ftorders].[awk_date]
       --,[rawUpsize_Contech].[dbo].[ftorders].[cust_no]
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
       ,[rawUpsize_Contech].[dbo].[ftorders].[entered]
       ,[rawUpsize_Contech].[dbo].[ftorders].[unit]
       ,[rawUpsize_Contech].[dbo].[ftorders].[bo]
@@ -111,14 +110,12 @@ SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
       ,[rawUpsize_Contech].[dbo].[ftorders].[qty_firm_po]
       ,[rawUpsize_Contech].[dbo].[ftorders].[mfg_locid]
   FROM [rawUpsize_Contech].[dbo].[ftorders]
-  -- LEFT JOIN [Contech_Test].[dbo].[bom_hdr] 
-	--ON [rawUpsize_Contech].[dbo].[ftorders].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] 
-	--	AND [rawUpsize_Contech].[dbo].[ftorders].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[ftorders].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[ftorders].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[ftorders].[bom_rev] = bom_hdr.[bom_rev]
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[ftorders].[cust_no] = customer.[cust_no] 
 	
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] OFF;
+SET IDENTITY_INSERT [ftorders] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ftorders]
+--SELECT * FROM [ftorders]
 
 -- =========================================================
 -- Section 033: holidays
@@ -126,52 +123,53 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ftorders] OFF;
 
 -- Column changes:
 --  - Set [holidaysid] to be primary key
+--  - Changed [holidaysid] to [holidayid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'holidays'))
-    DROP TABLE [dbo].[holidays]
+    DROP TABLE [holidays]
 
-CREATE TABLE [dbo].[holidays](
-	[holidaysid] [int] IDENTITY(1,1) NOT NULL,
+CREATE TABLE [holidays](
+	[holidayid] [int] IDENTITY(1,1) NOT NULL,
 	[hol_date] [datetime] NULL,
 	[hol_desc] [char](25) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_holidays] PRIMARY KEY CLUSTERED 
 	(
-		[holidaysid] ASC
+		[holidayid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[holidays] ON;
+SET IDENTITY_INSERT [holidays] ON;
 
-INSERT INTO [Contech_Test].[dbo].[holidays] ([holidaysid],[hol_date],[hol_desc])
+INSERT INTO [holidays] ([holidayid],[hol_date],[hol_desc])
 SELECT [holidaysid]
       ,[hol_date]
       ,[hol_desc]
   FROM [rawUpsize_Contech].[dbo].[holidays]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[holidays] OFF;
+SET IDENTITY_INSERT [holidays] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[holidays]
+--SELECT * FROM [holidays]
 
 -- =========================================================
 -- Section 033: hotcomps
 -- =========================================================
 
 -- Column changes:
---  - Added [hotcompsid] to be primary key
+--  - Added [hotcompid] to be primary key
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [users] table
 -- Maps:
 --	- [hotcomps].[comp] --> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'hotcomps'))
-    DROP TABLE [dbo].[hotcomps]
+    DROP TABLE [hotcomps]
 
-CREATE TABLE [dbo].[hotcomps](
-	[hotcompsid] [int] IDENTITY(1,1) NOT NULL,
+CREATE TABLE [hotcomps](
+	[hotcompid] [int] IDENTITY(1,1) NOT NULL,
 	--[comp] [char](5) NOT NULL DEFAULT '',		-- FK = [componet].[comp]
 	[componetid] [int] NOT NULL DEFAULT 0,		-- FK = [componet].[comp] --> [componet].[componetid]
 	[ent_date] [datetime] NULL,
@@ -183,14 +181,14 @@ CREATE TABLE [dbo].[hotcomps](
 	[rej_amt] [int] NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_hotcomps] PRIMARY KEY CLUSTERED 
 	(
-		[hotcompsid] ASC
+		[hotcompid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] 
 GO
 
-INSERT INTO [Contech_Test].[dbo].[hotcomps] ([componetid],[ent_date],[job_no],[mod_date],[reqd_amt],[rcvd_amt],[reqd_date],[rej_amt])
+INSERT INTO [hotcomps] ([componetid],[ent_date],[job_no],[mod_date],[reqd_amt],[rcvd_amt],[reqd_date],[rej_amt])
 SELECT --[rawUpsize_Contech].[dbo].[hotcomps].[comp]
-	  ISNULL([Contech_Test].[dbo].[componet].[componetid], 0) AS [componetid] 
+	  ISNULL(componet.[componetid], 0) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
       ,[rawUpsize_Contech].[dbo].[hotcomps].[ent_date]
       ,[rawUpsize_Contech].[dbo].[hotcomps].[job_no]
       ,[rawUpsize_Contech].[dbo].[hotcomps].[mod_date]
@@ -199,9 +197,9 @@ SELECT --[rawUpsize_Contech].[dbo].[hotcomps].[comp]
       ,[rawUpsize_Contech].[dbo].[hotcomps].[reqd_date]
       ,[rawUpsize_Contech].[dbo].[hotcomps].[rej_amt]
   FROM [rawUpsize_Contech].[dbo].[hotcomps]
-  LEFT JOIN [Contech_Test].[dbo].[componet] ON [rawUpsize_Contech].[dbo].[hotcomps].[comp] = [Contech_Test].[dbo].[componet].[comp] 
+  LEFT JOIN [componet] ON [rawUpsize_Contech].[dbo].[hotcomps].[comp] = componet.[comp] 
 
---SELECT * FROM [Contech_Test].[dbo].[hotcomps]
+--SELECT * FROM [hotcomps]
 
 -- =========================================================
 -- Section 033: incasdsp
@@ -209,22 +207,23 @@ SELECT --[rawUpsize_Contech].[dbo].[hotcomps].[comp]
 
 -- Column changes:
 --  - Set [incasdspid] to be primary key
---  - Changed [add_user] [char](10) to [userid] [int] to reference [users] table
+--  - Changed [cmpcasesid] to [cmpcaseid]
+--  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 -- Maps:
---	- [incasdsp].[cmpcasesid]	-- FK = [cmpcases].[cmpcasesid]
---	- [incasdsp].[add_user] --> [userid]	-- FK = [users].[username] --> [users].[userid]
+--	- [incasdsp].[cmpcasesid] --> [cmpcaseid]	-- FK = [cmpcases].[cmpcaseid]
+--	- [incasdsp].[add_user] --> [add_userid]	-- FK = [users].[username] --> [users].[userid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'incasdsp'))
-    DROP TABLE [dbo].[incasdsp]
+    DROP TABLE [incasdsp]
 
-CREATE TABLE [dbo].[incasdsp](
+CREATE TABLE [incasdsp](
 	[incasdspid] [int] IDENTITY(1,1) NOT NULL,
 	[credit_no] [char](6) NOT NULL DEFAULT '',
-	[cmpcasesid] [int] NOT NULL DEFAULT 0,			-- FK = [cmpcases].[cmpcasesid]
+	[cmpcaseid] [int] NOT NULL DEFAULT 0,			-- FK = [cmpcases].[cmpcaseid]
 	--[add_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
-	[userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+	[add_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
 	[add_dt] [datetime] NULL,
 	CONSTRAINT [PK_incasdsp] PRIMARY KEY CLUSTERED 
 	(
@@ -233,20 +232,20 @@ CREATE TABLE [dbo].[incasdsp](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[incasdsp] ON;
+SET IDENTITY_INSERT [incasdsp] ON;
 
-INSERT INTO [Contech_Test].[dbo].[incasdsp] ([incasdspid],[credit_no],[cmpcasesid],[userid],[add_dt])
+INSERT INTO [Contech_Test].[dbo].[incasdsp] ([incasdspid],[credit_no],[cmpcaseid],[add_userid],[add_dt])
 SELECT [rawUpsize_Contech].[dbo].[incasdsp].[incasdspid]
       ,[rawUpsize_Contech].[dbo].[incasdsp].[credit_no]
-      ,[rawUpsize_Contech].[dbo].[incasdsp].[cmpcasesid]
+      ,[rawUpsize_Contech].[dbo].[incasdsp].[cmpcasesid]	-- FK = [cmpcases].[cmpcaseid]
       --,[rawUpsize_Contech].[dbo].[incasdsp].[add_user]
-	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]	
+	  ,ISNULL(users.[userid] , 0) as [userid]	
       ,[rawUpsize_Contech].[dbo].[incasdsp].[add_dt]
   FROM [rawUpsize_Contech].[dbo].[incasdsp]
-  LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[incasdsp].[add_user] = [Contech_Test].[dbo].[users].[username]	-- FK = [users].[username] --> [users].[userid]
+  LEFT JOIN [users] users ON [rawUpsize_Contech].[dbo].[incasdsp].[add_user] = users.[username]	-- FK = [users].[username] --> [users].[userid]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[incasdsp] OFF;
+SET IDENTITY_INSERT [incasdsp] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[incasdsp]
+--SELECT * FROM [incasdsp]
 
 -- =========================================================

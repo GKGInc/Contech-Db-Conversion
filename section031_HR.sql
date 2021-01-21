@@ -5,31 +5,32 @@
 
 -- Column changes:
 --  - Added [doctypesid] to be primary key
+--  - Changed [doctypesid] to [doctypeid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'doctypes'))
-    DROP TABLE [dbo].[doctypes]
+    DROP TABLE [doctypes]
 
-CREATE TABLE [dbo].[doctypes](
-	[doctypesid] [int] IDENTITY(1,1) NOT NULL,
+CREATE TABLE [doctypes](
+	[doctypeid] [int] IDENTITY(1,1) NOT NULL,
 	[doctype] [char](4) NOT NULL DEFAULT '',
 	[descript] [char](50) NOT NULL DEFAULT '',
 	[order] [char](2) NOT NULL DEFAULT '',
 	CONSTRAINT [PK_doctypes] PRIMARY KEY CLUSTERED 
 	(
-		[doctypesid] ASC
+		[doctypeid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[doctypes] ([doctype],[descript],[order])
+INSERT INTO [doctypes] ([doctype],[descript],[order])
 SELECT [doctype]
       ,[descript]
       ,[order]
   FROM [rawUpsize_Contech].[dbo].[doctypes]
   
---SELECT * FROM [Contech_Test].[dbo].[doctypes]
+--SELECT * FROM [doctypes]
 
 -- =========================================================
 -- Section 031: dspnsers
@@ -38,21 +39,20 @@ SELECT [doctype]
 -- Column changes:
 --  - Added [dspnsersid] to be primary key
 --  - Added [bom_hdrid] to be foreign key to link [bom_no] & [bom_rev]
+--  - Removed columns [bom_no] & [bom_rev]
 -- Maps:
---	- [dspnsers].[bom_no]	-- FK = [bom_hdr].[bom_no]
---	- [dspnsers].[bom_rev]	-- FK = [bom_hdr].[bom_rev]
---	- ?[tbom_hdr].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+--	- [dspnsers].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'dspnsers'))
     DROP TABLE [dbo].[dspnsers]
 
 CREATE TABLE [dbo].[dspnsers](
 	[dspnsersid] [int] IDENTITY(1,1) NOT NULL,
-	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
-	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+	--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
+	--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
 	[coil_od] [char](20) NOT NULL DEFAULT '',
 	[qtypolybag] [char](3) NOT NULL DEFAULT '',
 	[no_twist] [char](3) NOT NULL DEFAULT '',
@@ -74,10 +74,10 @@ CREATE TABLE [dbo].[dspnsers](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[dspnsers] ([bom_no],[bom_rev],[coil_od],[qtypolybag],[no_twist],[qty_bag],[qty_corr],[lbl_corr],[start],[ending],[window],[luer_req],[luer_fit],[luer_place],[j_req],[j_place])
-SELECT [rawUpsize_Contech].[dbo].[dspnsers].[bom_no]							-- FK = [bom_hdr].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[dspnsers].[bom_rev]							-- FK = [bom_hdr].[bom_rev]
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) AS [bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+INSERT INTO [Contech_Test].[dbo].[dspnsers] ([bom_hdrid],[coil_od],[qtypolybag],[no_twist],[qty_bag],[qty_corr],[lbl_corr],[start],[ending],[window],[luer_req],[luer_fit],[luer_place],[j_req],[j_place])
+SELECT --[rawUpsize_Contech].[dbo].[dspnsers].[bom_no]		-- FK = [bom_hdr].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[dspnsers].[bom_rev]		-- FK = [bom_hdr].[bom_rev]
+	  ISNULL(bom_hdr.[bom_hdrid], 0) AS [bom_hdrid]			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
       ,[rawUpsize_Contech].[dbo].[dspnsers].[coil_od]
       ,[rawUpsize_Contech].[dbo].[dspnsers].[qtypolybag]
       ,[rawUpsize_Contech].[dbo].[dspnsers].[no_twist]
@@ -93,11 +93,9 @@ SELECT [rawUpsize_Contech].[dbo].[dspnsers].[bom_no]							-- FK = [bom_hdr].[bo
       ,[rawUpsize_Contech].[dbo].[dspnsers].[j_req]
       ,[rawUpsize_Contech].[dbo].[dspnsers].[j_place]
   FROM [rawUpsize_Contech].[dbo].[dspnsers]
- -- LEFT JOIN [Contech_Test].[dbo].[bom_hdr] 
-	--ON [rawUpsize_Contech].[dbo].[dspnsers].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] 
-	--	AND [rawUpsize_Contech].[dbo].[dspnsers].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev]
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[dspnsers].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[dspnsers].[bom_rev] = bom_hdr.[bom_rev]
   
---SELECT * FROM [Contech_Test].[dbo].[dspnsers]
+--SELECT * FROM [dspnsers]
 
 -- =========================================================
 -- Section 031: ecoc
@@ -108,15 +106,15 @@ SELECT [rawUpsize_Contech].[dbo].[dspnsers].[bom_no]							-- FK = [bom_hdr].[bo
 --  - Changed [invoice_no] [numeric](9, 0) to [aropenid] [int] to reference [aropen] table
 --  - Changed [gen_user] [char](10) to [employeeid] [int] to reference [employee] table
 -- Maps:
---	- [ecoc].[invoice_no]	-- FK = [aropen].[invoice_no]
---	- [ecoc].[gen_user] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+--	- [ecoc].[invoice_no] --> [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+--	- [ecoc].[gen_user] --> [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecoc'))
-    DROP TABLE [dbo].[ecoc]
+    DROP TABLE [ecoc]
 
-CREATE TABLE [dbo].[ecoc](
+CREATE TABLE [ecoc](
 	[ecocid] [int] IDENTITY(1,1) NOT NULL,
 	--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no]
 	[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
@@ -133,26 +131,26 @@ CREATE TABLE [dbo].[ecoc](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ecoc] ON;
+SET IDENTITY_INSERT [ecoc] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ecoc] ([ecocid],[aropenid],[add_dt],[gen_dt],[employeeid],[sent_dt],[type])
+INSERT INTO [ecoc] ([ecocid],[aropenid],[add_dt],[gen_dt],[employeeid],[sent_dt],[type])
 SELECT [rawUpsize_Contech].[dbo].[ecoc].[ecocid]
-      ,[rawUpsize_Contech].[dbo].[ecoc].[invoice_no]
-	  --,ISNULL([Contech_Test].[dbo].[aropen].[aropenid] , 0) as [aropenid]
+      --,[rawUpsize_Contech].[dbo].[ecoc].[invoice_no]
+	  ,ISNULL(aropen.[aropenid] , 0) as [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
       ,[rawUpsize_Contech].[dbo].[ecoc].[add_dt]
       ,[rawUpsize_Contech].[dbo].[ecoc].[gen_dt]
       --,[rawUpsize_Contech].[dbo].[ecoc].[gen_user]
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- [asstevnt].[evntperson]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[ecoc].[sent_dt]
       ,[rawUpsize_Contech].[dbo].[ecoc].[type]
   FROM [rawUpsize_Contech].[dbo].[ecoc]
-  LEFT JOIN [Contech_Test].[dbo].[aropen] ON [rawUpsize_Contech].[dbo].[ecoc].[invoice_no] = [Contech_Test].[dbo].[aropen].[invoice_no]		-- FK = [aropen].[invoice_no] 
-  LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[ecoc].[gen_user] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+  LEFT JOIN [aropen] aropen ON [rawUpsize_Contech].[dbo].[ecoc].[invoice_no] = aropen.[invoice_no]		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+  LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[ecoc].[gen_user] = employee.[empnumber]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
   WHERE [rawUpsize_Contech].[dbo].[ecoc].[ecocid] != 0
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ecoc] OFF;
+SET IDENTITY_INSERT [ecoc] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ecoc]
+--SELECT * FROM [ecoc]
 
 -- =========================================================
 -- Section 031: ecust
@@ -166,12 +164,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ecoc] OFF;
 -- Maps:
 --	- [ecust].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecust'))
-    DROP TABLE [dbo].[ecust]
+    DROP TABLE [ecust]
 
-CREATE TABLE [dbo].[ecust](
+CREATE TABLE [ecust](
 	[ecustid] [int] IDENTITY(1,1) NOT NULL,
 	--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
 	[customerid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] --> [customer].[customerid]
@@ -185,21 +183,21 @@ CREATE TABLE [dbo].[ecust](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ecust] ON;
+SET IDENTITY_INSERT [ecust] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ecust] ([ecustid],[customerid],[emodule],[ecode],[equery])
+INSERT INTO [ecust] ([ecustid],[customerid],[emodule],[ecode],[equery])
 SELECT [rawUpsize_Contech].[dbo].[ecust].[ecustid]
       --,[rawUpsize_Contech].[dbo].[ecust].[cust_no]
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]
       ,[rawUpsize_Contech].[dbo].[ecust].[emodule]
       ,[rawUpsize_Contech].[dbo].[ecust].[ecode]
       ,[rawUpsize_Contech].[dbo].[ecust].[equery]
   FROM [rawUpsize_Contech].[dbo].[ecust]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[ecust].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[ecust].[cust_no] = customer.[cust_no] 
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ecust] OFF;
+SET IDENTITY_INSERT [ecust] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ecust]
+--SELECT * FROM [ecust]
 
 -- =========================================================
 -- Section 31: einvoice
@@ -213,12 +211,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ecust] OFF;
 --	- [einvoice].[invoice_no] --> [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 --	- [einvoice].[gen_user] --> [userid]		-- FK = [users].[username] --> [users].[userid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'einvoice'))
-    DROP TABLE [dbo].[einvoice]
+    DROP TABLE [einvoice]
 
-CREATE TABLE [dbo].[einvoice](
+CREATE TABLE [einvoice](
 	[einvoiceid] [int] IDENTITY(1,1) NOT NULL,
 	--[invoice_no] [numeric](9, 0) NOT NULL,		-- FK = [aropen].[invoice_no] 
 	[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
@@ -234,23 +232,23 @@ CREATE TABLE [dbo].[einvoice](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[einvoice] ON;
+SET IDENTITY_INSERT [einvoice] ON;
 
-INSERT INTO [Contech_Test].[dbo].[einvoice] ([einvoiceid],[aropenid],[gen_dt],[userid],[sent_dt],[invoice_hd])
+INSERT INTO [einvoice] ([einvoiceid],[aropenid],[gen_dt],[userid],[sent_dt],[invoice_hd])
 SELECT [rawUpsize_Contech].[dbo].[einvoice].[einvoiceid]
-      ,[rawUpsize_Contech].[dbo].[einvoice].[invoice_no]
-	  --,ISNULL([Contech_Test].[dbo].[aropen].[aropenid] , 0) as [aropenid]
+      --,[rawUpsize_Contech].[dbo].[einvoice].[invoice_no]
+	  ,ISNULL(aropen.[aropenid] , 0) as [aropenid]
       ,[rawUpsize_Contech].[dbo].[einvoice].[gen_dt]
       --,[rawUpsize_Contech].[dbo].[einvoice].[gen_user]
-	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]		
+	  ,ISNULL(users.[userid] , 0) as [userid]		
       ,[rawUpsize_Contech].[dbo].[einvoice].[sent_dt]
       ,[rawUpsize_Contech].[dbo].[einvoice].[invoice_hd]
   FROM [rawUpsize_Contech].[dbo].[einvoice]
-  LEFT JOIN [Contech_Test].[dbo].[aropen] ON [rawUpsize_Contech].[dbo].[einvoice].[invoice_no] = [Contech_Test].[dbo].[aropen].[invoice_no]		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
-  LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[einvoice].[gen_user] = [Contech_Test].[dbo].[users].[username]			-- FK = [users].[username] --> [users].[userid]
+  LEFT JOIN [aropen] ON [rawUpsize_Contech].[dbo].[einvoice].[invoice_no] = aropen.[invoice_no]		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+  LEFT JOIN [users] ON [rawUpsize_Contech].[dbo].[einvoice].[gen_user] = users.[username]			-- FK = [users].[username] --> [users].[userid]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[einvoice] OFF;
+SET IDENTITY_INSERT [einvoice] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[einvoice]
+--SELECT * FROM [einvoice]
 
 -- =========================================================
