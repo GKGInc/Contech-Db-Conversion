@@ -105,7 +105,7 @@ CREATE TABLE [matlincr](
 	[ven_lot] [char](15) NOT NULL DEFAULT '',
 	[incoming] [bit] NOT NULL DEFAULT 0,
 	--[comp] [char](5) NOT NULL DEFAULT '',			-- FK = [componet].[comp]
-	[componetid] [int] NOT NULL,					-- FK = [componet].[comp] --> [componet].[componetid]
+	[componetid] [int] NOT NULL DEFAULT 0,			-- FK = [componet].[comp] --> [componet].[componetid]
 	CONSTRAINT [PK_matlincr] PRIMARY KEY CLUSTERED 
 	(
 		[matlincrid] ASC
@@ -184,9 +184,9 @@ SET IDENTITY_INSERT [matrldoc] ON;
 INSERT INTO [matrldoc] ([matrldocid],[materialid],[docs_dtlid])
 SELECT [rawUpsize_Contech].[dbo].[matrldoc].[matrldocid]
       --,[rawUpsize_Contech].[dbo].[matrldoc].[material]
-	  ,ISNULL(material.[materialid] , 0) as [materialid]					-- FK = [material].[material] --> [material].[materialid]
+	  ,ISNULL(material.[materialid] , 0) as [materialid]	-- FK = [material].[material] --> [material].[materialid]
       --,[rawUpsize_Contech].[dbo].[matrldoc].[document]
-	  ,ISNULL(docs_dtl.[docs_dtlid] , 0) as [docs_dtlid]					-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
+	  ,ISNULL(docs_dtl.[docs_dtlid] , 0) as [docs_dtlid]	-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
   FROM [rawUpsize_Contech].[dbo].[matrldoc]
   LEFT JOIN [material] material ON [rawUpsize_Contech].[dbo].[matrldoc].[material] = material.[material]	-- FK = [material].[material] --> [material].[materialid]
   --LEFT JOIN [docs_dtl] docs_dtl ON [rawUpsize_Contech].[dbo].[matrldoc].[document] = docs_dtl.[document]	-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
