@@ -1,5 +1,5 @@
 -- ***************************************************
--- Section 020:
+-- Section 020: fplabel, fpbox, fplocatn, fppallet, fppltbox, fpshpbox, fptransfer, fptrnbox, fpweight
 -- ***************************************************
 
 use Contech_Test
@@ -62,7 +62,7 @@ INSERT INTO dbo.fplabel
 (fplabelid, orderid, labelno, qty, add_userid, add_dt, mod_userid, mod_dt, ship_via, mfg_locid)
 select fplabelid,
        -- req_hdrid,
-       isnull(o.ordersid, 0),
+       isnull(o.orderid, 0),
        labelno,
        fplabel.qty,
        -- add_user,

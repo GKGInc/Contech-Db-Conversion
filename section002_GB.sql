@@ -79,19 +79,21 @@ insert into dbo.users (username, password)
 values ('GKGINC', '')
 
 -- used in fpshpbox:
--- CTDSMOBILE
 insert into dbo.users (username, password)
 values ('CTDSMOBILE', '')
--- GKGAUTO
+
 insert into dbo.users (username, password)
 values ('GKGAUTO', '')
--- LEGACY
+
 insert into dbo.users (username, password)
 values ('LEGACY', '')
--- CTDSMOB
+
 insert into dbo.users (username, password)
 values ('CTDSMOB', '')
 
+-- used in autoinvoice
+insert into dbo.users (username, password)
+values ('ABBY', '')
 
 commit
 
