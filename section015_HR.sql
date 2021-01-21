@@ -6,12 +6,12 @@
 -- Column changes:
 --  - Changed [issuesid] to be primary key
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'issues'))
-    DROP TABLE [dbo].[issues]
+    DROP TABLE [issues]
 
-CREATE TABLE [dbo].[issues](
+CREATE TABLE [issues](
 	[issuesid] [int] IDENTITY(1,1) NOT NULL,
 	[issue_type] [char](15) NOT NULL DEFAULT '',
 	[issue_desc] [char](35) NOT NULL DEFAULT '',
@@ -22,17 +22,17 @@ CREATE TABLE [dbo].[issues](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[issues] ON;
+SET IDENTITY_INSERT [issues] ON;
 
-INSERT INTO [Contech_Test].[dbo].[issues] ([issuesid],[issue_type],[issue_desc])
+INSERT INTO [issues] ([issuesid],[issue_type],[issue_desc])
 SELECT [issuesid]
       ,[issue_type]
       ,[issue_desc]
   FROM [rawUpsize_Contech].[dbo].[issues]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[issues] OFF;
+SET IDENTITY_INSERT [issues] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[issues]
+--SELECT * FROM [issues]
 
 -- =========================================================
 -- Section 015: issuesdt
@@ -43,12 +43,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[issues] OFF;
 -- Maps:
 --	- [issuesdtid].[issuesid]	-- FK = [issues].[issuesid] 
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'issuesdt'))
-    DROP TABLE [dbo].[issuesdt]
+    DROP TABLE [issuesdt]
 
-CREATE TABLE [dbo].[issuesdt](
+CREATE TABLE [issuesdt](
 	[issuesdtid] [int] IDENTITY(1,1) NOT NULL,
 	[issuesid] [int] NOT NULL DEFAULT 0,			-- FK = [issues].[issuesid] 
 	[dtl_code] [char](2) NOT NULL DEFAULT '',
@@ -60,17 +60,17 @@ CREATE TABLE [dbo].[issuesdt](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[issuesdt] ON;
+SET IDENTITY_INSERT [issuesdt] ON;
 
-INSERT INTO [Contech_Test].[dbo].[issuesdt] ([issuesdtid],[issuesid],[dtl_code],[issue_dtl])
+INSERT INTO [issuesdt] ([issuesdtid],[issuesid],[dtl_code],[issue_dtl])
 SELECT [issuesdtid]		-- FK = [issues].[issuesid] 
       ,[issuesid]
       ,[dtl_code]
       ,[issue_dtl]
   FROM [rawUpsize_Contech].[dbo].[issuesdt]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[issuesdt] OFF;
+SET IDENTITY_INSERT [issuesdt] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[issuesdt]
+--SELECT * FROM [issuesdt]
 
 -- =========================================================

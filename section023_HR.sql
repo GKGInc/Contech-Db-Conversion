@@ -5,27 +5,27 @@
 
 -- Column changes:
 --  - Added [bom_altid] to be primary key
+--  - Added [bom_hdrid] to reference [bom_hdr] table using columns [bom_no] + [bom_rev]
+--  - Removed columns [bom_no] + [bom_rev]
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [componet] table
 -- Maps:
+--	- [bom_alt].[bom_hdrid]				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [bom_alt].[bom_dtlid]				-- FK = [bom_dtl].[bom_dtlid] 
---	- [bom_alt].[bom_no]				-- FK = [bom_hdr].[bom_no] 
---	- [bom_alt].[bom_rev]				-- FK = [bom_hdr].[bom_rev] 
 --	- [bom_alt].[comp] --> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
---	- ?[bom_alt].[bom_hdrid]			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_alt'))
     DROP TABLE [dbo].[bom_alt]
 
 CREATE TABLE [dbo].[bom_alt](
 	[bom_altid] [int] IDENTITY(1,1) NOT NULL,
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
 	[bom_dtlid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_dtl].[bom_dtlid] 
 	--[comp] [char](5) NOT NULL DEFAULT '',	-- FK = [componet].[comp] 
 	[componetid] [int] NOT NULL DEFAULT 0,	-- FK = [componet].[comp] --> [componet].[componetid]
-	[bom_no] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
-	[bom_rev] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	--[bom_no] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
+	--[bom_rev] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
 	CONSTRAINT [PK_bom_alt] PRIMARY KEY CLUSTERED 
 	(
 		[bom_altid] ASC
@@ -33,18 +33,18 @@ CREATE TABLE [dbo].[bom_alt](
 ) ON [PRIMARY]
 GO
 
-INSERT INTO [Contech_Test].[dbo].[bom_alt] ([bom_dtlid],[componetid],[bom_no],[bom_rev])
-SELECT [rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid]
+INSERT INTO [Contech_Test].[dbo].[bom_alt] ([bom_hdrid],[bom_dtlid],[componetid])
+SELECT ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
+	  ,[rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid]
       --,[rawUpsize_Contech].[dbo].[bom_alt].[comp]
-	  ,ISNULL([Contech_Test].[dbo].[componet].[componetid], 0) AS [componetid] 
-      ,[rawUpsize_Contech].[dbo].[bom_alt].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[bom_alt].[bom_rev]
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) as [bom_hdrid]
+	  ,ISNULL(componet.[componetid], 0) AS [componetid] 
+      --,[rawUpsize_Contech].[dbo].[bom_alt].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[bom_alt].[bom_rev]
   FROM [rawUpsize_Contech].[dbo].[bom_alt]
-  LEFT JOIN [Contech_Test].[dbo].[componet] ON [rawUpsize_Contech].[dbo].[bom_alt].[comp] = [Contech_Test].[dbo].[componet].[comp] -- FK = [componet].[comp] --> [componet].[componetid]
-  --LEFT JOIN [Contech_Test].[dbo].[bom_hdr] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev] 
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bom_alt].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bom_alt].[bom_rev] = bom_hdr.[bom_rev] 
+  LEFT JOIN [componet] componet ON [rawUpsize_Contech].[dbo].[bom_alt].[comp] = componet.[comp] -- FK = [componet].[comp] --> [componet].[componetid]
   
---SELECT * FROM [Contech_Test].[dbo].[bom_alt]
+--SELECT * FROM [bom_alt]
 
 -- =========================================================
 -- Section 023: bom_cust
@@ -52,6 +52,8 @@ SELECT [rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid]
 
 -- Column changes:
 --  - Set [bom_custid] to be primary key
+--  - Added [bom_hdrid] to reference [bom_hdr] table using columns [bom_no] + [bom_rev]
+--  - Removed columns [bom_no] + [bom_rev]
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
 --  - Changed [add_user] [char](10) to [userid] [int] to reference [users] table
 -- Maps:
@@ -61,16 +63,16 @@ SELECT [rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid]
 --	- [bom_cust].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 --	- [bom_cust].[add_user]	--> userid		-- FK = [users].[username] --> [users].[userid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_cust'))
-    DROP TABLE [dbo].[bom_cust]
+    DROP TABLE [bom_cust]
 
-CREATE TABLE [dbo].[bom_cust](
+CREATE TABLE [bom_cust](
 	[bom_custid] [int] IDENTITY(1,1) NOT NULL,
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
-	[bom_no] [int] NOT NULL DEFAULT 0,				-- FK = [bom_hdr].[bom_no]
-	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	--[bom_no] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no]
+	--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 	--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
 	[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] -> [customer].[customerid]
 	[sts] [char](1) NOT NULL DEFAULT '',
@@ -90,33 +92,33 @@ CREATE TABLE [dbo].[bom_cust](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[bom_cust] ON;
+SET IDENTITY_INSERT [bom_cust] ON;
 
-INSERT INTO [Contech_Test].[dbo].[bom_cust] ([bom_custid],[bom_no],[bom_rev],[customerid],[sts],[kanban],[add_date],[add_userid],[bom_main],[sts_loc],[kanban_loc],[suppdata],[sd_loc])
+INSERT INTO [bom_cust] ([bom_custid],[bom_hdrid],[customerid],[sts],[kanban],[add_date],[add_userid],[bom_main],[sts_loc],[kanban_loc],[suppdata],[sd_loc])
 SELECT [rawUpsize_Contech].[dbo].[bom_cust].[bom_custid]
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) as [bom_hdrid]
-      ,[rawUpsize_Contech].[dbo].[bom_cust].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[bom_cust].[bom_rev]
+	  ,ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
+      --,[rawUpsize_Contech].[dbo].[bom_cust].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[bom_cust].[bom_rev]
       --,[rawUpsize_Contech].[dbo].[bom_cust].[cust_no]
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[sts]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[kanban]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[add_date]
       --,[rawUpsize_Contech].[dbo].[bom_cust].[add_user]
-	  ,ISNULL([Contech_Test].[dbo].[users].[userid] , 0) as [userid]		
+	  ,ISNULL(users.[userid] , 0) as [userid]		
       ,[rawUpsize_Contech].[dbo].[bom_cust].[bom_main]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[sts_loc]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[kanban_loc]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[suppdata]
       ,[rawUpsize_Contech].[dbo].[bom_cust].[sd_loc]
   FROM [rawUpsize_Contech].[dbo].[bom_cust]
-  --LEFT JOIN [Contech_Test].[dbo].[bom_hdr] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev] 
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[bom_cust].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] 
-  LEFT JOIN [Contech_Test].[dbo].[users] ON [rawUpsize_Contech].[dbo].[bom_cust].[add_user] = [Contech_Test].[dbo].[users].[username]	-- FK = [users].[userid]
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bom_cust].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bom_cust].[bom_rev] = bom_hdr.[bom_rev] 
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[bom_cust].[cust_no] = customer.[cust_no] 
+  LEFT JOIN [users] users ON [rawUpsize_Contech].[dbo].[bom_cust].[add_user] = users.[username]	
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[bom_cust] OFF;
+SET IDENTITY_INSERT [bom_cust] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[bom_cust]
+--SELECT * FROM [bom_cust]
 
 -- =========================================================
 -- Section 023: bom_hist
@@ -130,12 +132,12 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[bom_cust] OFF;
 --	- [bom_hist].[bom_no]					-- FK = [bom_hdr].[bom_no]
 --	- [bom_hist].[emp_no] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_hist'))
-    DROP TABLE [dbo].[bom_hist]
+    DROP TABLE [bom_hist]
 
-CREATE TABLE [dbo].[bom_hist](
+CREATE TABLE [bom_hist](
 	[bom_histid] [int] IDENTITY(1,1) NOT NULL,
 	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
 	[type] [char](4) NOT NULL DEFAULT '',			
@@ -153,7 +155,7 @@ CREATE TABLE [dbo].[bom_hist](
 ) ON [PRIMARY] 
 GO
   
-INSERT INTO [Contech_Test].[dbo].[bom_hist] ([bom_no],[type],[notes],[number],[rev],[daterev],[employeeid],[rev_dt])
+INSERT INTO [bom_hist] ([bom_no],[type],[notes],[number],[rev],[daterev],[employeeid],[rev_dt])
 SELECT [rawUpsize_Contech].[dbo].[bom_hist].[bom_no]
       ,[rawUpsize_Contech].[dbo].[bom_hist].[type]
       ,[rawUpsize_Contech].[dbo].[bom_hist].[notes]
@@ -161,12 +163,12 @@ SELECT [rawUpsize_Contech].[dbo].[bom_hist].[bom_no]
       ,[rawUpsize_Contech].[dbo].[bom_hist].[rev]
       ,[rawUpsize_Contech].[dbo].[bom_hist].[daterev]
       --,[rawUpsize_Contech].[dbo].[bom_hist].[emp_no]
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[bom_hist].[rev_dt]
   FROM [rawUpsize_Contech].[dbo].[bom_hist]
- LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[bom_hist].[emp_no] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+ LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[bom_hist].[emp_no] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
---SELECT * FROM [Contech_Test].[dbo].[bom_hist]
+--SELECT * FROM [bom_hist]
 
 -- =========================================================
 -- Section 023: bom_pend
@@ -175,24 +177,24 @@ SELECT [rawUpsize_Contech].[dbo].[bom_hist].[bom_no]
 -- Column changes:
 --  - Added bom_pendid to be primary key
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [componet] table
+--  - Added [bom_hdrid] to reference [bom_hdr] table using columns [bom_no] + [bom_rev]
+--  - Removed columns [bom_no] + [bom_rev]
 -- Maps:
---	- ?[tbom_hdr].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
---	- [bom_pend].[bom_no]					-- FK = [bom_hdr].[bom_no]
---	- [bom_pend].[bom_rev]					-- FK = [bom_hdr].[bom_rev]
 --	- [bom_pend].[comp] --> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
+--	- [bom_pend].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_pend'))
-    DROP TABLE [dbo].[bom_pend]
+    DROP TABLE [bom_pend]
 
-CREATE TABLE [dbo].[bom_pend](
+CREATE TABLE [bom_pend](
 	[bom_pendid] [int] IDENTITY(1,1) NOT NULL,
 	--[comp] [char](5) NOT NULL DEFAULT '',			-- FK = [componet].[comp] 
 	[componetid] [int] NOT NULL DEFAULT 0,			-- FK = [componet].[comp] --> [componet].[componetid]
-	--[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
-	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
-	[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+	--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
+	--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 	[status] [char](1) NOT NULL DEFAULT '',
 	[date] [datetime] NULL,
 	CONSTRAINT [PK_bom_pend] PRIMARY KEY CLUSTERED 
@@ -202,19 +204,19 @@ CREATE TABLE [dbo].[bom_pend](
 ) ON [PRIMARY] 
 GO
   
-INSERT INTO [Contech_Test].[dbo].[bom_pend] ([componetid],[bom_no],[bom_rev],[status],[date])
+INSERT INTO [bom_pend] ([componetid],[bom_hdrid],[status],[date])
 SELECT --[rawUpsize_Contech].[dbo].[bom_pend].[comp]
-	  ISNULL([Contech_Test].[dbo].[componet].[componetid], 0) AS [componetid] 
-	  --,ISNULL([Contech_Test].[dbo].[bom_hdr].[bom_hdrid], 0) as [bom_hdrid]
-      ,[rawUpsize_Contech].[dbo].[bom_pend].[bom_no]
-      ,[rawUpsize_Contech].[dbo].[bom_pend].[bom_rev]
+	  ISNULL(componet.[componetid], 0) AS [componetid] 
+	  ,ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
+      --,[rawUpsize_Contech].[dbo].[bom_pend].[bom_no]
+      --,[rawUpsize_Contech].[dbo].[bom_pend].[bom_rev]
       ,[rawUpsize_Contech].[dbo].[bom_pend].[status]
       ,[rawUpsize_Contech].[dbo].[bom_pend].[date]
   FROM [rawUpsize_Contech].[dbo].[bom_pend]
-  --LEFT JOIN [Contech_Test].[dbo].[bom_hdr] ON [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_no] = [Contech_Test].[dbo].[bom_hdr].[bom_no] AND [rawUpsize_Contech].[dbo].[tbom_hdr].[bom_rev] = [Contech_Test].[dbo].[bom_hdr].[bom_rev] 
-  LEFT JOIN [Contech_Test].[dbo].[componet] ON [rawUpsize_Contech].[dbo].[bom_pend].[comp] = [Contech_Test].[dbo].[componet].[comp] 
+  LEFT JOIN [componet] componet ON [rawUpsize_Contech].[dbo].[bom_pend].[comp] = componet.[comp] 
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bom_pend].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bom_pend].[bom_rev] = bom_hdr.[bom_rev] 
   
---SELECT * FROM [Contech_Test].[dbo].[bom_pend]
+--SELECT * FROM [bom_pend]
 
 -- =========================================================
 -- Section 023: bom_pric
@@ -226,12 +228,12 @@ SELECT --[rawUpsize_Contech].[dbo].[bom_pend].[comp]
 -- Maps:
 --	- [bom_pend].[bom_no]		-- FK = [bom_hdr].[bom_no]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_pric'))
-    DROP TABLE [dbo].[bom_pric]
+    DROP TABLE [bom_pric]
 
-CREATE TABLE [dbo].[bom_pric](
+CREATE TABLE [bom_pric](
 	[bom_pricid] [int] IDENTITY(1,1) NOT NULL,
 	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
 	[qty_from] [int] NOT NULL DEFAULT 0,
@@ -246,9 +248,9 @@ CREATE TABLE [dbo].[bom_pric](
 ) ON [PRIMARY] 
 GO
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[bom_pric] ON;
+SET IDENTITY_INSERT [bom_pric] ON;
 
-INSERT INTO [Contech_Test].[dbo].[bom_pric] ([bom_pricid],[bom_no],[qty_from],[qty_to],[price],[price_rev],[price_note])
+INSERT INTO [bom_pric] ([bom_pricid],[bom_no],[qty_from],[qty_to],[price],[price_rev],[price_note])
 SELECT [bom_pricid]
       ,[bom_no]
       ,[qty_from]
@@ -258,8 +260,8 @@ SELECT [bom_pricid]
       ,[price_note]
   FROM [rawUpsize_Contech].[dbo].[bom_pric]
   
-SET IDENTITY_INSERT [Contech_Test].[dbo].[bom_pric] OFF;
+SET IDENTITY_INSERT [bom_pric] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[bom_pric]
+--SELECT * FROM [bom_pric]
 
 -- =========================================================

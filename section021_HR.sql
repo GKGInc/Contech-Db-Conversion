@@ -5,22 +5,21 @@
 
 -- Column changes:
 --  - Set [asstevntid] to be primary key
---  - Changed [asset_no] [char](10) to [assetsid] [int] to reference [assets] table
+--  - Changed [asset_no] [char](10) to [assetid] [int] to reference [assets] table
 --  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
---  - Changed empnumber to int to reference employee table
 -- Maps:
 --	- [asstevnt].[asset_no] --> [asstevntid]	-- FK = [assets].[asset_no] -> [assets].[assetsid]
 --	- [asstevnt].[evntperson] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'asstevnt'))
-    DROP TABLE [dbo].[asstevnt]
+    DROP TABLE [asstevnt]
 
-CREATE TABLE [dbo].[asstevnt](
+CREATE TABLE [asstevnt](
 	[asstevntid] [int] IDENTITY(1,1) NOT NULL,
 	--[asset_no] [char](10) NOT NULL DEFAULT '',	-- FK = [assets].[asset_no]
-	[assetsid] [int] NOT NULL DEFAULT 0,			-- FK = [assets].[asset_no] -> [assets].[assetsid]
+	[assetid] [int] NOT NULL DEFAULT 0,				-- FK = [assets].[asset_no] -> [assets].[assetid]
 	[evnt_type] [char](2) NOT NULL DEFAULT '',
 	[evnt_name] [char](30) NOT NULL DEFAULT '',
 	[interval] [char](2) NOT NULL DEFAULT '',
@@ -43,19 +42,19 @@ CREATE TABLE [dbo].[asstevnt](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[asstevnt] ON;
+SET IDENTITY_INSERT [asstevnt] ON;
 
-INSERT INTO [Contech_Test].[dbo].[asstevnt] ([asstevntid],[assetsid],[evnt_type],[evnt_name],[interval],[intervalno],[rmndr_days],[employeeid],[document],[future_due],[lastaction],[rmndr_date],[evntmpltid],[rev_rec],[rev_dt],[rev_emp])
+INSERT INTO [asstevnt] ([asstevntid],[assetid],[evnt_type],[evnt_name],[interval],[intervalno],[rmndr_days],[employeeid],[document],[future_due],[lastaction],[rmndr_date],[evntmpltid],[rev_rec],[rev_dt],[rev_emp])
 SELECT [rawUpsize_Contech].[dbo].[asstevnt].[asstevntid]
       --,[rawUpsize_Contech].[dbo].[asstevnt].[asset_no]
-	  ,ISNULL([Contech_Test].[dbo].[assets].[assetsid], 0) AS [assetsid]		-- FK = [assets].[asset_no] -> [assets].[assetsid]
+	  ,ISNULL(assets.[assetid], 0) AS [assetid]			-- FK = [assets].[asset_no] -> [assets].[assetid]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[evnt_type]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[evnt_name]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[interval]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[intervalno]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[rmndr_days]
       --,[rawUpsize_Contech].[dbo].[asstevnt].[evntperson]
-	  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[document]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[future_due]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[lastaction]
@@ -65,11 +64,11 @@ SELECT [rawUpsize_Contech].[dbo].[asstevnt].[asstevntid]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[rev_dt]
       ,[rawUpsize_Contech].[dbo].[asstevnt].[rev_emp]
   FROM [rawUpsize_Contech].[dbo].[asstevnt]
-  LEFT JOIN [Contech_Test].[dbo].[assets] ON [rawUpsize_Contech].[dbo].[asstevnt].[asset_no] = [Contech_Test].[dbo].[assets].[asset_no]			-- FK = [assets].[asset_no] -> [assets].[assetsid]
-  LEFT JOIN [Contech_Test].[dbo].[employee] ON [rawUpsize_Contech].[dbo].[asstevnt].[evntperson] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+  LEFT JOIN [assets] assets ON [rawUpsize_Contech].[dbo].[asstevnt].[asset_no] = assets.[asset_no]			-- FK = [assets].[asset_no] -> [assets].[assetid]
+  LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[asstevnt].[evntperson] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[asstevnt] OFF;
+SET IDENTITY_INSERT [asstevnt] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[asstevnt]
+--SELECT * FROM [asstevnt]
 
 -- =========================================================

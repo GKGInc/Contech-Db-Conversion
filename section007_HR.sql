@@ -75,7 +75,7 @@ SET IDENTITY_INSERT [mfg_loc] ON;
 -- =========================================================
 
 -- Column changes:
---  - Added [ordersid] as primary key
+--  - Added [orderid] as primary key
 --  - Added [bom_hdrid] [int] to reference [bom_hdr] table using [bom_no] and [bom_rev] 
 --  - Removed columns [bom_no] and [bom_rev] 
 --  - Changed [cust_no] [char](5) to [customerid] [int] to reference [customer] table
@@ -95,7 +95,7 @@ IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' A
     DROP TABLE [orders]
 	
 CREATE TABLE [orders](
-	[ordersid] [int] IDENTITY(1,1) NOT NULL,		-- new PK
+	[orderid] [int] IDENTITY(1,1) NOT NULL,			-- new PK
 	[job_no] [int] NOT NULL DEFAULT 0,
 	[job_rev] [numeric](2, 0) NOT NULL,
 	--[bom_no] [numeric](5, 0) NOT NULL,			-- FK = [bom_hdr].[bom_no] 
@@ -147,7 +147,7 @@ CREATE TABLE [orders](
 	[mfg_locid] [int] NOT NULL DEFAULT 0,			-- FK = [mfg_loc].[mfg_locid]
 	CONSTRAINT [PK_orders] PRIMARY KEY CLUSTERED 
 	(
-		[ordersid] ASC
+		[orderid] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

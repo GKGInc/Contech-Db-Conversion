@@ -11,7 +11,7 @@
 -- Maps:
 --	- [jobsetup].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
 
---USE Contech_Test
+--USE [Contech_Test]
 
 --IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'jobsetup'))
 --    DROP TABLE [dbo].[jobsetup]
@@ -92,7 +92,7 @@
 --	- [lab001].[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
 --	- [lab001].[add_user]		-- FK = [users].[username] --> [users].[userid]
 
---USE Contech_Test
+--USE [Contech_Test]
 
 --IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lab001'))
 --    DROP TABLE [dbo].[lab001]
@@ -142,12 +142,12 @@
 --	- [ladinghd].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 --	- [ladinghd].[ship_to] --> [custshipid]	-- FK = [custship].[ship_to] --> [custship].[custshipid] {composite key with [cust_no] to [custship] table}
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladinghd'))
-    DROP TABLE [dbo].[ladinghd]
+    DROP TABLE [ladinghd]
 
-CREATE TABLE [dbo].[ladinghd](
+CREATE TABLE [ladinghd](
 	--[shipper_no] [char](6) NOT NULL DEFAULT '',
 	[ladinghdid] [int] IDENTITY(1,1) NOT NULL,
 	[carrier] [char](20) NOT NULL DEFAULT '',
@@ -172,15 +172,15 @@ CREATE TABLE [dbo].[ladinghd](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ladinghd] ON;
+SET IDENTITY_INSERT [ladinghd] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ladinghd] ([ladinghdid],[carrier],[customerid],[custshipid],[ship_date],[skids],[cases],[weight],[tot_charge],[remitcod],[codamt],[codfee],[tot_inv],[pay_type])
+INSERT INTO [ladinghd] ([ladinghdid],[carrier],[customerid],[custshipid],[ship_date],[skids],[cases],[weight],[tot_charge],[remitcod],[codamt],[codfee],[tot_inv],[pay_type])
 SELECT [rawUpsize_Contech].[dbo].[ladinghd].[shipper_no]
       ,[rawUpsize_Contech].[dbo].[ladinghd].[carrier]      
       --,[rawUpsize_Contech].[dbo].[ladinghd].[cust_no]		
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
       --,[rawUpsize_Contech].[dbo].[ladinghd].[ship_to]		
-      ,ISNULL([Contech_Test].[dbo].[custship].[custshipid], 0) AS [custshipid]		-- FK = [custship].[ship_to] --> [custship].[custshipid] 
+      ,ISNULL(custship.[custshipid], 0) AS [custshipid]		-- FK = [custship].[ship_to] --> [custship].[custshipid] 
       ,[rawUpsize_Contech].[dbo].[ladinghd].[ship_date]
       ,[rawUpsize_Contech].[dbo].[ladinghd].[skids]
       ,[rawUpsize_Contech].[dbo].[ladinghd].[cases]
@@ -192,15 +192,15 @@ SELECT [rawUpsize_Contech].[dbo].[ladinghd].[shipper_no]
       ,[rawUpsize_Contech].[dbo].[ladinghd].[tot_inv]
       ,[rawUpsize_Contech].[dbo].[ladinghd].[pay_type]
   FROM [rawUpsize_Contech].[dbo].[ladinghd]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[ladinghd].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no]
-  LEFT JOIN [Contech_Test].[dbo].[custship] -- {composite key with [cust_no] to [custship] table}
-	ON [rawUpsize_Contech].[dbo].[ladinghd].[ship_to] COLLATE SQL_Latin1_General_CP1_CS_AS = [Contech_Test].[dbo].[custship].[ship_to] COLLATE SQL_Latin1_General_CP1_CS_AS 	
-		AND [rawUpsize_Contech].[dbo].[ladinghd].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no] AND [Contech_Test].[dbo].[customer].[customerid] = [Contech_Test].[dbo].[custship].[customerid] 
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[ladinghd].[cust_no] = customer.[cust_no]
+  LEFT JOIN [custship] custship -- {composite key with [cust_no] to [custship] table}
+	ON [rawUpsize_Contech].[dbo].[ladinghd].[ship_to] COLLATE SQL_Latin1_General_CP1_CS_AS = custship.[ship_to] COLLATE SQL_Latin1_General_CP1_CS_AS 	
+		AND [rawUpsize_Contech].[dbo].[ladinghd].[cust_no] = customer.[cust_no] AND customer.[customerid] = custship.[customerid] 
 
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ladinghd] OFF;
+SET IDENTITY_INSERT [ladinghd] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ladinghd]
+--SELECT * FROM [ladinghd]
 
 -- =========================================================
 -- Section 037: ladingdt
@@ -214,15 +214,15 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ladinghd] OFF;
 --	- [ladingdt].[shipper_no] --> [ladinghdid]	-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 --	- [ladingdt].[invoice_no] --> [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladingdt'))
-    DROP TABLE [dbo].[ladingdt]
+    DROP TABLE [ladingdt]
 
-CREATE TABLE [dbo].[ladingdt](
+CREATE TABLE [ladingdt](
 	[ladingdtid] [int] IDENTITY(1,1) NOT NULL,
 	--[shipper_no] [char](6) NOT NULL DEFAULT '',		-- FK = [ladinghd].[shipper_no] 
-	[ladinghdid] [int] NOT NULL DEFAULT '',				-- FK = [ladinghd].[shipper_no] --> [ladinghd].[ladinghdid]
+	[ladinghdid] [int] NOT NULL DEFAULT '',				-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 	--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no] 
 	[aropenid] [int] NOT NULL DEFAULT 0,				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 	[rev_relid] [int] NOT NULL DEFAULT 0,
@@ -233,21 +233,21 @@ CREATE TABLE [dbo].[ladingdt](
 ) ON [PRIMARY]
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ladingdt] ON;
+SET IDENTITY_INSERT [ladingdt] ON;
 
-INSERT INTO [Contech_Test].[dbo].[ladingdt] ([ladingdtid],[ladinghdid],[aropenid],[rev_relid])
+INSERT INTO [ladingdt] ([ladingdtid],[ladinghdid],[aropenid],[rev_relid])
 SELECT [rawUpsize_Contech].[dbo].[ladingdt].[ladingdtid]
-      ,[rawUpsize_Contech].[dbo].[ladingdt].[shipper_no]					-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
+      ,[rawUpsize_Contech].[dbo].[ladingdt].[shipper_no]		-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
       --,[rawUpsize_Contech].[dbo].[ladingdt].[invoice_no]
-	  ,ISNULL([Contech_Test].[dbo].[aropen].[aropenid], 0) AS [aropenid]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+	  ,ISNULL(aropen.[aropenid], 0) AS [aropenid]				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
       ,[rawUpsize_Contech].[dbo].[ladingdt].[rev_relid]
   FROM [rawUpsize_Contech].[dbo].[ladingdt]
-  LEFT JOIN [Contech_Test].[dbo].[aropen] ON [rawUpsize_Contech].[dbo].[ladingdt].[invoice_no] = [Contech_Test].[dbo].[aropen].[invoice_no]		-- FK = [aropen].[invoice_no] 
+  LEFT JOIN [aropen] aropen ON [rawUpsize_Contech].[dbo].[ladingdt].[invoice_no] = aropen.[invoice_no]		-- FK = [aropen].[invoice_no] 
 ORDER BY [rawUpsize_Contech].[dbo].[ladingdt].[ladingdtid]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[ladingdt] OFF;
+SET IDENTITY_INSERT [ladingdt] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[ladingdt]
+--SELECT * FROM [ladingdt]
 
 -- =========================================================
 -- Section 037: lblrecon
@@ -259,16 +259,16 @@ SET IDENTITY_INSERT [Contech_Test].[dbo].[ladingdt] OFF;
 --  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 --  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
 -- Maps:
---	- [lblrecon].[cust_no]		-- FK = [customer].[cust_no] --> [customer].[customerid]
---	- [lblrecon].[add_user]		-- FK = [users].[username] --> [users].[userid]
---	- [lblrecon].[mod_user]		-- FK = [users].[username] --> [users].[userid]
+--	- [lblrecon].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [lblrecon].[add_user]					-- FK = [users].[username] --> [users].[userid]
+--	- [lblrecon].[mod_user]					-- FK = [users].[username] --> [users].[userid]
 
-USE Contech_Test
+USE [Contech_Test]
 
 IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lblrecon'))
-    DROP TABLE [dbo].[lblrecon]
+    DROP TABLE [lblrecon]
 
-CREATE TABLE [dbo].[lblrecon](
+CREATE TABLE [lblrecon](
 	[lblreconid] [int] IDENTITY(1,1) NOT NULL,
 	--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
 	[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
@@ -286,12 +286,12 @@ CREATE TABLE [dbo].[lblrecon](
 ) ON [PRIMARY] 
 GO
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[lblrecon] ON;
+SET IDENTITY_INSERT [lblrecon] ON;
 
-INSERT INTO [Contech_Test].[dbo].[lblrecon] ([lblreconid],[customerid],[cus_lot],[add_dt],[add_userid],[mod_dt],[mod_userid])
+INSERT INTO [lblrecon] ([lblreconid],[customerid],[cus_lot],[add_dt],[add_userid],[mod_dt],[mod_userid])
 SELECT [rawUpsize_Contech].[dbo].[lblrecon].[lblreconid]
       --,[rawUpsize_Contech].[dbo].[lblrecon].[cust_no]	
-	  ,ISNULL([Contech_Test].[dbo].[customer].[customerid], 0) as [customerid]
+	  ,ISNULL(customer.[customerid], 0) as [customerid]
       ,[rawUpsize_Contech].[dbo].[lblrecon].[cus_lot]
       ,[rawUpsize_Contech].[dbo].[lblrecon].[add_dt]
       --,[rawUpsize_Contech].[dbo].[lblrecon].[add_user]
@@ -300,12 +300,12 @@ SELECT [rawUpsize_Contech].[dbo].[lblrecon].[lblreconid]
       --,[rawUpsize_Contech].[dbo].[lblrecon].[mod_user]
 	  ,ISNULL(modUser.[userid] , 0) as [userid]			
   FROM [rawUpsize_Contech].[dbo].[lblrecon]
-  LEFT JOIN [Contech_Test].[dbo].[customer] ON [rawUpsize_Contech].[dbo].[lblrecon].[cust_no] = [Contech_Test].[dbo].[customer].[cust_no]	-- FK = [customer].[cust_no] --> [customer].[customerid]
-  LEFT JOIN [Contech_Test].[dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]					-- FK = [users].[userid]
-  LEFT JOIN [Contech_Test].[dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]					-- FK = [users].[userid]
+  LEFT JOIN [customer] customer ON [rawUpsize_Contech].[dbo].[lblrecon].[cust_no] = customer.[cust_no]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+  LEFT JOIN [users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]					-- FK = [users].[userid]
+  LEFT JOIN [users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]					-- FK = [users].[userid]
 
-SET IDENTITY_INSERT [Contech_Test].[dbo].[lblrecon] OFF;
+SET IDENTITY_INSERT [lblrecon] OFF;
 
---SELECT * FROM [Contech_Test].[dbo].[lblrecon]
+--SELECT * FROM [lblrecon]
 
 -- =========================================================
