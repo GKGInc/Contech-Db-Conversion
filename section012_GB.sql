@@ -1,5 +1,5 @@
 -- ***************************************************
--- Section 012:
+-- Section 012: req_hdr, req_dtl
 -- ***************************************************
 
 use Contech_Test
@@ -29,7 +29,7 @@ GO
 CREATE TABLE [dbo].[req_hdr](
 	[req_hdrid] [int] identity (1, 1),
 	-- [job_no] [int] NOT NULL,
-	[ordersid] [int] default 0 NOT NULL,
+	[orderid] [int] default 0 NOT NULL,
 	[qty] [int] default 0 NOT NULL,
 	[start_dt] [datetime] NULL,
 	[end_dt] [datetime] NULL,
@@ -48,10 +48,10 @@ set identity_insert dbo.req_hdr ON
 GO
 
 insert into dbo.req_hdr
-(req_hdrid, ordersid, qty, start_dt, end_dt, req_status, add_dt, coffer, qty_prod)
+(req_hdrid, orderid, qty, start_dt, end_dt, req_status, add_dt, coffer, qty_prod)
 select req_hdrid,
        -- job_no,
-       isnull(ord.ordersid, 0),
+       isnull(ord.orderid, 0),
        qty,
        start_dt,
        end_dt,

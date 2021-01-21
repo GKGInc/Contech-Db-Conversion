@@ -62,7 +62,7 @@ CREATE TABLE [dbo].[asstcalib](
     -- [asstcalibid] [int] NOT NULL,
 	[asstcalibid] [int] identity (1, 1),
 	-- [asset_no] [char](10) NOT NULL,
-	assetsid int not null,
+	assetid int not null,
 	[criteria] varchar(2000) default '' NOT NULL,
 	-- [add_empe] [char](10) NOT NULL,
 	[add_employeeid] int default 0 NOT NULL,
@@ -79,12 +79,13 @@ CREATE TABLE [dbo].[asstcalib](
 GO
 
 set identity_insert dbo.asstcalib ON
+GO
 
 insert into dbo.asstcalib
-(asstcalibid, assetsid, criteria, add_employeeid, add_dt, rev_rec, rev_dt, rev_employeeid)
+(asstcalibid, assetid, criteria, add_employeeid, add_dt, rev_rec, rev_dt, rev_employeeid)
 select asstcalibid,
        -- asset_no,
-       isnull(a.assetsid, 0),
+       isnull(a.assetid, 0),
        criteria,
        -- add_empe,
        ISNULL(adde.employeeid, 0),
@@ -100,7 +101,7 @@ left outer join dbo.employee reve ON asstcalib.rev_emp = reve.empnumber
 GO
 
 set identity_insert dbo.asstcalib OFF
-
+GO
 
 -- ***************************************************
 -- table: assthist
@@ -129,7 +130,7 @@ CREATE TABLE [dbo].[assthist](
 	-- [assthistid] [int] NOT NULL,
 	[assthistid] [int] identity (1, 1),
 	-- [asset_no] [char](10) NOT NULL,
-	[assetsid] int not null,
+	[assetid] int not null,
 	[asstevntid] [int] NOT NULL,
 	[location] [char](3) default '' NOT NULL,
 	[comments] varchar(2000) default '' NOT NULL,
@@ -157,10 +158,10 @@ GO
 set identity_insert dbo.assthist ON
 
 insert into dbo.assthist
-(assthistid, assetsid, asstevntid, location, comments, inspect_by, evnt_date, evnt_type, employeeid, add_dt, add_employeeid, evntaction, evnt_name, rev_rec, rev_dt, rev_employeeid)
+(assthistid, assetid, asstevntid, location, comments, inspect_by, evnt_date, evnt_type, employeeid, add_dt, add_employeeid, evntaction, evnt_name, rev_rec, rev_dt, rev_employeeid)
 select assthistid,
        -- asset_no,
-       a.assetsid,
+       a.assetid,
        asstevntid,
        assthist.location,
        comments,

@@ -43,7 +43,8 @@ CREATE TABLE [dbo].[tcompont](
 	customerid int default 0 NOT NULL,
 	[cost] [numeric](9, 5) default 0 NOT NULL,
 	[unit] [char](4) default '' NOT NULL,
-	[ven_id] [char](6) default '' NOT NULL,
+	-- [ven_id] [char](6) default '' NOT NULL,
+	vendorid int default 0 NOT NULL,
 	[price] [numeric](9, 5) default 0 NOT NULL,
 	[ctp_min] [numeric](10, 0) default 0 NOT NULL,
 	[cmi_inv] [char](1) default '' NOT NULL,
@@ -99,7 +100,8 @@ select comp,
        isnull(c.customerid, 0),
        cost,
        unit,
-       ven_id,
+       -- ven_id,
+       isnull(ven.vendorid, 0),
        price,
        ctp_min,
        cmi_inv,
@@ -141,6 +143,7 @@ select comp,
 from [rawUpsize_Contech].dbo.tcompont
 left outer join dbo.customer c ON tcompont.cust_no = c.cust_no and rtrim(tcompont.cust_no) != ''
 left outer join dbo.material mat on tcompont.material = mat.material and rtrim(tcompont.material) != ''
+left outer join dbo.vendor ven on tcompont.ven_id = ven.ven_id
 
 GO
 

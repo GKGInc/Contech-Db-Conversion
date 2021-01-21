@@ -55,8 +55,45 @@ ALTER TABLE dbo.users ADD CONSTRAINT
 	(
 	    userid
 	) WITH( STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-
 GO
+
+-- users missing from tables:
+-- used in
+-- fplabel, fpshpbox
+insert into dbo.users (username, password)
+values ('PRODUCTION', '')
+
+-- used in:
+-- fppallet, fpbox
+insert into dbo.users (username, password)
+values ('NA', '')
+
+-- used in:
+-- fpbox
+insert into dbo.users (username, password)
+values ('ALISON', '')
+
+-- used in:
+-- fpbox, fpshpbox
+insert into dbo.users (username, password)
+values ('GKGINC', '')
+
+-- used in fpshpbox:
+insert into dbo.users (username, password)
+values ('CTDSMOBILE', '')
+
+insert into dbo.users (username, password)
+values ('GKGAUTO', '')
+
+insert into dbo.users (username, password)
+values ('LEGACY', '')
+
+insert into dbo.users (username, password)
+values ('CTDSMOB', '')
+
+-- used in autoinvoice
+insert into dbo.users (username, password)
+values ('ABBY', '')
 
 commit
 
