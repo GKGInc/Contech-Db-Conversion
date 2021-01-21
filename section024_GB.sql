@@ -57,20 +57,16 @@ GO
 -- table: bompriclog
 
 -- re-mapped columns:
---
-
--- new columns:
---
+-- id (int) -> bompriclogid
+-- job_no -> orderid
+-- add_user -> add_userid
 
 -- table PK:
---
+-- bompriclogid: converted existing col to identity PK, also changed the name
 
 -- FK fields:
---
-
--- notes:
--- (1)
-
+-- orderid -> orders.orderid on job_no = orders.job_no
+-- add_userid -> users.userid on add_user = users.username
 
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'bompriclog')
         drop table dbo.bompriclog
@@ -80,11 +76,13 @@ CREATE TABLE [dbo].[bompriclog](
 	-- [id] [int] NOT NULL,
 	bompriclogid int identity (1, 1),
 	[bom_no] [numeric](5, 0) NOT NULL,
-	[qty_from] [int] NOT NULL,
-	[qty_to] [int] NOT NULL,
-	[price] [numeric](8, 4) NOT NULL,
-	[job_no] [int] NOT NULL,
-	[add_user] [char](10) NOT NULL,
+	[qty_from] [int] default 0 NOT NULL,
+	[qty_to] [int] default 0 NOT NULL,
+	[price] [numeric](8, 4) default 0 NOT NULL,
+	-- [job_no] [int] NOT NULL,
+	[orderid] [int] not null,
+	-- [add_user] [char](10) NOT NULL,
+	add_userid int default 0 NOT NULL,
 	[add_dt] [datetime] NULL,
     CONSTRAINT [PK_bompriclog] PRIMARY KEY CLUSTERED
     (
@@ -92,6 +90,27 @@ CREATE TABLE [dbo].[bompriclog](
     ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
+
+set identity_insert dbo.bompriclog ON
+
+insert into dbo.bompriclog
+(bompriclogid, bom_no, qty_from, qty_to, price, orderid, add_userid, add_dt)
+select id,
+       bom_no,
+       qty_from,
+       qty_to,
+       bompriclog.price,
+       -- job_no,
+       isnull(ord.orderid, 0),
+       -- add_user,
+       isnull(addu.userid, 0),
+       bompriclog.add_dt
+from [rawUpsize_Contech].dbo.bompriclog
+inner join dbo.orders ord ON bompriclog.job_no = ord.job_no
+left outer join dbo.users addu ON bompriclog.add_user = addu.username
+
+set identity_insert dbo.bompriclog OFF
+
 
 
 -- ***************************************************
