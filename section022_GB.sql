@@ -61,7 +61,7 @@ GO
 -- table: bdocpend
 
 -- re-mapped columns:
--- bom_no   ___ bom_hdr.bom_hdrid
+-- bom_no   ___ bom_hdrid
 -- bom_rev  _/
 
 -- new columns:
