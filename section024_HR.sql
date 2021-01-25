@@ -9,20 +9,22 @@ begin tran
 
 -- ***************************************************
 -- table: bomdocs
+-- ***************************************************
 
--- re-mapped columns:
--- bom_no   ___ bom_hdrid
--- bom_rev  _/
+-- Re-mapped columns:
+-- - bom_no   ___ bom_hdrid
+-- - bom_rev  _/
 
--- new columns:
--- bom_hdrid: replaces bom_no & bom_rev
+-- New columns:
+-- - bom_hdrid: replaces bom_no & bom_rev
 
--- table PK:
--- bomdocsid: add identity PK
+-- Table PK:
+-- - bomdocsid: add identity PK
 
 -- FK fields:
--- bom_hdrid: bom_hdr.bom_hdrid
+-- - bom_hdrid: bom_hdr.bom_hdrid
 
+USE [Contech_Test]
 
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'bomdocs')
         drop table dbo.bomdocs
@@ -52,21 +54,25 @@ from [rawUpsize_Contech].dbo.bomdocs
 left outer join dbo.bom_hdr bom on bomdocs.bom_no = bom.bom_no and bomdocs.bom_rev = bom.bom_rev
 GO
 
+--SELECT * FROM [bomdocs]
 
 -- ***************************************************
 -- table: bompriclog
+-- ***************************************************
 
--- re-mapped columns:
--- id (int) -> bompriclogid
--- job_no -> orderid
--- add_user -> add_userid
+-- Re-mapped columns:
+-- - id (int) -> bompriclogid
+-- - job_no -> orderid
+-- - add_user -> add_userid
 
--- table PK:
--- bompriclogid: converted existing col to identity PK, also changed the name
+-- Table PK:
+-- - bompriclogid: converted existing col to identity PK, also changed the name
 
 -- FK fields:
--- orderid -> orders.orderid on job_no = orders.job_no
--- add_userid -> users.userid on add_user = users.username
+-- - orderid -> orders.orderid on job_no = orders.job_no
+-- - add_userid -> users.userid on add_user = users.username
+
+USE [Contech_Test]
 
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'bompriclog')
         drop table dbo.bompriclog
@@ -111,38 +117,32 @@ left outer join dbo.users addu ON bompriclog.add_user = addu.username
 
 set identity_insert dbo.bompriclog OFF
 
-
+--SELECT * FROM [bompriclog]
 
 -- ***************************************************
--- table:  bomstage
+-- Table: bomstage
+-- ***************************************************
 
--- re-mapped columns:
---
+-- Column changes:
+--  - Set [bomstageid] to be primary key
+-- Maps:
+--	- [bomstage].[bom_no]		-- FK = [bom_hdr].[bom_no] 
+--	- [bomstage].[mfgstageid]	-- FK = [mfgstage].[mfgstageid] 
+-- Notes:
+--  - Could not link [bomstage].[bom_no] to [bom_hdr].[bom_no]. Multiple [bom_rev] entries for [bom_no] values
 
--- new columns:
---
+USE [Contech_Test]
 
--- table PK:
---
-
--- FK fields:
---
-
--- notes:
--- (1)
-
-
-IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'bomstage')
-        drop table dbo.bomstage
+IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bomstage'))
+    DROP TABLE [bomstage]
 GO
 
 CREATE TABLE [dbo].[bomstage](
-	-- [bomstageid] [int] NOT NULL,
-	[bomstageid] int identity (1, 1),
-	[bom_no] [numeric](5, 0) NOT NULL,
-	[mfgstageid] [int] NOT NULL,
-	[sort_order] [int] NOT NULL,
-	[mfg_no] [numeric](5, 0) NOT NULL,
+	[bomstageid] [int] IDENTITY(1,1) NOT NULL,
+	[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] 
+	[mfgstageid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgstage].[mfgstageid] 
+	[sort_order] [int] NOT NULL DEFAULT 0,
+	[mfg_no] [numeric](5, 0) NOT NULL DEFAULT 0,
     CONSTRAINT [PK_bomstage] PRIMARY KEY CLUSTERED
     (
         [bomstageid] ASC
@@ -150,37 +150,44 @@ CREATE TABLE [dbo].[bomstage](
 ) ON [PRIMARY]
 GO
 
+SET IDENTITY_INSERT [bomstage] ON;
 
+INSERT INTO [bomstage] ([bomstageid],[bom_no],[mfgstageid],[sort_order],[mfg_no])
+SELECT [rawUpsize_Contech].[dbo].[bomstage].[bomstageid]
+      ,[rawUpsize_Contech].[dbo].[bomstage].[bom_no]
+      ,[rawUpsize_Contech].[dbo].[bomstage].[mfgstageid]
+      ,[rawUpsize_Contech].[dbo].[bomstage].[sort_order]
+      ,[rawUpsize_Contech].[dbo].[bomstage].[mfg_no]
+  FROM [rawUpsize_Contech].[dbo].[bomstage]
+  ORDER BY [rawUpsize_Contech].[dbo].[bomstage].[bomstageid]
 
+SET IDENTITY_INSERT [bomstage] OFF;
+
+--SELECT * FROM [bomstage]
 
 -- ***************************************************
--- table: bomtable
+-- Table: bomtable
+-- ***************************************************
 
--- re-mapped columns:
---
+-- Column changes:
+--  - Added [bomtableid] to be primary key
+--  - Added [bom_hdrid] [int] to reference [bom_hdr] table using [bom_no] and [bom_rev] columns
+--  - Removed columns [bom_no] and [bom_rev] 
+-- Maps:
+--	- [bomtable].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 
--- new columns:
---
+USE [Contech_Test]
 
--- table PK:
---
-
--- FK fields:
---
-
--- notes:
--- (1)
-
-
-IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'bomtable')
-        drop table dbo.bomtable
+IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bomtable'))
+    DROP TABLE [bomtable]
 GO
 
 CREATE TABLE [dbo].[bomtable](
-    [bomtableid] int identity (1, 1), -- new column
-	[bom_no] [numeric](5, 0) NOT NULL,
-	[table] [char](10) NOT NULL,
-	[bom_rev] [numeric](2, 0) NOT NULL,
+    [bomtableid] [int] IDENTITY(1,1) NOT NULL,		-- new column
+	[table] [char](10) NOT NULL DEFAULT '',
+	--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,
+	--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,
+	[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
     CONSTRAINT [PK_bomtable] PRIMARY KEY CLUSTERED
     (
         [bomtableid] ASC
@@ -188,36 +195,35 @@ CREATE TABLE [dbo].[bomtable](
 ) ON [PRIMARY]
 GO
 
+INSERT INTO [bomtable] ([table],[bom_hdrid])
+SELECT [rawUpsize_Contech].[dbo].[bomtable].[table]
+	  --,[rawUpsize_Contech].[dbo].[bomtable].[bom_no]
+   --   ,[rawUpsize_Contech].[dbo].[bomtable].[bom_rev]
+	  ,ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
+  FROM [rawUpsize_Contech].[dbo].[bomtable]
+  LEFT JOIN [bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bomtable].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bomtable].[bom_rev] = bom_hdr.[bom_rev] 
+  
+--SELECT * FROM [bomtable]
 
 -- ***************************************************
--- table: buyer
+-- Table: buyer
+-- ***************************************************
 
--- re-mapped columns:
---
+-- Column changes:
+--  - Added [buyerid] to be primary key
 
--- new columns:
---
+USE [Contech_Test]
 
--- table PK:
---
-
--- FK fields:
---
-
--- notes:
--- (1)
-
-
-IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'buyer')
-        drop table dbo.buyer
+IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'buyer'))
+    DROP TABLE [buyer]
 GO
 
 CREATE TABLE [dbo].[buyer](
-    [buyerid] int identity (1, 1), -- new column
-	[buyer] [char](5) NOT NULL,
-	[first_name] [char](15) NOT NULL,
-	[mi] [char](1) NOT NULL,
-	[last_name] [char](25) NOT NULL,
+    [buyerid] int identity (1, 1),	-- new column 
+	[buyer] [char](5) NOT NULL DEFAULT '',
+	[first_name] [char](15) NOT NULL DEFAULT '',
+	[mi] [char](1) NOT NULL DEFAULT '',
+	[last_name] [char](25) NOT NULL DEFAULT '',
     CONSTRAINT [PK_buyer] PRIMARY KEY CLUSTERED
     (
         [buyerid] ASC
@@ -225,8 +231,17 @@ CREATE TABLE [dbo].[buyer](
 ) ON [PRIMARY]
 GO
 
+INSERT INTO [buyer] ([buyer],[first_name],[mi],[last_name])
 
+SELECT [buyer]
+      ,[first_name]
+      ,[mi]
+      ,[last_name]
+  FROM [rawUpsize_Contech].[dbo].[buyer]
 
+--SELECT * FROM [buyer]
+
+-- ***************************************************
 
 commit
 GO
