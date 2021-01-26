@@ -2,9 +2,6 @@
 -- Section 020: fplabel, fpbox, fplocatn, fppallet, fppltbox, fpshpbox, fptransfer, fptrnbox, fpweight
 -- ***************************************************
 
-use Contech_Test
-GO
-
 begin tran
 
 -- ***************************************************

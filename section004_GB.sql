@@ -5,7 +5,6 @@
 -- PK:
 --      customerid int
 
-use Contech_Test
 
 begin transaction
 

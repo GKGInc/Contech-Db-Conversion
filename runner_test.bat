@@ -1,1 +1,1 @@
-sqlcmd -S CONTECH -d rawUpsize_Contech -U sa -P edi@GKG -i init.sql,section022_GB.sql -o dbconv.log
+sqlcmd -S CONTECH -d Contech_Test -U sa -P edi@GKG -i section022_GB.sql -o dbconv.log

@@ -13,8 +13,6 @@
 -- other:
 --      added defaults to some fields
 
-use Contech_Test
-
 begin transaction
 
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'users')

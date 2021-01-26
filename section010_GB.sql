@@ -2,9 +2,6 @@
 -- Section 010: complnts, cmpcases, ralabel, rabox
 -- ***************************************************
 
-use Contech_Test
-GO
-
 begin tran
 
 -- ***************************************************

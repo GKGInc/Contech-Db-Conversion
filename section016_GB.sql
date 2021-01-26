@@ -2,9 +2,6 @@
 -- Section 016: accounts, asstcalib, assthist
 -- ***************************************************
 
-use Contech_Test
-GO
-
 begin tran
 
 -- ***************************************************

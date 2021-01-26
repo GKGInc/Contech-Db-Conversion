@@ -20,8 +20,6 @@
 --      50398	15
 --      The script only imports the first instance of these bom_dtl records.
 
-use Contech_Test
-GO
 
 begin tran
 
