@@ -21,7 +21,7 @@ BEGIN TRAN;
 
 BEGIN TRY
 
-    PRINT 'Table: dbo.lookups: start'
+    PRINT 'Table: dbo.rev_rel: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'rev_rel'))
 		DROP TABLE [dbo].[rev_rel]
@@ -83,7 +83,7 @@ BEGIN TRY
 	
     COMMIT
 
-    PRINT 'Table: dbo.lookups: end'
+    PRINT 'Table: dbo.rev_rel: end'
 
 END TRY
 BEGIN CATCH
@@ -121,7 +121,7 @@ BEGIN TRAN;
 
 BEGIN TRY
 
-    PRINT 'Table: dbo.lookups: start'
+    PRINT 'Table: dbo.corractn: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'corractn'))
 		DROP TABLE [dbo].[corractn]
@@ -248,7 +248,7 @@ BEGIN TRY
 
     COMMIT
 
-    PRINT 'Table: dbo.lookups: end'
+    PRINT 'Table: dbo.corractn: end'
 
 END TRY
 BEGIN CATCH
