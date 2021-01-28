@@ -51,6 +51,7 @@ BEGIN TRY
 --  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
 -- Maps:
 --	- [inspstps].[inspectionplanhdrid]		-- FK = [inspectionplanhdr].[inspectionplanhdrid] = [inspectionplanhdr].[inc] + [inspectionplanhdr].[plan]
+--  - [inspstps].[clsficatid]				-- FK = [clsficat].[clsficatid]
 --	- [inspstps].[comp]	--> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 --	- [inspstps].[rev_emp] --> [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
 
@@ -64,7 +65,8 @@ BEGIN TRY
 		--[inc] [char](8) NOT NULL DEFAULT '',			-- FK = [inspectionplanhdr].[inc]
 		--[plan] [char](2) NOT NULL DEFAULT '',			-- FK = [inspectionplanhdr].[plan] 
 		[inspectionplanhdrid] [int] NOT NULL DEFAULT 0, -- FK = [inspectionplanhdr].[inspectionplanhdrid] = [inspectionplanhdr].[inc] + [inspectionplanhdr].[plan]
-		[clsficat] [int] NOT NULL DEFAULT 0,
+		--[clsficat] [int] NOT NULL DEFAULT 0,
+		[clsficatid] [int] NOT NULL DEFAULT 0,			-- FK = [clsficat].[clsficatid]
 		[step] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[descript] [char](70) NOT NULL DEFAULT '',
 		--[comp] [char](5) NOT NULL DEFAULT '',			-- Empty -- FK = [componet].[comp] 
@@ -81,7 +83,7 @@ BEGIN TRY
 
 	SET IDENTITY_INSERT [dbo].[inspstps] ON;
 
-	INSERT INTO [dbo].[inspstps] ([inspstpsid],[inspectionplanhdrid],[clsficat],[step],[descript],[componetid],[rev_rec],[rev_dt],[employeeid])
+	INSERT INTO [dbo].[inspstps] ([inspstpsid],[inspectionplanhdrid],[clsficatid],[step],[descript],[componetid],[rev_rec],[rev_dt],[employeeid])
 	SELECT [rawUpsize_Contech].[dbo].[inspstps].[inspstpsid]
 		  --,[rawUpsize_Contech].[dbo].[inspstps].[inc]			-- FK = [inspectionplanhdr].[inc] 
 		  --,[rawUpsize_Contech].[dbo].[inspstps].[plan]		-- FK = [inspectionplanhdr].[plan]

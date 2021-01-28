@@ -8,7 +8,7 @@ BEGIN TRAN;
 BEGIN TRY
 
 -- =========================================================
--- Section 031: doctypes -- MOVED to section 021
+-- Section 031: doctypes -- MOVED to section 003
 -- =========================================================
 
 -- Column changes:

@@ -3,6 +3,10 @@
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section023_HR.sql'
 
+BEGIN TRAN;
+
+BEGIN TRY
+
 -- =========================================================
 -- Section 023: bom_alt
 -- =========================================================
@@ -12,14 +16,11 @@ PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section023_HR.sql'
 --  - Added [bom_hdrid] to reference [bom_hdr] table using columns [bom_no] + [bom_rev]
 --  - Removed columns [bom_no] + [bom_rev]
 --  - Changed [comp] [char](5) to [componetid] [int] to reference [componet] table
+--  - Changed the [bom_dtlid] field name to [bom_dtlref]. It will reference the existing value in the bom_dtlref field 
 -- Maps:
 --	- [bom_alt].[bom_hdrid]				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [bom_alt].[bom_dtlid]				-- FK = [bom_dtl].[bom_dtlid] 
 --	- [bom_alt].[comp] --> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.bom_alt: start'
 
@@ -29,20 +30,21 @@ BEGIN TRY
 	CREATE TABLE [dbo].[bom_alt](
 		[bom_altid] [int] IDENTITY(1,1) NOT NULL,
 		[bom_hdrid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
-		[bom_dtlid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_dtl].[bom_dtlid] 
+		--[bom_dtlid] [int] NOT NULL DEFAULT 0,	-- FK = [bom_dtl].[bom_dtlid] 
+		[bom_dtlref] [int] NOT NULL DEFAULT 0,	-- FK = [bom_dtl].[bom_dtlid] 
 		--[comp] [char](5) NOT NULL DEFAULT '',	-- FK = [componet].[comp] 
 		[componetid] [int] NOT NULL DEFAULT 0,	-- FK = [componet].[comp] --> [componet].[componetid]
-		--[bom_no] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
-		--[bom_rev] [int] NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
+		--[bom_no] [int] NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
+		--[bom_rev] [int] NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 		CONSTRAINT [PK_bom_alt] PRIMARY KEY CLUSTERED 
 		(
 			[bom_altid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	INSERT INTO [dbo].[bom_alt] ([bom_hdrid],[bom_dtlid],[componetid])
+	INSERT INTO [dbo].[bom_alt] ([bom_hdrid],[bom_dtlref],[componetid])
 	SELECT ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
-		  ,[rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid]
+		  ,[rawUpsize_Contech].[dbo].[bom_alt].[bom_dtlid] AS [bom_dtlref]
 		  --,[rawUpsize_Contech].[dbo].[bom_alt].[comp]
 		  ,ISNULL(componet.[componetid], 0) AS [componetid] 
 		  --,[rawUpsize_Contech].[dbo].[bom_alt].[bom_no]
@@ -53,20 +55,8 @@ BEGIN TRY
   
 	--SELECT * FROM [dbo].[bom_alt]
 
-    COMMIT
-
     PRINT 'Table: dbo.bom_alt: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
-
+	
 -- =========================================================
 -- Section 023: bom_cust
 -- =========================================================
@@ -81,10 +71,6 @@ END CATCH;
 --	- [bom_cust].[bom_hdrid]				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 --	- [bom_cust].[cust_no] --> [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 --	- [bom_cust].[add_user]	--> userid		-- FK = [users].[username] --> [users].[userid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.bom_cust: start'
 
@@ -142,19 +128,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[bom_cust]
 
-    COMMIT
-
     PRINT 'Table: dbo.bom_cust: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 023: bom_hist
@@ -167,10 +141,6 @@ END CATCH;
 -- Maps:
 --	- [bom_hist].[bom_no]					-- FK = [bom_hdr].[bom_no]
 --	- [bom_hist].[emp_no] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.bom_hist: start'
 
@@ -209,19 +179,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[bom_hist]
 
-    COMMIT
-
     PRINT 'Table: dbo.bom_hist: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 023: bom_pend
@@ -235,10 +193,6 @@ END CATCH;
 -- Maps:
 --	- [bom_pend].[comp] --> [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 --	- [bom_pend].[bom_hdrid]	-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.bom_pend: start'
 
@@ -274,19 +228,7 @@ BEGIN TRY
   
 	--SELECT * FROM [dbo].[bom_pend]
 
-    COMMIT
-
     PRINT 'Table: dbo.bom_pend: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 023: bom_pric
@@ -297,10 +239,6 @@ END CATCH;
 --  - Changed [price_note] from text to varchar(2000)
 -- Maps:
 --	- [bom_pend].[bom_no]		-- FK = [bom_hdr].[bom_no]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.bom_pric: start'
 
@@ -337,9 +275,11 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[bom_pric]
 
-    COMMIT
-
     PRINT 'Table: dbo.bom_pric: end'
+
+-- =========================================================
+
+    COMMIT
 
 END TRY
 BEGIN CATCH
@@ -350,8 +290,6 @@ BEGIN CATCH
     RAISERROR ('Exiting script...', 20, -1)
 
 END CATCH;
-
--- =========================================================
 
 PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section023_HR.sql'
 

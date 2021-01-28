@@ -160,6 +160,7 @@ END CATCH;
 
 -- Column changes:
 --  - Set [bomstageid] to be primary key
+--  - Removed [bom_no] column. It is not being used.
 -- Maps:
 --	- [bomstage].[bom_no]		-- FK = [bom_hdr].[bom_no] 
 --	- [bomstage].[mfgstageid]	-- FK = [mfgstage].[mfgstageid] 
@@ -177,7 +178,7 @@ BEGIN TRY
 
 	CREATE TABLE [dbo].[bomstage](
 		[bomstageid] [int] IDENTITY(1,1) NOT NULL,
-		[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] 
+		--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no] 
 		[mfgstageid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgstage].[mfgstageid] 
 		[sort_order] [int] NOT NULL DEFAULT 0,
 		[mfg_no] [numeric](5, 0) NOT NULL DEFAULT 0,
@@ -189,9 +190,9 @@ BEGIN TRY
 
 	SET IDENTITY_INSERT [dbo].[bomstage] ON;
 
-	INSERT INTO [dbo].[bomstage] ([bomstageid],[bom_no],[mfgstageid],[sort_order],[mfg_no])
+	INSERT INTO [dbo].[bomstage] ([bomstageid],[mfgstageid],[sort_order],[mfg_no])
 	SELECT [rawUpsize_Contech].[dbo].[bomstage].[bomstageid]
-		  ,[rawUpsize_Contech].[dbo].[bomstage].[bom_no]
+		  --,[rawUpsize_Contech].[dbo].[bomstage].[bom_no]
 		  ,[rawUpsize_Contech].[dbo].[bomstage].[mfgstageid]
 		  ,[rawUpsize_Contech].[dbo].[bomstage].[sort_order]
 		  ,[rawUpsize_Contech].[dbo].[bomstage].[mfg_no]

@@ -222,6 +222,7 @@ BEGIN TRY
 --  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 -- Maps:
 --	- [incasdsp].[cmpcasesid] --> [cmpcaseid]	-- FK = [cmpcases].[cmpcaseid]
+--	- [incasdsp].[credit_no]					-- FK = [matlincr].[ct_cr_no]
 --	- [incasdsp].[add_user] --> [add_userid]	-- FK = [users].[username] --> [users].[userid]
 
     PRINT 'Table: dbo.incasdsp: start'
@@ -231,7 +232,7 @@ BEGIN TRY
 
 	CREATE TABLE [dbo].[incasdsp](
 		[incasdspid] [int] IDENTITY(1,1) NOT NULL,
-		[credit_no] [char](6) NOT NULL DEFAULT '',
+		[credit_no] [char](6) NOT NULL DEFAULT '',	-- FK = [matlincr].[ct_cr_no]
 		[cmpcaseid] [int] NOT NULL DEFAULT 0,			-- FK = [cmpcases].[cmpcaseid]
 		--[add_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
 		[add_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
@@ -245,7 +246,7 @@ BEGIN TRY
 	SET IDENTITY_INSERT [dbo].[incasdsp] ON;
 
 	INSERT INTO [dbo].[incasdsp] ([incasdspid],[credit_no],[cmpcaseid],[add_userid],[add_dt])
-	SELECT [rawUpsize_Contech].[dbo].[incasdsp].[incasdspid]
+	SELECT DISTINCT [rawUpsize_Contech].[dbo].[incasdsp].[incasdspid]
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[credit_no]
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[cmpcasesid]	-- FK = [cmpcases].[cmpcaseid]
 		  --,[rawUpsize_Contech].[dbo].[incasdsp].[add_user]
@@ -253,6 +254,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[add_dt]
 	  FROM [rawUpsize_Contech].[dbo].[incasdsp]
 	  LEFT JOIN [dbo].[users] users ON [rawUpsize_Contech].[dbo].[incasdsp].[add_user] = users.[username]	-- FK = [users].[username] --> [users].[userid]
+	  ORDER BY [rawUpsize_Contech].[dbo].[incasdsp].[incasdspid]
 
 	SET IDENTITY_INSERT [dbo].[incasdsp] OFF;
 

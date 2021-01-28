@@ -92,8 +92,9 @@ BEGIN TRY
 --  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 --  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
 -- Maps:
---	- [doc_mngr].[add_user] --> [add_userid]		-- FK = [users].[username] --> [users].[userid]
---	- [doc_mngr].[add_user] --> [mod_userid]		-- FK = [users].[username] --> [users].[userid]
+--  - [doc_mngr].[parent_id]					-- FK = [matlin].[matlin_key] or [corractn].[corractnid] -- used with [parent_tbl] (MATLIN, CORRACTN)
+--	- [doc_mngr].[add_user] --> [add_userid]	-- FK = [users].[username] --> [users].[userid]
+--	- [doc_mngr].[add_user] --> [mod_userid]	-- FK = [users].[username] --> [users].[userid]
 
     PRINT 'Table: dbo.doc_mngr: start'
 	
@@ -102,7 +103,7 @@ BEGIN TRY
 
 	CREATE TABLE [dbo].[doc_mngr](
 		[doc_mngrid] [int] IDENTITY(1,1) NOT NULL,
-		[parent_id] [char](15) NOT NULL DEFAULT '', --matlin.matlin_key or corractn.corractnid	? used with parent_tbl (MATLIN, CORRACTN)
+		[parent_id] [char](15) NOT NULL DEFAULT '',			-- FK = [matlin].[matlin_key] or [corractn].[corractnid] -- used with [parent_tbl] (MATLIN, CORRACTN)
 		[parent_tbl] [char](15) NOT NULL DEFAULT '',
 		[document] [char](100) NOT NULL DEFAULT '',
 		[doc_desc] [char](150) NOT NULL DEFAULT '',
@@ -123,7 +124,7 @@ BEGIN TRY
 	INSERT INTO [doc_mngr] ([doc_mngrid],[parent_id],[parent_tbl],[document],[doc_desc],[add_userid],[add_dt],[mod_userid],[mod_dt])
 	SELECT [rawUpsize_Contech].[dbo].[doc_mngr].[doc_mngrid]
 		  --,[rawUpsize_Contech].[dbo].[doc_mngr].[parent_id]
-		  ,CASE WHEN [parent_tbl] = 'CORRACTN' THEN ISNULL(corractn.[corractnid], 0)	-- corractn.[car_no] --> corractn.[corractnid]
+		  ,CASE WHEN [parent_tbl] = 'CORRACTN' THEN ISNULL(corractn.[corractnid], 0)	-- FK = [corractn].[car_no] --> corractn.[corractnid]
 		  WHEN [parent_tbl] = 'MATLIN' THEN ISNULL(matlin.[matlin_key], 0)
 		  ELSE '' END AS [parent_id]
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[parent_tbl]
@@ -148,7 +149,7 @@ BEGIN TRY
     PRINT 'Table: dbo.doc_mngr: end'
 
 -- =========================================================
--- Section 030: docs_dtl -- MOVED to section 021
+-- Section 030: docs_dtl -- MOVED to section 003
 -- =========================================================
 
 -- Column changes:
@@ -218,7 +219,7 @@ BEGIN TRY
  --   PRINT 'Table: dbo.docs_dtl: end'
 
 -- =========================================================
--- Section 030: docs_hdr -- MOVED to section 021
+-- Section 030: docs_hdr -- MOVED to section 003
 -- =========================================================
 
 -- Column changes:
