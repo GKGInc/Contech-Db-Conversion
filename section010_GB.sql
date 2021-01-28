@@ -13,9 +13,15 @@ begin tran
 -- table PK:
 -- complntid: new identity col added
 
+-- FK fields:
+-- corractnid : corractn.corractnid (on complnts.car_no = corractn.car_no)
+
+-- notes:
+-- (1) as of 1/27/2021, complnts.car_no had not values
+
 IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'complnts')
         drop table dbo.complnts
-GO
+
 
 
 CREATE TABLE [dbo].[complnts](
@@ -35,7 +41,8 @@ CREATE TABLE [dbo].[complnts](
 	[sign2] [char](50) default '' NOT NULL,
 	[date2] [datetime] NULL,
 	[cnfrm_code] [char](2) default '' NOT NULL,
-	[car_no] [char](8) default '' NOT NULL,
+	-- [car_no] [char](8) default '' NOT NULL,
+	corractnid int default 0 NOT NULL,
 	[complnt_dt] [datetime] NULL,
 	[complainer] [int] default 0 NOT NULL,
 	[complnttyp] [char](3) default '' NOT NULL,
@@ -49,7 +56,7 @@ CREATE TABLE [dbo].[complnts](
         [complntid] ASC
     ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
-GO
+
 
 insert into dbo.complnts
 select complnts.complnt_no,
@@ -66,7 +73,8 @@ select complnts.complnt_no,
        sign2,
        date2,
        cnfrm_code,
-       car_no,
+       -- car_no,
+       ISNULL(car.corractnid, 0), -- see note(1)
        complnt_dt,
        complainer,
        complnttyp,
@@ -77,7 +85,8 @@ select complnts.complnt_no,
        complnts.ct_lot
 from [rawUpsize_Contech].dbo.complnts
 left outer join dbo.aropen aro on complnts.invoice_no = aro.invoice_no and aro.invoice_no != 0
-GO
+left outer join dbo.corractn car on complnts.car_no = car.car_no and complnts.car_no != ''
+
 
 -- ***************************************************
 -- table: cmpcases
