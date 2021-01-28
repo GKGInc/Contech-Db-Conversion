@@ -1,7 +1,7 @@
 -- =========================================================
 --USE [Contech_Test]
 
-PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section001_HR.sql'
+PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section025_HR.sql'
 
 -- =========================================================
 -- Section 025: car_empe

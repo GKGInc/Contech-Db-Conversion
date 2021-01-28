@@ -148,7 +148,7 @@ BEGIN TRY
     PRINT 'Table: dbo.doc_mngr: end'
 
 -- =========================================================
--- Section 030: docs_dtl -- MOVED to section 026
+-- Section 030: docs_dtl -- MOVED to section 021
 -- =========================================================
 
 -- Column changes:
@@ -218,7 +218,7 @@ BEGIN TRY
  --   PRINT 'Table: dbo.docs_dtl: end'
 
 -- =========================================================
--- Section 030: docs_hdr -- MOVED to section 026
+-- Section 030: docs_hdr -- MOVED to section 021
 -- =========================================================
 
 -- Column changes:

@@ -11,15 +11,18 @@ PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section024_HR.sql'
 -- Re-mapped columns:
 -- - bom_no   ___ bom_hdrid
 -- - bom_rev  _/
+-- - Changed [document] [char](15) to [document] [int] to reference [docs_dtl] table
 
 -- New columns:
 -- - bom_hdrid: replaces bom_no & bom_rev
+-- - docs_dtlid
 
 -- Table PK:
 -- - bomdocsid: add identity PK
 
 -- FK fields:
 -- - bom_hdrid: bom_hdr.bom_hdrid
+-- - docs_dtlid: docs_dtl.docs_dtlid
 
 BEGIN TRAN;
 
@@ -31,8 +34,9 @@ BEGIN TRY
 			drop table dbo.bomdocs
 
 	CREATE TABLE [dbo].[bomdocs](
-		bomdocsid int identity (1, 1), -- new column
-		[document] [char](15) NOT NULL,
+		bomdocsid int identity (1, 1),			-- PK = new column
+		--[document] [char](15) NOT NULL,
+		[docs_dtlid] [int] NOT NULL DEFAULT 0,	-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
 		-- [bom_no] [numeric](5, 0) NOT NULL,
 		-- [bom_rev] [numeric](2, 0) NOT NULL,
 		bom_hdrid int NOT NULL,
@@ -45,13 +49,15 @@ BEGIN TRY
 
 
 	insert into dbo.bomdocs
-	select document,
+	select --document,	
+		  ISNULL(docs_dtl.[docs_dtlid], 0) AS [docs_dtlid], 	
 		   -- bom_no,
 		   -- bom_rev,
 			isnull(bom.bom_hdrid, 0),
 		   coc
 	from [rawUpsize_Contech].dbo.bomdocs
 	left outer join dbo.bom_hdr bom on bomdocs.bom_no = bom.bom_no and bomdocs.bom_rev = bom.bom_rev
+	LEFT JOIN [dbo].[docs_dtl] docs_dtl ON [rawUpsize_Contech].[dbo].[bomdocs].[document] = docs_dtl.[document]
 	
 	--SELECT * FROM [bomdocs]
 
