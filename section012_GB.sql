@@ -108,7 +108,7 @@ begin try
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     ) ON [PRIMARY]
 
-    set identity_insert dbo.req_dtl ON
+    set identity_insert dbo.req_dtl ON;
 
     WITH reqdtl_cte (req_dtlid, req_hdrid, comp, qty, ratio, scrap, restock, mfg_usage, filled, adjust, rowrank)
         as (
@@ -130,9 +130,9 @@ begin try
            req_dtl.adjust
     from reqdtl_cte req_dtl
     left outer join dbo.componet cmp on req_dtl.comp = cmp.comp and rtrim(req_dtl.comp) != ''
-    where req_dtl.rowrank = 1
+    where req_dtl.rowrank = 1;
 
-    set identity_insert dbo.req_dtl OFF
+    set identity_insert dbo.req_dtl OFF;
 
     print 'table: dbo.req_dtl: end'
 
