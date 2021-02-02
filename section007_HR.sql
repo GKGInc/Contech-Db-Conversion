@@ -92,7 +92,7 @@ BEGIN TRY
 	SELECT [mfg_locid],[loc_description],[lot_suffix],[address],[address2],[city],[state],[country],[phone],[fax],[email],[zip],[cust_no],[ven_id]
 	FROM [rawUpsize_Contech].[dbo].[mfg_loc] ORDER BY 1
   
-	SET IDENTITY_INSERT [dbo].[mfg_loc] ON;
+	SET IDENTITY_INSERT [dbo].[mfg_loc] OFF;
 
 	--SELECT * FROM [dbo].[mfg_loc]
 
