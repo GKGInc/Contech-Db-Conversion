@@ -257,6 +257,7 @@ END CATCH;
 -- Column changes:
 --  - Added [po_dtlid] to be primary key
 --  - Added [po_hdrid] as the FK to reference [po_hdr]
+--  - Removed [po_no] [char](8) column. That data can be found in [po_hdr] table referenced by [po_hdrid] column
 --  - Changed [exp] from [text] to [varchar](3000) | Note: raised amount because there was a truncation error
 
 BEGIN TRAN;
@@ -271,7 +272,7 @@ BEGIN TRY
 	CREATE TABLE [dbo].[po_dtl](
 		[po_dtlid] [int] IDENTITY(1,1) NOT NULL,
 		[po_hdrid] [int] NOT NULL DEFAULT 0,
-		[po_no] [char](8) NOT NULL DEFAULT '',
+		--[po_no] [char](8) NOT NULL DEFAULT '',
 		[ref_no] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[due_date] [datetime] NULL,
 		[amt_due] [int] NOT NULL DEFAULT 0,
@@ -285,9 +286,9 @@ BEGIN TRY
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 	) ON [PRIMARY] 
 
-	INSERT INTO [dbo].[po_dtl] (po_hdrid,[po_no],[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
+	INSERT INTO [dbo].[po_dtl] (po_hdrid,[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
 	SELECT ISNULL(po_hdr.[po_hdrid], 0) AS [po_hdrid]
-		  ,[rawUpsize_Contech].[dbo].[po_dtl].[po_no]
+		  --,[rawUpsize_Contech].[dbo].[po_dtl].[po_no]
 		  ,[rawUpsize_Contech].[dbo].[po_dtl].[ref_no]
 		  ,[rawUpsize_Contech].[dbo].[po_dtl].[due_date]
 		  ,[rawUpsize_Contech].[dbo].[po_dtl].[amt_due]
