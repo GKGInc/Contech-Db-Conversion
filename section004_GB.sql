@@ -1,23 +1,30 @@
 -- ***************************************************
--- Section 4: aropen
+-- Section 004: aropen
 -- ***************************************************
+
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section004_GB.sql'
 
 begin tran
 
 begin try
 
-    print 'table: dbo.aropen: start'
-
-
     -- ***************************************************
     -- aropen
+
+    -- re-mapped columns
+    -- job_no -> orderid
+    -- cust_no -> customerid
 
     -- new columns:
     -- aropenid
 
-    -- table PK:
-    -- aropenid: added
+    -- FK fields:
+    -- orderid: orders.orderid (on orders.job_no = aropen.job_no
 
+    -- table PK:
+    -- aropenid: added new identity PK column, aropenid
+
+    print 'table: dbo.aropen: start'
 
     IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'aropen')
         BEGIN
@@ -152,3 +159,4 @@ begin catch
     raiserror ('Exiting script...', 20, -1)
 end catch
 
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section004_GB.sql'

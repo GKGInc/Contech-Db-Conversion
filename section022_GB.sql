@@ -23,7 +23,6 @@ begin try
 
     print 'table: dbo.autoinvoice: start'
 
-
     IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'autoinvoice')
         drop table dbo.autoinvoice;
 
