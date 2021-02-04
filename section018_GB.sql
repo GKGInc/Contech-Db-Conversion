@@ -210,8 +210,10 @@ begin try
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     ) ON [PRIMARY]
 
+	--SELECT * FROM [dbo].[tbom_hdr]
+	 
     insert into dbo.tbom_hdr
-    (bom_no, bom_rev, part_no, part_rev, part_desc, price, price_ire, price_rev, "unit", date_rev, sts, customerid, date_ent, code_info, tube_lenth, tube_dim, assembly, scr_code, quota, notes, mfg_no, spec_no, spec_rev, dspec_rev, doc_no, doc_rev, ddoc_rev, computer, waste, qty_case, price_note, mfgcatid, rbom_no, sts_loc)
+    (bom_no, bom_rev, part_no, part_rev, part_desc, price, price_ire, price_rev, unit, date_rev, sts, customerid, date_ent, code_info, tube_lenth, tube_dim, [assembly], scr_code, quota, notes, mfg_no, spec_no, spec_rev, dspec_rev, doc_no, doc_rev, ddoc_rev, computer, waste, qty_case, price_note, mfgcatid, rbom_no, sts_loc)
     select bom_no,
            bom_rev,
            part_no,
@@ -224,12 +226,12 @@ begin try
            date_rev,
            sts,
            -- tbom_hdr.cust_no,
-           isnull(c.customerid, 0),
+           isnull(c.customerid, 0) as [customerid],
            date_ent,
            code_info,
            tube_lenth,
            tube_dim,
-           assembly,
+           [assembly],
            scr_code,
            quota,
            notes,
