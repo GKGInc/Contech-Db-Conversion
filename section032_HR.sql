@@ -1,5 +1,4 @@
 -- =========================================================
---USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section032_HR.sql'
 
@@ -143,7 +142,7 @@ BEGIN TRY
 	INSERT INTO [dbo].[empstatrv] ([empstatrvid],[employeeid],[empstatus],[rvw_date],[rvw_byid],[stat_memo],[hr_rvw_dt],[hr_rvw_byid])
 	SELECT [rawUpsize_Contech].[dbo].[empstatrv].[pk]
 		  --,[rawUpsize_Contech].[dbo].[empstatrv].[empnumber]
-		  ,ISNULL([Contech_Test].[dbo].[employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		  ,ISNULL([employee].[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		  ,[rawUpsize_Contech].[dbo].[empstatrv].[empstatus]
 		  ,[rawUpsize_Contech].[dbo].[empstatrv].[rvw_date]
 		  --,[rawUpsize_Contech].[dbo].[empstatrv].[rvw_by]
@@ -153,7 +152,7 @@ BEGIN TRY
 		  --,[rawUpsize_Contech].[dbo].[empstatrv].[hr_rvw_by]
 		  ,ISNULL(hr_rvw_by.[userid] , 0) as [hr_rvw_byid]			
 	  FROM [rawUpsize_Contech].[dbo].[empstatrv]
-	  LEFT JOIN [employee] ON [rawUpsize_Contech].[dbo].[empstatrv].[empnumber] = [Contech_Test].[dbo].[employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  LEFT JOIN [employee] ON [rawUpsize_Contech].[dbo].[empstatrv].[empnumber] = [employee].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	  LEFT JOIN [users] rvw_byid ON [rawUpsize_Contech].[dbo].[empstatrv].[rvw_by] = rvw_byid.[username]						-- FK = [users].[userid]
 	  LEFT JOIN [users] hr_rvw_by ON [rawUpsize_Contech].[dbo].[empstatrv].[hr_rvw_by] = hr_rvw_by.[username]					-- FK = [users].[userid]
   

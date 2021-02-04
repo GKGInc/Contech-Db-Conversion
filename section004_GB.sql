@@ -2,6 +2,8 @@
 -- Section 004: mfgcat -- Moved from Section 007
 -- =========================================================
 
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section004_GB.sql'
+
 -- Column changes:
 --  - Added [mfgcatid] as primary key
 
@@ -108,8 +110,6 @@ END CATCH;
 -- ***************************************************
 -- Section 004: bom_hdr, bom_dtl -- Moved from Section 006
 -- ***************************************************
-
-print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section006_GB.sql'
 
 begin tran
 
@@ -310,4 +310,4 @@ begin catch
     raiserror ('Exiting script...', 20, -1)
 end catch
 
-print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section006_GB.sql'
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section004_GB.sql'
