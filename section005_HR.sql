@@ -4,63 +4,6 @@
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section005_HR.sql'
 
 -- =========================================================
--- Section 005: employee --Moved to Section 001
--- =========================================================
-
--- Column changes:
---	- Changed [employeeid] to be the primary key
-
---BEGIN TRAN;
-
---BEGIN TRY
-
---    PRINT 'Table: dbo.employee: start'
-
---	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'employee'))
---		DROP TABLE [dbo].[employee]
-	
---	CREATE TABLE [dbo].[employee](
---		[employeeid] [int] IDENTITY(1,1) NOT NULL,
---		[empnumber] [char](10) NOT NULL DEFAULT '',
---		[emplastnam] [char](30) NOT NULL DEFAULT '',
---		[empfirstna] [char](20) NOT NULL DEFAULT '',
---		[empmidinit] [char](1) NOT NULL DEFAULT '',
---		[empstatus] [numeric](1, 0) NOT NULL DEFAULT 0,
---		[emptmpfull] [numeric](1, 0) NOT NULL DEFAULT 0,
---		[emp_rate] [numeric](5, 2) NOT NULL DEFAULT 0.0,
---		[job_title] [char](30) NOT NULL DEFAULT '',
---		[empassword] [char](15) NOT NULL DEFAULT '',
---		[department] [char](4) NOT NULL DEFAULT '',
---		[manager_of] [char](4) NOT NULL DEFAULT '',
---		[last_rvw] [datetime] NULL,
---		[barcode] [char](15) NOT NULL DEFAULT '',
---		[email] [char](100) NOT NULL DEFAULT '',
---		CONSTRAINT [PK_employee] PRIMARY KEY CLUSTERED 
---		(
---			[employeeid] ASC
---		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
---	) ON [PRIMARY] 
-
---	INSERT INTO [dbo].[employee]
---		SELECT * FROM [rawUpsize_Contech].[dbo].[employee]
-
---	--SELECT * FROM [dbo].[employee]
-
---    COMMIT
-
---    PRINT 'Table: dbo.employee: end'
-
---END TRY
---BEGIN CATCH
-
---    ROLLBACK
---    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
---    RAISERROR ('Exiting script...', 20, -1)
-
---END CATCH;
-
--- =========================================================
 -- Section 005: matlin
 -- =========================================================
 
@@ -133,7 +76,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -244,7 +187,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -309,7 +252,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 

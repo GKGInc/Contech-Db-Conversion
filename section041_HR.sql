@@ -289,13 +289,63 @@ BEGIN TRY
 
 -- =========================================================
 
+-- =========================================================
+-- Section 041: samplans
+-- =========================================================
+
+-- Column changes:
+--  - Set [samplansid] to be primary key
+--  - Moved [samplansid] to first column
+--  - Renamed [samplansid] to [samplanid]
+--  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
+-- Maps:
+--	- [samplans].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+    PRINT 'Table: dbo.samplans: start'
+
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'samplans'))
+		DROP TABLE [dbo].[samplans]
+
+	CREATE TABLE [dbo].[samplans](
+		[samplanid] [int] IDENTITY(1,1) NOT NULL,
+		[code] [char](2) NOT NULL DEFAULT '',
+		[desc] [char](60) NOT NULL DEFAULT '',
+		[rev_rec] [int] NOT NULL DEFAULT 0,
+		[rev_dt] [datetime] NULL,
+		--[rev_emp] [char](10) NOT NULL DEFAULT '',		-- FK = [employee].[empnumber]
+		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		CONSTRAINT [PK_samplans] PRIMARY KEY CLUSTERED
+		(
+			[samplanid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	SET IDENTITY_INSERT [dbo].[samplans] ON;
+
+	INSERT INTO [dbo].[samplans] ([samplanid],[code],[desc],[rev_rec],[rev_dt],[employeeid])
+	SELECT [rawUpsize_Contech].[dbo].[samplans].[samplansid]
+		  ,[rawUpsize_Contech].[dbo].[samplans].[code]
+		  ,[rawUpsize_Contech].[dbo].[samplans].[desc]
+		  ,[rawUpsize_Contech].[dbo].[samplans].[rev_rec]
+		  ,[rawUpsize_Contech].[dbo].[samplans].[rev_dt]
+		  --,[rawUpsize_Contech].[dbo].[samplans].[rev_emp]
+		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- [asstevnt].[evntperson]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  FROM [rawUpsize_Contech].[dbo].[samplans]
+	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[samplans].[rev_emp]	 = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+	SET IDENTITY_INSERT [dbo].[samplans] OFF;
+
+	--SELECT * FROM [dbo].[samplans]
+
+    PRINT 'Table: dbo.samplans: end'
+
     COMMIT
 
 END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 

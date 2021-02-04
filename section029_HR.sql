@@ -236,7 +236,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -320,7 +320,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -407,7 +407,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -487,7 +487,7 @@ END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
