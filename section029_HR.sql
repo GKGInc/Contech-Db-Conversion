@@ -4,7 +4,7 @@
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section029HR.sql'
 
 -- =========================================================
--- Section 029: corractn --> Moved to section 019
+-- Section 029: corractn --> Moved to section 009
 -- =========================================================
 
 -- Column changes:
