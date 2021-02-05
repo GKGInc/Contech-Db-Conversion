@@ -44,4 +44,4 @@ section042_HR.sql,^
 section043_GB.sql,^
 section044_HR.sql,^
 section045_HR.sql,^
-section046_HR.sql -o dbconv.log
+section046_HR.sql -o dbconv_20210205.log
