@@ -3,200 +3,10 @@
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section025_HR.sql'
 
--- =========================================================
--- Section 025: car_empe
--- =========================================================
-
--- Column changes:
---  - Set car_empeid to be primary key
---  - Changed [car_no] [char](8) to [corractnid] [int] to reference [corractn] table
---  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
--- Maps:
---	- [car_empe].[car_no]						-- FK = [corractn].[car_no]
---	- [car_empe].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
 BEGIN TRAN;
 
 BEGIN TRY
-
-    PRINT 'Table: dbo.car_empe: start'
-
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'car_empe'))
-		DROP TABLE [dbo].[car_empe]
-
-	CREATE TABLE [dbo].[car_empe](
-		[car_empeid] [int] IDENTITY(1,1) NOT NULL,
-		--[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [corractn].[car_no] 
-		[corractnid] [int] NOT NULL DEFAULT 0,			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
-		--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
-		CONSTRAINT [PK_car_empe] PRIMARY KEY CLUSTERED 
-		(
-			[car_empeid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-	) ON [PRIMARY]
-
-	SET IDENTITY_INSERT [dbo].[car_empe] ON;
-
-	INSERT INTO [dbo].[car_empe] ([car_empeid],[corractnid],[employeeid])
-	SELECT [rawUpsize_Contech].[dbo].[car_empe].[car_empeid]
-		  --,[rawUpsize_Contech].[dbo].[car_empe].[car_no]
-		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	
-		  --,[rawUpsize_Contech].[dbo].[car_empe].[empnumber]
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	
-	  FROM [rawUpsize_Contech].[dbo].[car_empe]
-	  LEFT JOIN [dbo].[corractn] corractn ON [rawUpsize_Contech].[dbo].[car_empe].[car_no] = corractn.[car_no]		-- FK = [corractn].[car_no] --> [corractn].[corractnid]
-	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[car_empe].[empnumber] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-    
-	SET IDENTITY_INSERT [dbo].[car_empe] OFF;
-
-	--SELECT * FROM [dbo].[car_empe]
-
-    COMMIT
-
-    PRINT 'Table: dbo.car_empe: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
-
--- =========================================================
--- Section 025: cartrack -- NOT USED
--- =========================================================
-
--- Column changes:
---  - Set [cartrackid] to be primary key
---  - Changed [mod_reason] from text to varchar(2000)
---  - Changed [car_no] [char](8) to [corractnid] [int] to reference [corractn] table
---  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
--- Maps:
---	- [cartrack].[car_no] --> [car_empeid]		-- FK = [car_empe].[car_no] --> [car_empe].[car_empeid]
---	- [cartrack].[mod_user] --> [mod_userid]	-- FK = [users].[username] --> [users].[userid]
-
---BEGIN TRAN;
-
---BEGIN TRY
-
---    PRINT 'Table: dbo.cartrack: start'
-
---	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cartrack'))
---		DROP TABLE [dbo].[cartrack]
-
---	CREATE TABLE [dbo].[cartrack](
---		[cartrackid] [int] IDENTITY(1,1) NOT NULL,
---		--[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [car_empe].[car_no] 
---		[corractnid] [int] NOT NULL DEFAULT 0,			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
---		[mod_reason] varchar(2000) NOT NULL DEFAULT '',
---		--[mod_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
---		[mod_userid] [int]  NOT NULL DEFAULT '',		-- FK = [users].[username] --> [users].[userid]
---		[mod_dt] [datetime] NULL,
---		CONSTRAINT [PK_cartrack] PRIMARY KEY CLUSTERED 
---		(
---			[cartrackid] ASC
---		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
---	) ON [PRIMARY]
-
---	SET IDENTITY_INSERT [dbo].[cartrack] ON;
-
---	INSERT INTO [dbo].[cartrack] ([cartrackid],[corractnid],[mod_reason],[mod_userid],[mod_dt])
---	SELECT [rawUpsize_Contech].[dbo].[cartrack].[cartrackid]
---		  --,[rawUpsize_Contech].[dbo].[cartrack].[car_no]
---		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	
---		  ,[rawUpsize_Contech].[dbo].[cartrack].[mod_reason]
---		  --,[rawUpsize_Contech].[dbo].[cartrack].[mod_user]
---		  ,ISNULL(users.[userid] , 0) as [userid]	 
---		  ,[rawUpsize_Contech].[dbo].[cartrack].[mod_dt]
---	  FROM [rawUpsize_Contech].[dbo].[cartrack]
---	  LEFT JOIN [dbo].[users] users ON [rawUpsize_Contech].[dbo].[cartrack].[mod_user] = users.[username]				-- FK = [users].[username] --> [users].[userid]
---	  LEFT JOIN [dbo].[corractn] corractn ON [rawUpsize_Contech].[dbo].[cartrack].[car_no] = corractn.[car_no]		-- FK = [corractn].[car_no] --> [corractn].[corractnid]
---	  ORDER BY [rawUpsize_Contech].[dbo].[cartrack].[cartrackid]
-
---	SET IDENTITY_INSERT [dbo].[cartrack] OFF;
-
---	SELECT * FROM [dbo].[cartrack]
-
---    COMMIT
-
---    PRINT 'Table: dbo.cartrack: end'
-
---END TRY
---BEGIN CATCH
-
---    ROLLBACK
---    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
---    RAISERROR ('Exiting script...', 20, -1)
-
---END CATCH;
-
--- =========================================================
--- Section 025: carcmpls -- NOT USED
--- =========================================================
-
--- Column changes:
---  - Set [carcmplsid] to be primary key
---  - Changed [car_no] [char](8) to [corractnid] [int] to reference [corractn] table
---  - Changed [complnt_no] to [complntid] to reference [complnts] table
--- Maps:
---	- [carcmpls].[car_no] --> [car_empeid]		-- FK = [car_empe].[car_no] --> [car_empe].[car_empeid]
---	- [carcmpls].[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
-
---BEGIN TRAN;
-
---BEGIN TRY
-
---    PRINT 'Table: dbo.carcmpls: start'
-
---	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'carcmpls'))
---		DROP TABLE [dbo].[carcmpls]
-
---	CREATE TABLE [dbo].[carcmpls](
---		[carcmplsid] [int] IDENTITY(1,1) NOT NULL,
---		--[car_no] [char](8) NOT NULL DEFAULT '',	-- FK = [car_empe].[car_no] 
---		[corractnid] [int] NOT NULL DEFAULT 0,		-- FK = [corractn].[car_no] --> [corractn].[corractnid]
---		--[complnt_no] [int] NOT NULL DEFAULT 0,	-- FK = [complnts].[complnt_no] 
---		[complntid] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
---		CONSTRAINT [PK_carcmpls] PRIMARY KEY CLUSTERED 
---		(
---			[carcmplsid] ASC
---		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
---	) ON [PRIMARY] 
-
---	SET IDENTITY_INSERT [dbo].[carcmpls] ON;
-
---	INSERT INTO [dbo].[carcmpls] ([carcmplsid],[corractnid],[complntid])
---	SELECT [rawUpsize_Contech].[dbo].[carcmpls].[carcmplsid]
---		  --,[rawUpsize_Contech].[dbo].[carcmpls].[car_no]
---		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	
---		  --,[rawUpsize_Contech].[dbo].[carcmpls].[complnt_no]
---		  ,ISNULL(complnts.[complntid], 0) AS [complntid] 
---	  FROM [rawUpsize_Contech].[dbo].[carcmpls]
---	  LEFT JOIN [dbo].[corractn] corractn ON [rawUpsize_Contech].[dbo].[carcmpls].[car_no] = corractn.[car_no]			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
---	  LEFT JOIN [dbo].[complnts] complnts ON [rawUpsize_Contech].[dbo].[carcmpls].[complnt_no] = complnts.[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
-
---	SET IDENTITY_INSERT [dbo].[carcmpls] OFF;
-
---	SELECT * FROM [dbo].[carcmpls]
-
---    COMMIT
-
---    PRINT 'Table: dbo.carcmpls: end'
-
---END TRY
---BEGIN CATCH
-
---    ROLLBACK
---    PRINT 'ERROR - line: ' + ERROR_LINE() + ', message: ' + ERROR_MESSAGE();
-
---    RAISERROR ('Exiting script...', 20, -1)
-
---END CATCH;
 
 -- =========================================================
 -- Section 025: cashtype
@@ -204,10 +14,6 @@ END CATCH;
 
 -- Column changes:
 --  - Added [cashtypeid] to be primary key
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.cashtype: start'
 
@@ -233,19 +39,7 @@ BEGIN TRY
   
 	--SELECT * FROM [dbo].[cashtype]
 
-    COMMIT
-
     PRINT 'Table: dbo.cashtype: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 025: changelog
@@ -260,9 +54,6 @@ END CATCH;
 -- Maps:
 --	- [changelog].[add_user]		-- FK = [users].[username] --> [users].[userid]
 
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.changelog: start'
 
@@ -307,9 +98,57 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[changelog]
 
-    COMMIT
-
     PRINT 'Table: dbo.changelog: end'
+
+-- =========================================================
+-- table: car_empe
+-- =========================================================
+
+-- Column changes:
+--  - Set car_empeid to be primary key
+--  - Changed [car_no] [char](8) to [corractnid] [int] to reference [corractn] table
+--  - Changed [empnumber] [char](10) to [employeeid] [int] to reference [employee] table
+-- Maps:
+--	- [car_empe].[car_no]						-- FK = [corractn].[car_no]
+--	- [car_empe].[empnumber] --> [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+    PRINT 'Table: dbo.car_empe: start'
+
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'car_empe'))
+		DROP TABLE [dbo].[car_empe]
+
+	CREATE TABLE [dbo].[car_empe](
+		[car_empeid] [int] IDENTITY(1,1) NOT NULL,
+		--[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [corractn].[car_no] 
+		[corractnid] [int] NOT NULL DEFAULT 0,			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
+		--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
+		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		CONSTRAINT [PK_car_empe] PRIMARY KEY CLUSTERED 
+		(
+			[car_empeid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	SET IDENTITY_INSERT [dbo].[car_empe] ON;
+
+	INSERT INTO [dbo].[car_empe] ([car_empeid],[corractnid],[employeeid])
+	SELECT [rawUpsize_Contech].[dbo].[car_empe].[car_empeid]
+		  --,[rawUpsize_Contech].[dbo].[car_empe].[car_no]
+		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	
+		  --,[rawUpsize_Contech].[dbo].[car_empe].[empnumber]
+		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	
+	  FROM [rawUpsize_Contech].[dbo].[car_empe]
+	  LEFT JOIN [dbo].[corractn] corractn ON [rawUpsize_Contech].[dbo].[car_empe].[car_no] = corractn.[car_no]		-- FK = [corractn].[car_no] --> [corractn].[corractnid]
+	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[car_empe].[empnumber] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+    
+	SET IDENTITY_INSERT [dbo].[car_empe] OFF;
+
+	--SELECT * FROM [dbo].[car_empe]
+
+    PRINT 'Table: dbo.car_empe: end'
+
+
+    COMMIT
 
 END TRY
 BEGIN CATCH
