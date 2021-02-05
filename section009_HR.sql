@@ -150,19 +150,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrn]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrn: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrn_dtl
@@ -174,10 +162,6 @@ END CATCH;
 -- Maps:
 --	- [qrn_dtl].[qrn_no] --> [qrnid]	-- FK = [qrn].[qrnid]
 --	- [qrn_dtl].[cmpcasesid]			-- FK = [cmpcases].[cmpcasesid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrn_dtl: start'
 
@@ -217,19 +201,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrn_dtl]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrn_dtl: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrnexcpt
@@ -240,10 +212,6 @@ END CATCH;
 -- Maps:
 --	- [qrnexcpt].[qrnid]	-- FK = [qrn].[qrnid]
 --	- [qrnexcpt].[bom_no]	-- FK = [bom_hdr].[bom_no]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrnexcpt: start'
 
@@ -274,19 +242,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrnexcpt]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrnexcpt: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrnissue
@@ -298,10 +254,6 @@ END CATCH;
 --	- [qrnissue].[issuesid]		-- FK = [issues].[issuesid]
 --	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 --	- [qrnissue].[issuesdtid]	-- FK = [issuesdt].[issuesdtid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrnissue: start'
 
@@ -335,19 +287,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrnissue]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrnissue: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrnmachn
@@ -357,10 +297,6 @@ END CATCH;
 --  - Set [qrnmachnid] as primary key
 -- Maps:
 --	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrnid]
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrnmachn: start'
 
@@ -392,19 +328,8 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrnmachn]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrnmachn: end'
 
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrnsource
@@ -412,10 +337,6 @@ END CATCH;
 
 -- Column changes:
 --  - Added [qrnsourceid] as primary key
-
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrnsource: start'
 
@@ -437,19 +358,7 @@ BEGIN TRY
   
 	--SELECT * FROM [dbo].[qrnsource]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrnsource: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 009: qrntable
@@ -460,9 +369,6 @@ END CATCH;
 -- Maps:
 --	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrnid]
 
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.qrntable: start'
 
@@ -496,15 +402,15 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[qrntable]
 
-    COMMIT
-
     PRINT 'Table: dbo.qrntable: end'
+
+    COMMIT
 
 END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 

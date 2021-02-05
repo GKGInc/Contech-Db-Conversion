@@ -1,7 +1,7 @@
 -- =========================================================
 --USE [Contech_Test]
 
-PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section007_HR.sql'
+PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section005_HR.sql'
 
 -- =========================================================
 -- Section 005: orders -- Moved from Section 007
@@ -142,19 +142,17 @@ BEGIN TRY
 	  LEFT JOIN [dbo].[bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[orders].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[orders].[bom_rev] = bom_hdr.[bom_rev] 
 	  LEFT JOIN [dbo].[customer] customer ON [rawUpsize_Contech].[dbo].[orders].[cust_no] = customer.[cust_no] 
 	  LEFT JOIN [dbo].[mfgcat] mfgcat ON [rawUpsize_Contech].[dbo].[orders].[mfg_cat] = mfgcat.[mfg_cat] 
-	  --LEFT JOIN [dbo].[mfg_loc] mfg_loc ON [rawUpsize_Contech].[dbo].[orders].[mfg_locid] = mfg_loc.[mfg_locid] 
 
-	--SELECT * FROM [dbo].[orders]
+    PRINT 'Table: dbo.orders: end'
 
     COMMIT
 
-    PRINT 'Table: dbo.orders: end'
 
 END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -162,6 +160,6 @@ END CATCH;
 
 -- =========================================================
 
-PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section007_HR.sql'
+PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section005_HR.sql'
 
 -- =========================================================

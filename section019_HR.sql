@@ -81,15 +81,16 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[rev_rel]
 	
+    PRINT 'Table: dbo.rev_rel: end'
+
     COMMIT
 
-    PRINT 'Table: dbo.rev_rel: end'
 
 END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 

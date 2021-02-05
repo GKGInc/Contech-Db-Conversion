@@ -666,7 +666,7 @@ begin try
 end try
 begin catch
     rollback
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     raiserror ('Exiting script...', 20, -1)
 end catch

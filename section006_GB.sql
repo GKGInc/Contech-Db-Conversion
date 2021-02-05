@@ -2,7 +2,7 @@
 -- Section 006: aropen -- Moved from Section 004
 -- ***************************************************
 
-print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section004_GB.sql'
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section006_GB.sql'
 
 begin tran
 
@@ -148,17 +148,18 @@ begin try
     left outer join dbo.orders ord on aropen.job_no = ord.job_no
     left outer join dbo.customer cus on aropen.cust_no = cus.cust_no
 
-    commit
     print 'table: dbo.aropen: end'
+
+    commit
 
 end try
 begin catch
     rollback
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     raiserror ('Exiting script...', 20, -1)
 end catch
 
-print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section004_GB.sql'
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section006_GB.sql'
 
 -- ***************************************************

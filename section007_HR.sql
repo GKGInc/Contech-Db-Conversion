@@ -1,7 +1,6 @@
 -- =========================================================
---USE [Contech_Test]
 
-PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section005_HR.sql'
+PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section007_HR.sql'
 
 -- =========================================================
 -- Section 007: matlin -- Moved from Section 005
@@ -68,19 +67,7 @@ BEGIN TRY
 
 	--SELECT * FROM [matlin]
 
-    COMMIT
-
     PRINT 'Table: dbo.matlin: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 007: po_hdr -- Moved from Section 005
@@ -91,9 +78,6 @@ END CATCH;
 --  - Changed [memo] from [text] to [varchar](2000)
 --  - Changed [cpmr] from [text] to [varchar](2000)
 
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.po_hdr: start'
 
@@ -179,19 +163,7 @@ BEGIN TRY
 
 	--SELECT * FROM [dbo].[po_hdr]
   
-    COMMIT
-
     PRINT 'Table: dbo.po_hdr: end'
-
-END TRY
-BEGIN CATCH
-
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
-
-    RAISERROR ('Exiting script...', 20, -1)
-
-END CATCH;
 
 -- =========================================================
 -- Section 007: po_dtl -- Moved from Section 005
@@ -203,9 +175,6 @@ END CATCH;
 --  - Removed [po_no] [char](8) column. That data can be found in [po_hdr] table referenced by [po_hdrid] column
 --  - Changed [exp] from [text] to [varchar](3000) | Note: raised amount because there was a truncation error
 
-BEGIN TRAN;
-
-BEGIN TRY
 
     PRINT 'Table: dbo.po_dtl: start'
 
@@ -242,17 +211,15 @@ BEGIN TRY
 	FROM [rawUpsize_Contech].[dbo].[po_dtl]
 	LEFT JOIN [dbo].[po_hdr] po_hdr ON [rawUpsize_Contech].[dbo].[po_dtl].po_no = po_hdr.[po_no]
 
-	--SELECT * FROM [Contech_Test].[dbo].[po_dtl]
+    PRINT 'Table: dbo.po_dtl: end'
 
     COMMIT
-
-    PRINT 'Table: dbo.po_dtl: end'
 
 END TRY
 BEGIN CATCH
 
     ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(STR(ERROR_MESSAGE()), 'none');
+    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
     RAISERROR ('Exiting script...', 20, -1)
 
@@ -260,6 +227,6 @@ END CATCH;
 
 -- =========================================================
 
-PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section005_HR.sql'
+PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section007_HR.sql'
 
 -- =========================================================
