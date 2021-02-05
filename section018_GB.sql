@@ -213,7 +213,7 @@ begin try
 	--SELECT * FROM [dbo].[tbom_hdr]
 	 
     insert into dbo.tbom_hdr
-    (bom_no, bom_rev, part_no, part_rev, part_desc, price, price_ire, price_rev, unit, date_rev, sts, customerid, date_ent, code_info, tube_lenth, tube_dim, [assembly], scr_code, quota, notes, mfg_no, spec_no, spec_rev, dspec_rev, doc_no, doc_rev, ddoc_rev, computer, waste, qty_case, price_note, mfgcatid, rbom_no, sts_loc)
+    -- (bom_no, bom_rev, part_no, part_rev, part_desc, price, price_ire, price_rev, [unit], date_rev, sts, customerid, date_ent, code_info, tube_lenth, tube_dim, [assembly], scr_code, quota, notes, mfg_no, spec_no, spec_rev, dspec_rev, doc_no, doc_rev, ddoc_rev, computer, waste, qty_case, price_note, mfgcatid, rbom_no, sts_loc)
     select bom_no,
            bom_rev,
            part_no,
