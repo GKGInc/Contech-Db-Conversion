@@ -1,12 +1,5 @@
 -- check tables to make sure all of them made it over
 
---SELECT 'test2' as dbname, t.name AS tblname
--- FROM test2.sys.tables t
---UNION 
---SELECT 'rawUpsize_Contech' AS dbname, t.name AS tblname
--- FROM rawUpsize_Contech.sys.tables t
-
-
 SET NOCOUNT ON
 DECLARE @SkipTables table (TableName nvarchar(100))
 
@@ -42,18 +35,20 @@ INSERT INTO @SkipTables (TableName)
 				SELECT 'tdorderh' UNION ALL
 				SELECT 'tdrcving' UNION ALL
 				SELECT 'user_lev' UNION ALL
-				SELECT 'user_scr') t(Col)
+				SELECT 'user_scr' UNION ALL
+				SELECT 'country' UNION ALL
+				SELECT 'nextkey') t(Col)
 
 
 
 SET NOCOUNT OFF
 
 SELECT t1.name AS tbl_Not_In_Raw
- FROM test2.sys.tables  t1
+ FROM test3.sys.tables  t1
  WHERE t1.name NOT IN (select t2.name FROM rawUpsize_Contech.sys.tables t2) 
 
 SELECT t1.name AS tbl_Not_In_New
  FROM rawUpsize_Contech.sys.tables  t1
- WHERE t1.name NOT IN (select t2.name FROM TEST2.sys.tables t2) 
+ WHERE t1.name NOT IN (select t2.name FROM TEST3.sys.tables t2) 
      AND t1.name NOT IN (select TableName FROM @SkipTables)
 
