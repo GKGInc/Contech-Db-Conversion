@@ -548,7 +548,7 @@ begin try
     -- FK fields:
     -- tbom_hdrid
 
-    print 'table: dbo.tpouches: end'
+    print 'table: dbo.tpouches: start'
 
     IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tpouches')
             drop table dbo.tpouches

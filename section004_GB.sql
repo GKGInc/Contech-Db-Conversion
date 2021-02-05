@@ -226,7 +226,8 @@ BEGIN TRY
     -- componetid : componet.componeid (on bom_dtl.comp = componet.comp)
 
     -- notes:
-    -- (1) the original bom_dtl.bom_dtlid column had duplicates because it wasn't unique by design
+    -- (1) the original bom_dtl.bom_dtlid column had duplicates because it wasn't unique by design. renaming that field
+    --     to bom_dtlref, and creating a new PK field
     -- https://gkginc.slack.com/archives/G01JTKDEAUQ/p1611778528034300
 
     print 'table: dbo.bom_dtl: start'

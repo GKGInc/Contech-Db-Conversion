@@ -276,6 +276,6 @@ BEGIN CATCH
 
 END CATCH;
 
-PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section001_HR.sql'
+PRINT (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section030_HR.sql'
 
 -- =========================================================

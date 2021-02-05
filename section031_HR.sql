@@ -264,7 +264,7 @@ BEGIN TRY
 
     PRINT 'Table: dbo.einvoice: end'
 
--- =========================================================
+    COMMIT
 
 END TRY
 BEGIN CATCH
