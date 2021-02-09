@@ -70,7 +70,7 @@ BEGIN TRY
 		CONSTRAINT [PK_tbom_hdr] PRIMARY KEY CLUSTERED 
 		(
 			[tbom_hdrid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] 
 
 	INSERT INTO [dbo].[tbom_hdr] ([bom_no],[bom_rev],[part_no],[part_rev],[part_desc],[price],[price_ire],[price_rev],[unitid],[date_rev],[sts],[customerid],[date_ent],[code_info],[tube_lenth],[tube_dim],[assembly],[scr_code],[quota],[notes],[mfg_no],[spec_no],[spec_rev],[dspec_rev],[doc_no],[doc_rev],[ddoc_rev],[computer],[waste],[qty_case],[price_note],[mfgcatid],[rbom_no],[sts_loc])
@@ -166,7 +166,7 @@ BEGIN TRY
 		CONSTRAINT [PK_tbom_dtl] PRIMARY KEY CLUSTERED 
 		(
 			[tbom_dtlid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
 	INSERT INTO [dbo].[tbom_dtl] 
