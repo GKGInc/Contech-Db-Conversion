@@ -1,6 +1,7 @@
 -- =========================================================
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section007_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 007: matlin -- Moved from Section 005
@@ -17,8 +18,18 @@ BEGIN TRY
     PRINT 'Table: dbo.matlin: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'matlin'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('matlin')) > 0)
+		BEGIN
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('matlin')
+			EXEC (@SQL)
+		END
+
 		DROP TABLE [dbo].[matlin]
-	
+	END
+
 	CREATE TABLE [dbo].[matlin](
 		[matlinid] [int] IDENTITY(1,1) NOT NULL,
 		[po_no] [char](8) NOT NULL DEFAULT '',
@@ -77,13 +88,34 @@ BEGIN TRY
 --  - Added [po_hdrid] to be primary key
 --  - Changed [memo] from [text] to [varchar](2000)
 --  - Changed [cpmr] from [text] to [varchar](2000)
-
+--  - Changed [ven_id] [char](6) to [vendorid] [int] to reference [vendor] table
+-- Maps:
+--	- [po_hdr].[ven_id] --> [vendorid]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 
     PRINT 'Table: dbo.po_hdr: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'po_hdr'))
+	BEGIN
+		----	Drop FOREIGN KEY constraint tables first -- Without it you get error: "Could not drop object 'dbo.bom_hdr' because it is referenced by a FOREIGN KEY constraint."
+		--IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'po_dtl')
+		--BEGIN
+		--	PRINT 'Table [dbo].[po_dtl] dropped'
+		--	DROP TABLE [dbo].[po_dtl]
+		--END
+
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_hdr')) > 0)
+		BEGIN
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('po_hdr')
+			EXEC (@SQL)
+		END
+
 		DROP TABLE [dbo].[po_hdr]
-	
+		PRINT 'Table [dbo].[po_hdr] dropped'
+		
+	END
+
 	CREATE TABLE [dbo].[po_hdr](
 		[po_hdrid] [int] IDENTITY(1,1) NOT NULL,
 		[po_no] [char](8) NOT NULL DEFAULT '',
@@ -94,7 +126,8 @@ BEGIN TRY
 		[ship_to] [char](6) NOT NULL DEFAULT '',
 		[date] [datetime] NULL,
 		[buyer] [char](5) NOT NULL DEFAULT '',
-		[ven_id] [char](6) NOT NULL DEFAULT '',
+		--[ven_id] [char](6) NOT NULL DEFAULT '',
+		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 		[comp] [char](5) NOT NULL DEFAULT '',
 		[total] [numeric](9, 2) NOT NULL DEFAULT 0.0,
 		[charge1] [numeric](8, 2) NOT NULL DEFAULT 0.0,
@@ -144,10 +177,70 @@ BEGIN TRY
 		(
 			[po_hdrid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT [FK_po_hdrvendor] FOREIGN KEY ([vendorid]) REFERENCES [dbo].[vendor] ([vendorid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
 
+	CREATE INDEX [idx_po_hdr_po_no] ON [dbo].[po_hdr] ([po_no]);
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrvendor];
+
 	INSERT INTO [dbo].[po_hdr] 
-		SELECT pohdr.* FROM 
+		SELECT --pohdr.* 
+			pohdr.[po_no]
+			,pohdr.[status]
+			,pohdr.[po_rev]
+			,pohdr.[rev_date]
+			,pohdr.[bill_to]
+			,pohdr.[ship_to]
+			,pohdr.[date]
+			,pohdr.[buyer]
+			--,pohdr.[ven_id]
+			,ISNULL(vendor.[vendorid], 0) AS [vendorid]			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+			,pohdr.[comp]
+			,pohdr.[total]
+			,pohdr.[charge1]
+			,pohdr.[charge1_desc]
+			,pohdr.[charge2]
+			,pohdr.[charge2_desc]
+			,pohdr.[sub_total]
+			,pohdr.[total_qty]
+			,pohdr.[notes]
+			,pohdr.[confirm]
+			,pohdr.[tax]
+			,pohdr.[tax_amt]
+			,pohdr.[conf_phone]
+			,pohdr.[cl_room]
+			,pohdr.[rush]
+			,pohdr.[dbl_bag]
+			,pohdr.[fl_cut]
+			,pohdr.[price]
+			,pohdr.[tot_bo]
+			,pohdr.[tot_recd]
+			,pohdr.[tot_recd_rej]
+			,pohdr.[tot_recd_acc]
+			,pohdr.[comp_rev]
+			,pohdr.[cusno]
+			,pohdr.[cus_po]
+			,pohdr.[ship_via]
+			,pohdr.[fob]
+			,pohdr.[shven_no]
+			,pohdr.[currency]
+			,pohdr.[comp_desc]
+			,pohdr.[comp_desc2]
+			,pohdr.[material]
+			,pohdr.[class]
+			,pohdr.[cpmr]
+			,pohdr.[coc]
+			,pohdr.[conf_dlvry]
+			,pohdr.[category]
+			,pohdr.[sop10073]
+			,pohdr.[initiator]
+			,pohdr.[kanban]
+			,pohdr.[kbrel_freq]
+			,pohdr.[kbstart_dt]
+			,pohdr.[kbrel_qty]
+			,pohdr.[mfg_locid]
+			,pohdr.[prepaid]		
+		FROM 
 			(SELECT [po_no]
 				  ,MAX([po_rev]) AS [po_rev]
 				  ,MAX([date]) AS [date]
@@ -159,6 +252,8 @@ BEGIN TRY
 				AND pohdr.[po_rev] = latest_pohdr.[po_rev]
 				AND pohdr.[date] = latest_pohdr.[date]
 				AND pohdr.[tot_recd] = latest_pohdr.[tot_recd]
+		LEFT JOIN [dbo].[vendor] vendor 
+			ON pohdr.[ven_id] = vendor.[ven_id]
 		ORDER BY pohdr.[date],pohdr.[po_no]	
 
 	--SELECT * FROM [dbo].[po_hdr]
@@ -175,15 +270,25 @@ BEGIN TRY
 --  - Removed [po_no] [char](8) column. That data can be found in [po_hdr] table referenced by [po_hdrid] column
 --  - Changed [exp] from [text] to [varchar](3000) | Note: raised amount because there was a truncation error
 
-
     PRINT 'Table: dbo.po_dtl: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'po_dtl'))
+	BEGIN	
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_dtl')) > 0)
+		BEGIN
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('po_dtl')
+			EXEC (@SQL)		
+		END
+
 		DROP TABLE [dbo].[po_dtl]
-	
+		PRINT 'Table [dbo].[po_dtl] dropped'
+	END
+
 	CREATE TABLE [dbo].[po_dtl](
 		[po_dtlid] [int] IDENTITY(1,1) NOT NULL,
-		[po_hdrid] [int] NOT NULL DEFAULT 0,
+		[po_hdrid] [int] NOT NULL DEFAULT 0 ,			-- FK = [po_hdr].[po_hdrid]
 		--[po_no] [char](8) NOT NULL DEFAULT '',
 		[ref_no] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[due_date] [datetime] NULL,
@@ -196,6 +301,9 @@ BEGIN TRY
 		(
 			[po_dtlid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_po_hdrpo_dtl FOREIGN KEY ([po_hdrid]) REFERENCES [dbo].[po_hdr] (po_hdrid)
+		ON DELETE CASCADE
+		NOT FOR REPLICATION
 	) ON [PRIMARY] 
 
 	INSERT INTO [dbo].[po_dtl] (po_hdrid,[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
@@ -210,9 +318,15 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[po_dtl].[kbfixed]
 	FROM [rawUpsize_Contech].[dbo].[po_dtl]
 	LEFT JOIN [dbo].[po_hdr] po_hdr ON [rawUpsize_Contech].[dbo].[po_dtl].po_no = po_hdr.[po_no]
+	WHERE po_hdr.[po_hdrid] IS NOT NULL
+	ORDER BY 1
 
     PRINT 'Table: dbo.po_dtl: end'
-
+	
+	--sp_help '[dbo].[po_hdr]'
+	--SELECT * FROM [dbo].[po_hdr]
+	--SELECT * FROM [dbo].[po_dtl]	
+	
     COMMIT
 
 END TRY
