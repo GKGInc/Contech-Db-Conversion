@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section003_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -19,7 +20,18 @@ BEGIN TRY
     PRINT 'Table: dbo.class: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'class'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('class')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('class')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[class]
+	END	
 	
 	CREATE TABLE [dbo].[class](
 		classid [int] IDENTITY(1,1) NOT NULL,
@@ -50,7 +62,18 @@ BEGIN TRY
 	PRINT 'Table: dbo.doctypes: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'doctypes'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('doctypes')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('doctypes')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[doctypes]
+	END	
 
 	CREATE TABLE [dbo].[doctypes](
 		[doctypeid] [int] IDENTITY(1,1) NOT NULL,
@@ -88,7 +111,18 @@ BEGIN TRY
     PRINT 'Table: dbo.docs_dtl: start'
 	
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'docs_dtl'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('docs_dtl')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('docs_dtl')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[docs_dtl]
+	END	
 
 	CREATE TABLE [dbo].[docs_dtl](
 		[docs_dtlid] [int] IDENTITY(1,1) NOT NULL,
@@ -156,7 +190,18 @@ BEGIN TRY
     PRINT 'Table: dbo.docs_hdr: start'
 	
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'docs_hdr'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('docs_hdr')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('docs_hdr')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[docs_hdr]
+	END	
 
 	CREATE TABLE [dbo].[docs_hdr](
 		[docs_hdrid] [int] IDENTITY(1,1) NOT NULL,
@@ -200,7 +245,18 @@ BEGIN TRY
     PRINT 'Table: dbo.colorant: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'colorant'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('colorant')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('colorant')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[colorant]
+	END	
 
 	CREATE TABLE [dbo].[colorant](
 		[colorantid] [int] IDENTITY(1,1) NOT NULL,
@@ -256,7 +312,18 @@ BEGIN TRY
 	PRINT 'Table: dbo.componet: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'componet'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('componet')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('componet')
+			PRINT (@SQL)	
+			EXEC (@SQL)			
+		END
+		
 		DROP TABLE [dbo].[componet]
+	END	
 	
 	CREATE TABLE [dbo].[componet](
 		[componetid] [int] IDENTITY(1,1) NOT NULL,

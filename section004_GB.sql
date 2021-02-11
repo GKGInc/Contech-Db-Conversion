@@ -17,11 +17,12 @@ BEGIN TRY
 	
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'mfgcat'))
 	BEGIN
-			-- Check for Foreign Key Contraints and remove them
+		-- Check for Foreign Key Contraints and remove them
 		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('mfgcat')) > 0)
 		BEGIN		
 			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('mfgcat')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
@@ -61,6 +62,7 @@ BEGIN TRY
 		BEGIN
 			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('mfg_loc')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
@@ -129,10 +131,11 @@ BEGIN TRY
     IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'bom_hdr')
     BEGIN
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_hdr')) > 0)
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_hdr')) > 0)
 		BEGIN
-			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_hdr')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
@@ -190,64 +193,51 @@ BEGIN TRY
 		,CONSTRAINT [FK_bom_hdrmfgcat] FOREIGN KEY ([mfgcatid]) REFERENCES [dbo].[mfgcat] ([mfgcatid]) ON DELETE NO ACTION
     ) ON [PRIMARY];
 
-	--ALTER TABLE [dbo].[bom_hdr]
-	--	WITH NOCHECK 
-	--	ADD CONSTRAINT [FK_bom_hdrcustomer] FOREIGN KEY([customerid])
-	--	REFERENCES [dbo].[customer] (customerid) 
-	--ON DELETE NO ACTION;
-
 	ALTER TABLE [dbo].[bom_hdr] NOCHECK CONSTRAINT [FK_bom_hdrcustomer];
-
-	--ALTER TABLE [dbo].[bom_hdr]
-	--	WITH NOCHECK 
-	--	ADD CONSTRAINT [FK_bom_hdrmfgcat] FOREIGN KEY ([mfgcatid]) 
-	--	REFERENCES [dbo].[mfgcat] (mfgcatid) 
-	--ON DELETE NO ACTION;
-
 	ALTER TABLE [dbo].[bom_hdr] NOCHECK CONSTRAINT [FK_bom_hdrmfgcat];
 
     with cte_bom_hdr
         as (select *, row_number() over(partition by bom_no, bom_rev order by bom_no, bom_rev) rowrank
             from [rawUpsize_Contech].dbo.bom_hdr)
     insert into [dbo].[bom_hdr]
-    select bom_no,
-           bom_rev,
-           part_no,
-           part_rev,
-           part_desc,
-           price,
-           price_ire,
-           price_rev,
-           unit,
-           date_rev,
-           sts,
+    select bom_hdr.bom_no,
+           bom_hdr.bom_rev,
+           bom_hdr.part_no,
+           bom_hdr.part_rev,
+           bom_hdr.part_desc,
+           bom_hdr.price,
+           bom_hdr.price_ire,
+           bom_hdr.price_rev,
+           bom_hdr.unit,
+           bom_hdr.date_rev,
+           bom_hdr.sts,
            -- cust_no,
            isnull(cus.customerid, 0),
            --cus.customerid,
-           date_ent,
-           code_info,
-           tube_lenth,
-           tube_dim,
-           assembly,
-           scr_code,
-           quota,
-           notes,
-           mfg_no,
-           spec_no,
-           spec_rev,
-           dspec_rev,
-           doc_no,
-           doc_rev,
-           ddoc_rev,
-           computer,
-           waste,
-           qty_case,
-           price_note,
+           bom_hdr.date_ent,
+           bom_hdr.code_info,
+           bom_hdr.tube_lenth,
+           bom_hdr.tube_dim,
+           bom_hdr.assembly,
+           bom_hdr.scr_code,
+           bom_hdr.quota,
+           bom_hdr.notes,
+           bom_hdr.mfg_no,
+           bom_hdr.spec_no,
+           bom_hdr.spec_rev,
+           bom_hdr.dspec_rev,
+           bom_hdr.doc_no,
+           bom_hdr.doc_rev,
+           bom_hdr.ddoc_rev,
+           bom_hdr.computer,
+           bom_hdr.waste,
+           bom_hdr.qty_case,
+           bom_hdr.price_note,
            -- mfg_cat,
            isnull(mc.mfgcatid, 0),
-           expfactor,
-           sts_loc,
-           expunit
+           bom_hdr.expfactor,
+           bom_hdr.sts_loc,
+           bom_hdr.expunit
     FROM cte_bom_hdr bom_hdr
     left outer join dbo.customer cus ON bom_hdr.cust_no = cus.cust_no
     left outer join dbo.mfgcat mc ON bom_hdr.mfg_cat = mc.mfg_cat and RTRIM(bom_hdr.mfg_cat) != ''
@@ -288,10 +278,11 @@ BEGIN TRY
 	IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'bom_dtl')
 	BEGIN
 			-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_dtl')) > 0)
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_dtl')) > 0)
 		BEGIN
-			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('[bom_dtl]')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
@@ -318,27 +309,22 @@ BEGIN TRY
 		,CONSTRAINT FK_bom_dtlbom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] (bom_hdrid) ON DELETE CASCADE NOT FOR REPLICATION 
 		,CONSTRAINT FK_bom_dtlcomponet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] (componetid) ON DELETE NO ACTION
     ) ON [PRIMARY]
-	
-	--ALTER TABLE [dbo].[bom_dtl]
-	--	WITH NOCHECK 
-	--	ADD CONSTRAINT [FK_bom_dtlcomponet] FOREIGN KEY(componetid)
-	--	REFERENCES [dbo].[componet] (componetid) 
-	--ON DELETE NO ACTION;
-	
+		
 	ALTER TABLE [dbo].[bom_dtl] NOCHECK CONSTRAINT [FK_bom_dtlcomponet];
 
-    INSERT INTO dbo.bom_dtl
-        (bom_hdrid, bom_dtlref, [order], componetid, quan, coc)
+    INSERT INTO [dbo].[bom_dtl]
+        ([bom_hdrid], [bom_dtlref], [order], [componetid], [quan], [coc])
     SELECT bom_hdr.[bom_hdrid]
-         ,bom_dtl.bom_dtlid
-        ,[order]
-        ,isnull(c.componetid, 0)
-        ,[quan]
-        ,[coc]
-    FROM [rawUpsize_Contech].dbo.bom_dtl
-    INNER JOIN dbo.bom_hdr
-        ON bom_dtl.bom_no = bom_hdr.bom_no AND bom_dtl.bom_rev = bom_hdr.bom_rev
-    left outer join componet c ON bom_dtl.comp = c.comp
+        ,bom_dtl.[bom_dtlid]
+        ,bom_dtl.[order]
+        ,isnull(componet.[componetid], 0)
+        ,bom_dtl.[quan]
+        ,bom_dtl.[coc]
+    FROM [rawUpsize_Contech].[dbo].[bom_dtl] bom_dtl -- SELECT * FROM [rawUpsize_Contech].dbo.bom_dtl
+    INNER JOIN [dbo].[bom_hdr] bom_hdr				 -- SELECT * FROM dbo.bom_hdr
+        ON bom_dtl.[bom_no] = bom_hdr.[bom_no] AND bom_dtl.[bom_rev] = bom_hdr.[bom_rev]
+    LEFT OUTER JOIN [dbo].[componet] componet 
+		ON bom_dtl.[comp] = componet.[comp]
 
     print 'table: dbo.bom_dtl: end'
 

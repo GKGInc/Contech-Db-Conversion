@@ -2,13 +2,14 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section046_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
 BEGIN TRY
 
 -- =========================================================
--- Section 046: venship
+-- Section 046: venship -- Moved to section005
 -- =========================================================
 
 -- Column changes:
@@ -16,47 +17,47 @@ BEGIN TRY
 -- Maps:
 --	- [venship].[mfg_locid]	-- FK = [mfg_loc].[mfg_locid]
 
-    PRINT 'Table: dbo.venship: start'
+ --   PRINT 'Table: dbo.venship: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'venship'))
-		DROP TABLE [dbo].[venship]
+	--IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'venship'))
+	--	DROP TABLE [dbo].[venship]
 
-	CREATE TABLE [dbo].[venship](
-		[venshipid] [int] IDENTITY(1,1) NOT NULL,
-		[company] [char](35) NOT NULL DEFAULT '',
-		[shven_no] [char](5) NOT NULL DEFAULT '',
-		[saddress] [char](35) NOT NULL DEFAULT '',
-		[saddress2] [char](35) NOT NULL DEFAULT '',
-		[city] [char](21) NOT NULL DEFAULT '',
-		[state] [char](3) NOT NULL DEFAULT '',
-		[zip] [char](11) NOT NULL DEFAULT '',
-		[ship_via] [char](20) NOT NULL DEFAULT '',
-		[fob_point] [char](15) NOT NULL DEFAULT '',
-		[country] [char](10) NOT NULL DEFAULT '',
-		[mfg_locid] [int] NOT NULL DEFAULT 0,		-- FK = [mfg_loc].[mfg_locid]
-		CONSTRAINT [PK_venship] PRIMARY KEY CLUSTERED 
-		(
-			[venshipid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
+	--CREATE TABLE [dbo].[venship](
+	--	[venshipid] [int] IDENTITY(1,1) NOT NULL,
+	--	[company] [char](35) NOT NULL DEFAULT '',
+	--	[shven_no] [char](5) NOT NULL DEFAULT '',
+	--	[saddress] [char](35) NOT NULL DEFAULT '',
+	--	[saddress2] [char](35) NOT NULL DEFAULT '',
+	--	[city] [char](21) NOT NULL DEFAULT '',
+	--	[state] [char](3) NOT NULL DEFAULT '',
+	--	[zip] [char](11) NOT NULL DEFAULT '',
+	--	[ship_via] [char](20) NOT NULL DEFAULT '',
+	--	[fob_point] [char](15) NOT NULL DEFAULT '',
+	--	[country] [char](10) NOT NULL DEFAULT '',
+	--	[mfg_locid] [int] NOT NULL DEFAULT 0,		-- FK = [mfg_loc].[mfg_locid]
+	--	CONSTRAINT [PK_venship] PRIMARY KEY CLUSTERED 
+	--	(
+	--		[venshipid] ASC
+	--	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	--) ON [PRIMARY]
 
-	INSERT INTO [dbo].[venship] ([company],[shven_no],[saddress],[saddress2],[city],[state],[zip],[ship_via],[fob_point],[country],[mfg_locid])
-	SELECT [rawUpsize_Contech].[dbo].[venship].[company]
-		  ,[rawUpsize_Contech].[dbo].[venship].[shven_no]
-		  ,[rawUpsize_Contech].[dbo].[venship].[saddress]
-		  ,[rawUpsize_Contech].[dbo].[venship].[saddress2]
-		  ,[rawUpsize_Contech].[dbo].[venship].[city]
-		  ,[rawUpsize_Contech].[dbo].[venship].[state]
-		  ,[rawUpsize_Contech].[dbo].[venship].[zip]
-		  ,[rawUpsize_Contech].[dbo].[venship].[ship_via]
-		  ,[rawUpsize_Contech].[dbo].[venship].[fob_point]
-		  ,[rawUpsize_Contech].[dbo].[venship].[country]
-		  ,[rawUpsize_Contech].[dbo].[venship].[mfg_locid]
-	  FROM [rawUpsize_Contech].[dbo].[venship]
+	--INSERT INTO [dbo].[venship] ([company],[shven_no],[saddress],[saddress2],[city],[state],[zip],[ship_via],[fob_point],[country],[mfg_locid])
+	--SELECT [rawUpsize_Contech].[dbo].[venship].[company]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[shven_no]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[saddress]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[saddress2]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[city]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[state]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[zip]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[ship_via]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[fob_point]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[country]
+	--	  ,[rawUpsize_Contech].[dbo].[venship].[mfg_locid]
+	--  FROM [rawUpsize_Contech].[dbo].[venship]
   
-	--SELECT * FROM [dbo].[venship]
+	----SELECT * FROM [dbo].[venship]
 
-    PRINT 'Table: dbo.venship: end'
+ --   PRINT 'Table: dbo.venship: end'
 
 -- =========================================================
 -- Section 046: wipshipd
@@ -75,7 +76,17 @@ BEGIN TRY
     PRINT 'Table: dbo.wipshipd: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wipshipd'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wipshipd')) > 0)
+		BEGIN		
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wipshipd')
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[wipshipd]
+	END
 
 	CREATE TABLE [dbo].[wipshipd](
 		[wipshipdid] [int] IDENTITY(1,1) NOT NULL,
@@ -131,7 +142,17 @@ BEGIN TRY
     PRINT 'Table: dbo.wpbagdtl: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbagdtl'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbagdtl')) > 0)
+		BEGIN		
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbagdtl')
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[wpbagdtl]
+	END
 
 	CREATE TABLE [dbo].[wpbagdtl](
 		[wpbagdtlid] [int] IDENTITY(1,1) NOT NULL,
@@ -186,7 +207,17 @@ BEGIN TRY
     PRINT 'Table: dbo.wpbaghdr: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbaghdr'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbaghdr')) > 0)
+		BEGIN		
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbaghdr')
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[wpbaghdr]
+	END
 
 	CREATE TABLE [dbo].[wpbaghdr](
 		[wpbaghdrid] [int] IDENTITY(1,1) NOT NULL,

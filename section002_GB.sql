@@ -1,67 +1,17 @@
 -- ***************************************************
--- Section 2: customer, users
+-- Section 2: customer, users, buyer
 -- ***************************************************
 
-
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section002_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
 begin try
 
     -- ***************************************************
-    -- table: customer
-
-    -- re-mapped columns:
-    -- memo (text) -> memo (varchar(1000))
-
-    -- table PK:
-    -- customerid int
-
-    -- notes:
-    -- (1) converted memo column type to varchar(1000) queries showed that the max len for existing values was < 500
-
-    print 'table: dbo.customer: start'
-
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'customer')
-        BEGIN
-            drop table dbo.customer
-        END
-
-    create table dbo.customer
-    (
-        customerid int NOT NULL IDENTITY (1, 1),
-        cust_no char(5) not null,
-        active bit default 0 not null,
-        name char(75) not null,
-        address char(35) default '' not null,
-        address2 char(35) default '' not null,
-        city char(30) default '' not null,
-        state char(3) default '' not null,
-        zip char(11) default '' not null,
-        terms char(10) default '' not null,
-        country char(15) default '' not null,
-        phone char(17) default '' not null,
-        fax char(17) default '' not null,
-        email char(100) default '' not null,
-        memo varchar(1000) default '' not null,
-        vat char(25) default '' not null,
-        b_address char(35) default '' not null,
-        b_address2 char(35) default '' not null,
-        b_city char(30) default '' not null,
-        b_state char(3) default '' not null,
-        b_zip char(11) default '' not null,
-        b_country char(15) default '' not null,
-        CONSTRAINT [PK_customer] PRIMARY KEY CLUSTERED
-        (
-            [customerid] ASC
-        ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-    ) ON [PRIMARY]
-
-    INSERT into dbo.customer
-        SELECT * FROM [rawUpsize_Contech].dbo.[customer]
-
-    print 'table: dbo.customer: end'
+    -- table: users
+    -- ***************************************************
 
     -- PK:
     --      userid int
@@ -76,9 +26,18 @@ begin try
     print 'table: dbo.users: start'
 
     IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'users')
-        BEGIN
-            drop table dbo.users
-        END
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('users')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('users')
+			PRINT (@SQL)
+			EXEC (@SQL)
+		END
+            
+		drop table dbo.users
+    END
 
     CREATE TABLE dbo.users
         (
@@ -168,10 +127,123 @@ begin try
     insert into dbo.users (username, password) values ('BIGSEXY', '');
     insert into dbo.users (username, password) values ('KEN', '');
     insert into dbo.users (username, password) values ('ERIC', '');
-
-
-    commit
+	    
     print 'table: dbo.users: end'
+
+    -- ***************************************************
+    -- table: customer
+    -- ***************************************************
+
+    -- re-mapped columns:
+    -- memo (text) -> memo (varchar(1000))
+
+    -- table PK:
+    -- customerid int
+
+    -- notes:
+    -- (1) converted memo column type to varchar(1000) queries showed that the max len for existing values was < 500
+
+    print 'table: dbo.customer: start'
+
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'customer')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('customer')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('customer')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+            
+		DROP TABLE [dbo].[customer]
+    END
+
+    create table [dbo].[customer]
+    (
+        customerid int NOT NULL IDENTITY (1, 1),
+        cust_no char(5) not null,
+        active bit default 0 not null,
+        name char(75) not null,
+        address char(35) default '' not null,
+        address2 char(35) default '' not null,
+        city char(30) default '' not null,
+        state char(3) default '' not null,
+        zip char(11) default '' not null,
+        terms char(10) default '' not null,
+        country char(15) default '' not null,
+        phone char(17) default '' not null,
+        fax char(17) default '' not null,
+        email char(100) default '' not null,
+        memo varchar(1000) default '' not null,
+        vat char(25) default '' not null,
+        b_address char(35) default '' not null,
+        b_address2 char(35) default '' not null,
+        b_city char(30) default '' not null,
+        b_state char(3) default '' not null,
+        b_zip char(11) default '' not null,
+        b_country char(15) default '' not null,
+        CONSTRAINT [PK_customer] PRIMARY KEY CLUSTERED
+        (
+            [customerid] ASC
+        ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+    ) ON [PRIMARY]
+
+    INSERT into dbo.customer
+        SELECT * FROM [rawUpsize_Contech].dbo.[customer]
+
+    print 'table: dbo.customer: end'
+
+	-- ***************************************************
+	-- Table: buyer -- Moved from section024
+	-- ***************************************************
+
+	-- Column changes:
+	--  - Added [buyerid] to be primary key
+
+    PRINT 'Table: dbo.buyer: start'
+
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'buyer'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('buyer')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('buyer')
+			PRINT (@SQL)
+			EXEC (@SQL)
+		END
+            
+		DROP TABLE [dbo].[buyer]
+    END
+
+	CREATE TABLE [dbo].[buyer](
+		[buyerid] int identity (1, 1),	-- new column 
+		[buyer] [char](5) NOT NULL DEFAULT '',
+		[first_name] [char](15) NOT NULL DEFAULT '',
+		[mi] [char](1) NOT NULL DEFAULT '',
+		[last_name] [char](25) NOT NULL DEFAULT '',
+		CONSTRAINT [PK_buyer] PRIMARY KEY CLUSTERED
+		(
+			[buyerid] ASC
+		) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	INSERT INTO [dbo].[buyer] ([buyer],[first_name],[mi],[last_name])
+
+	SELECT [buyer]
+		  ,[first_name]
+		  ,[mi]
+		  ,[last_name]
+	  FROM [rawUpsize_Contech].[dbo].[buyer]
+
+	--SELECT * FROM [dbo].[buyer]
+	
+    PRINT 'Table: dbo.buyer: end'
+		
+	-- ***************************************************
+
+	COMMIT
 
 end try
 begin catch

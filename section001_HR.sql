@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section001_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 001: lookups
@@ -17,7 +18,18 @@ BEGIN TRY
     PRINT 'Table: dbo.lookups: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lookups'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('lookups')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('lookups')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[lookups]
+	END	
 	
 	CREATE TABLE [dbo].[lookups]
 	(
@@ -77,7 +89,18 @@ BEGIN TRY
     PRINT 'Table: dbo.vendor: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'vendor'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('vendor')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('vendor')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[vendor]
+	END	
 	
 	CREATE TABLE [dbo].[vendor](
 		[vendorid] [int] IDENTITY(1,1) NOT NULL,
@@ -150,7 +173,18 @@ BEGIN TRY
     PRINT 'Table: dbo.assets: start'
 
 	IF (EXISTS (SELECT *FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'assets'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('assets')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('assets')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[assets]
+	END	
 
 	CREATE TABLE [dbo].[assets]
 	(
@@ -250,7 +284,18 @@ BEGIN TRY
     PRINT 'Table: dbo.units: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'units'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('units')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('units')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[units]
+	END	
 
 	CREATE TABLE [dbo].[units](
 		[unitid] [int] IDENTITY(1,1) NOT NULL,
@@ -294,7 +339,18 @@ BEGIN TRY
     PRINT 'Table: dbo.employee: start'
 
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'employee'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('employee')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('employee')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
 		DROP TABLE [dbo].[employee]
+	END
 	
 	CREATE TABLE [dbo].[employee](
 		[employeeid] [int] IDENTITY(1,1) NOT NULL,

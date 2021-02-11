@@ -274,56 +274,56 @@ BEGIN CATCH
 END CATCH;
 
 -- ***************************************************
--- Table: buyer
+-- Table: buyer -- Moved to section002
 -- ***************************************************
 
 -- Column changes:
 --  - Added [buyerid] to be primary key
 
-BEGIN TRAN;
+--BEGIN TRAN;
 
-BEGIN TRY
+--BEGIN TRY
 
-    PRINT 'Table: dbo.buyer: start'
+--    PRINT 'Table: dbo.buyer: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'buyer'))
-		DROP TABLE [dbo].[buyer]
+--	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'buyer'))
+--		DROP TABLE [dbo].[buyer]
 
-	CREATE TABLE [dbo].[buyer](
-		[buyerid] int identity (1, 1),	-- new column 
-		[buyer] [char](5) NOT NULL DEFAULT '',
-		[first_name] [char](15) NOT NULL DEFAULT '',
-		[mi] [char](1) NOT NULL DEFAULT '',
-		[last_name] [char](25) NOT NULL DEFAULT '',
-		CONSTRAINT [PK_buyer] PRIMARY KEY CLUSTERED
-		(
-			[buyerid] ASC
-		) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
+--	CREATE TABLE [dbo].[buyer](
+--		[buyerid] int identity (1, 1),	-- new column 
+--		[buyer] [char](5) NOT NULL DEFAULT '',
+--		[first_name] [char](15) NOT NULL DEFAULT '',
+--		[mi] [char](1) NOT NULL DEFAULT '',
+--		[last_name] [char](25) NOT NULL DEFAULT '',
+--		CONSTRAINT [PK_buyer] PRIMARY KEY CLUSTERED
+--		(
+--			[buyerid] ASC
+--		) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+--	) ON [PRIMARY]
 
-	INSERT INTO [dbo].[buyer] ([buyer],[first_name],[mi],[last_name])
+--	INSERT INTO [dbo].[buyer] ([buyer],[first_name],[mi],[last_name])
 
-	SELECT [buyer]
-		  ,[first_name]
-		  ,[mi]
-		  ,[last_name]
-	  FROM [rawUpsize_Contech].[dbo].[buyer]
+--	SELECT [buyer]
+--		  ,[first_name]
+--		  ,[mi]
+--		  ,[last_name]
+--	  FROM [rawUpsize_Contech].[dbo].[buyer]
 
-	--SELECT * FROM [dbo].[buyer]
+--	--SELECT * FROM [dbo].[buyer]
 	
-    COMMIT
+--    COMMIT
 
-    PRINT 'Table: dbo.buyer: end'
+--    PRINT 'Table: dbo.buyer: end'
 
-END TRY
-BEGIN CATCH
+--END TRY
+--BEGIN CATCH
 
-    ROLLBACK
-    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
+--    ROLLBACK
+--    PRINT 'ERROR - line: ' + ISNULL(STR(ERROR_LINE()), 'none') + ', message: ' + isnull(ERROR_MESSAGE(), 'none');
 
-    RAISERROR ('Exiting script...', 20, -1)
+--    RAISERROR ('Exiting script...', 20, -1)
 
-END CATCH;
+--END CATCH;
 
 -- ***************************************************
 

@@ -20,10 +20,11 @@ BEGIN TRY
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'matlin'))
 	BEGIN
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('matlin')) > 0)
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('matlin')) > 0)
 		BEGIN
-			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('matlin')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
@@ -88,9 +89,24 @@ BEGIN TRY
 --  - Added [po_hdrid] to be primary key
 --  - Changed [memo] from [text] to [varchar](2000)
 --  - Changed [cpmr] from [text] to [varchar](2000)
+--  - Changed [bill_to] [char](5) to [billto_custid] [int] to reference [customer] table
+--  - Changed [buyer] [char](5) to [buyerid] [int] to reference [buyer] table
 --  - Changed [ven_id] [char](6) to [vendorid] [int] to reference [vendor] table
+--  - Changed [comp] [char](5) to [componetid] [int] to reference [componet] table
+--  - Changed [cusno] [char](5) to [customerid] [int] to reference [customer] table
+--  - Changed [shven_no] [char](5) to [customerid] [int] to reference [venship] table
+--  - Changed [material] [char](3) to [materialid] [int] to reference [material] table
+--  - Changed [class] [char](4) to [classid] [int] to reference [class] table
+--  - Removed [ship_to] column
 -- Maps:
---	- [po_hdr].[ven_id] --> [vendorid]		-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+--	- [po_hdr].[bill_to] --> [billto_custid] -- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [po_hdr].[buyer] --> [buyerid]		-- FK = [buyer].[buyer] --> [buyer].[buyerid]
+--	- [po_hdr].[ven_id] --> [vendorid]		-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+--	- [po_hdr].[comp] --> [componetid]		-- FK = [componet].[comp] --> [componet].[componetid]
+--	- [po_hdr].[cusno] --> [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
+--	- [po_hdr].[shven_no] --> [customerid]	-- FK = [venship].[shven_no] --> [venship].[venshipid]
+--	- [po_hdr].[material] --> [materialid]	-- FK = [material].[material] --> [material].[materialid]
+--	- [po_hdr].[class] --> [classid]		-- FK = [class].[class] --> [class].[classid]
 
     PRINT 'Table: dbo.po_hdr: start'
 
@@ -104,16 +120,17 @@ BEGIN TRY
 		--END
 
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_hdr')) > 0)
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_hdr')) > 0)
 		BEGIN
-			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('po_hdr')
+			PRINT (@SQL)	
 			EXEC (@SQL)
 		END
 
 		DROP TABLE [dbo].[po_hdr]
-		PRINT 'Table [dbo].[po_hdr] dropped'
-		
+
+		PRINT 'Table [dbo].[po_hdr] dropped'		
 	END
 
 	CREATE TABLE [dbo].[po_hdr](
@@ -122,13 +139,16 @@ BEGIN TRY
 		[status] [char](1) NOT NULL DEFAULT '',
 		[po_rev] [numeric](2, 0) NOT NULL,
 		[rev_date] [datetime] NULL,
-		[bill_to] [char](5) NOT NULL DEFAULT '',
-		[ship_to] [char](6) NOT NULL DEFAULT '',
+		--[bill_to] [char](5) NOT NULL DEFAULT '',		
+		[billto_custid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[bill_to] --> [customer].[customerid]
+		--[ship_to] [char](6) NOT NULL DEFAULT '',
 		[date] [datetime] NULL,
-		[buyer] [char](5) NOT NULL DEFAULT '',
+		--[buyer] [char](5) NOT NULL DEFAULT '',		
+		[buyerid] [int] NOT NULL DEFAULT 0,				-- FK = [buyer].[buyer] --> [buyer].[buyerid]
 		--[ven_id] [char](6) NOT NULL DEFAULT '',
-		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
-		[comp] [char](5) NOT NULL DEFAULT '',
+		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+		--[comp] [char](5) NOT NULL DEFAULT '',
+		[componetid] [int] NOT NULL DEFAULT 0,			-- FK = [componet].[comp] --> [componet].[componetid]
 		[total] [numeric](9, 2) NOT NULL DEFAULT 0.0,
 		[charge1] [numeric](8, 2) NOT NULL DEFAULT 0.0,
 		[charge1_desc] [char](40) NOT NULL DEFAULT '',
@@ -151,16 +171,20 @@ BEGIN TRY
 		[tot_recd_rej] [int] NOT NULL DEFAULT 0,
 		[tot_recd_acc] [int] NOT NULL DEFAULT 0,
 		[comp_rev] [char](2) NOT NULL DEFAULT '',
-		[cusno] [char](5) NOT NULL DEFAULT '',
+		--[cusno] [char](5) NOT NULL DEFAULT '',
+		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[cus_po] [char](15) NOT NULL DEFAULT '',
 		[ship_via] [char](20) NOT NULL DEFAULT '',
 		[fob] [char](15) NOT NULL DEFAULT '',
-		[shven_no] [char](5) NOT NULL DEFAULT '',
+		--[shven_no] [char](5) NOT NULL DEFAULT '',	
+		[venshipid] [int] NOT NULL DEFAULT 0,			-- FK = [venship].[shven_no] --> [venship].[venshipid]
 		[currency] [char](3) NOT NULL DEFAULT '',
 		[comp_desc] [char](75) NOT NULL DEFAULT '',
 		[comp_desc2] [char](75) NOT NULL DEFAULT '',
-		[material] [char](3) NOT NULL DEFAULT '',
-		[class] [char](4) NOT NULL DEFAULT '',
+		--[material] [char](3) NOT NULL DEFAULT '',	
+		[materialid] [int] NOT NULL DEFAULT 0,			-- FK = [material].[material] --> [material].[materialid]
+		--[class] [char](4) NOT NULL DEFAULT '',		
+		[classid] [int] NOT NULL DEFAULT 0,				-- FK = [class].[class] --> [class].[classid]
 		[cpmr] [varchar](2000) NOT NULL DEFAULT '',
 		[coc] [bit] NOT NULL DEFAULT 0,
 		[conf_dlvry] [bit] NOT NULL DEFAULT 0,
@@ -171,31 +195,51 @@ BEGIN TRY
 		[kbrel_freq] [char](2) NOT NULL DEFAULT '',
 		[kbstart_dt] [datetime] NULL,
 		[kbrel_qty] [int] NOT NULL DEFAULT 0,
-		[mfg_locid] [int] NOT NULL DEFAULT 0,
+		[mfg_locid] [int] NOT NULL DEFAULT 0,		-- FK = [mfg_loc].[mfg_locid]
 		[prepaid] [bit] NOT NULL DEFAULT 0,
 		CONSTRAINT [PK_po_hdr] PRIMARY KEY CLUSTERED 
 		(
 			[po_hdrid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT [FK_po_hdrbillto_cust] FOREIGN KEY ([billto_custid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrbuyer] FOREIGN KEY ([buyerid]) REFERENCES [dbo].[buyer] ([buyerid]) ON DELETE NO ACTION
 		,CONSTRAINT [FK_po_hdrvendor] FOREIGN KEY ([vendorid]) REFERENCES [dbo].[vendor] ([vendorid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrcomponet] FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrcustomer] FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrvenship] FOREIGN KEY ([venshipid]) REFERENCES [dbo].[venship] ([venshipid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrmaterial] FOREIGN KEY ([materialid]) REFERENCES [dbo].[material] ([materialid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrclass] FOREIGN KEY ([classid]) REFERENCES [dbo].[class] ([classid]) ON DELETE NO ACTION
+		,CONSTRAINT [FK_po_hdrmfg_loc] FOREIGN KEY ([mfg_locid]) REFERENCES [dbo].[mfg_loc] ([mfg_locid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrbillto_cust];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrbuyer];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrvendor];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrcomponet];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrcustomer];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrvenship];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrmaterial];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrclass];
+	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrmfg_loc];
 
 	CREATE INDEX [idx_po_hdr_po_no] ON [dbo].[po_hdr] ([po_no]);
-	ALTER TABLE [dbo].[po_hdr] NOCHECK CONSTRAINT [FK_po_hdrvendor];
-
+	
 	INSERT INTO [dbo].[po_hdr] 
 		SELECT --pohdr.* 
 			pohdr.[po_no]
 			,pohdr.[status]
 			,pohdr.[po_rev]
 			,pohdr.[rev_date]
-			,pohdr.[bill_to]
-			,pohdr.[ship_to]
+			--,pohdr.[bill_to]
+			,ISNULL(billto.[customerid], 0) as [billto_custid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+			--,pohdr.[ship_to]
 			,pohdr.[date]
-			,pohdr.[buyer]
+			--,pohdr.[buyer]
+			,ISNULL(buyer.[buyerid], 0) AS [buyerid]			-- FK = [buyer].[buyer] --> [buyer].[buyerid]
 			--,pohdr.[ven_id]
-			,ISNULL(vendor.[vendorid], 0) AS [vendorid]			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
-			,pohdr.[comp]
+			,ISNULL(vendor.[vendorid], 0) AS [vendorid]			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+			--,pohdr.[comp]
+			,ISNULL(componet.[componetid], 0) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 			,pohdr.[total]
 			,pohdr.[charge1]
 			,pohdr.[charge1_desc]
@@ -218,16 +262,20 @@ BEGIN TRY
 			,pohdr.[tot_recd_rej]
 			,pohdr.[tot_recd_acc]
 			,pohdr.[comp_rev]
-			,pohdr.[cusno]
+			--,pohdr.[cusno]	
+			,ISNULL(customer.[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 			,pohdr.[cus_po]
 			,pohdr.[ship_via]
 			,pohdr.[fob]
-			,pohdr.[shven_no]
+			--,pohdr.[shven_no]	
+			,ISNULL(venship.[venshipid], 0) as [venshipid]		-- FK = [venship].[shven_no] --> [venship].[venshipid]
 			,pohdr.[currency]
 			,pohdr.[comp_desc]
 			,pohdr.[comp_desc2]
-			,pohdr.[material]
-			,pohdr.[class]
+			--,pohdr.[material]
+			,ISNULL(material.[materialid], 0) as [materialid]		-- FK = [material].[material] --> [material].[materialid]
+			--,pohdr.[class]
+			,ISNULL(class.[classid], 0) as [classid]		-- FK = [class].[class] --> [class].[classid]
 			,pohdr.[cpmr]
 			,pohdr.[coc]
 			,pohdr.[conf_dlvry]
@@ -252,8 +300,22 @@ BEGIN TRY
 				AND pohdr.[po_rev] = latest_pohdr.[po_rev]
 				AND pohdr.[date] = latest_pohdr.[date]
 				AND pohdr.[tot_recd] = latest_pohdr.[tot_recd]
+		LEFT JOIN [dbo].[customer] billto
+			ON pohdr.[bill_to] = billto.[cust_no] 
+		LEFT JOIN [dbo].[buyer] buyer 
+			ON pohdr.[buyer] = buyer.[buyer]
 		LEFT JOIN [dbo].[vendor] vendor 
 			ON pohdr.[ven_id] = vendor.[ven_id]
+		LEFT JOIN [dbo].[componet] componet
+			ON pohdr.[comp] = componet.[comp] 
+		LEFT JOIN [dbo].[customer] customer
+			ON pohdr.[cusno] = customer.[cust_no] 
+		LEFT JOIN [dbo].[venship] venship
+			ON pohdr.[shven_no] = venship.[shven_no] 
+		LEFT JOIN [dbo].[material] material
+			ON pohdr.[material] = material.[material] 
+		LEFT JOIN [dbo].[class] class
+			ON pohdr.[class] = class.[class] 
 		ORDER BY pohdr.[date],pohdr.[po_no]	
 
 	--SELECT * FROM [dbo].[po_hdr]
@@ -275,10 +337,11 @@ BEGIN TRY
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'po_dtl'))
 	BEGIN	
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_dtl')) > 0)
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('po_dtl')) > 0)
 		BEGIN
-			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('po_dtl')
+			PRINT (@SQL)	
 			EXEC (@SQL)		
 		END
 
@@ -301,9 +364,7 @@ BEGIN TRY
 		(
 			[po_dtlid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		,CONSTRAINT FK_po_hdrpo_dtl FOREIGN KEY ([po_hdrid]) REFERENCES [dbo].[po_hdr] (po_hdrid)
-		ON DELETE CASCADE
-		NOT FOR REPLICATION
+		,CONSTRAINT FK_po_hdrpo_dtl FOREIGN KEY ([po_hdrid]) REFERENCES [dbo].[po_hdr] (po_hdrid) ON DELETE CASCADE NOT FOR REPLICATION
 	) ON [PRIMARY] 
 
 	INSERT INTO [dbo].[po_dtl] (po_hdrid,[ref_no],[due_date],[amt_due],[price],[comment],[exp],[kbfixed])
