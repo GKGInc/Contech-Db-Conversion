@@ -91,14 +91,14 @@ BEGIN TRY
 	CREATE TABLE [dbo].[wipshipd](
 		[wipshipdid] [int] IDENTITY(1,1) NOT NULL,
 		--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no]
-		[aropenid] [int] NOT NULL DEFAULT 0,				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,								-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[ship_qty] [int] NOT NULL DEFAULT 0,
 		[add_dt] [datetime] NULL,
 		--[add_user] [char](10) NOT NULL DEFAULT '',		
-		[add_userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[add_userid] [int] NULL,							-- FK = [users].[username] --> [users].[userid]
 		[mod_dt] [datetime] NULL,
 		--[mod_user] [char](10) NOT NULL DEFAULT '',		
-		[mod_userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[mod_userid] [int] NULL,							-- FK = [users].[username] --> [users].[userid]
 		CONSTRAINT [PK_wipshipd] PRIMARY KEY CLUSTERED 
 		(
 			[wipshipdid] ASC
@@ -110,14 +110,14 @@ BEGIN TRY
 	INSERT INTO [dbo].[wipshipd] ([wipshipdid],[aropenid],[ship_qty],[add_dt],[add_userid],[mod_dt],[mod_userid])
 	SELECT [rawUpsize_Contech].[dbo].[wipshipd].[wipshipdid]
 		  --,[rawUpsize_Contech].[dbo].[wipshipd].[invoice_no]
-		  ,ISNULL(aropen.[aropenid], 0) AS [aropenid] 	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) AS [aropenid] 	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[wipshipd].[ship_qty]
 		  ,[rawUpsize_Contech].[dbo].[wipshipd].[add_dt]
 		  --,[rawUpsize_Contech].[dbo].[wipshipd].[add_user]
-		  ,ISNULL(add_user.[userid] , 0) as [add_userid]			
+		  ,ISNULL(add_user.[userid] , NULL) as [add_userid]			
 		  ,[rawUpsize_Contech].[dbo].[wipshipd].[mod_dt]
 		  --,[rawUpsize_Contech].[dbo].[wipshipd].[mod_user]
-		  ,ISNULL(mod_user.[userid] , 0) as [mod_userid]			
+		  ,ISNULL(mod_user.[userid], NULL) as [mod_userid]			
 	  FROM [rawUpsize_Contech].[dbo].[wipshipd]
 	  LEFT JOIN [aropen] aropen ON [rawUpsize_Contech].[dbo].[wipshipd].[invoice_no] = aropen.[invoice_no]	-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 	  LEFT JOIN [users] add_user ON [rawUpsize_Contech].[dbo].[wipshipd].[add_user] = add_user.[username]	-- FK = [users].[userid]
@@ -128,68 +128,7 @@ BEGIN TRY
 	--SELECT * FROM [dbo].[wipshipd]
 
     PRINT 'Table: dbo.wipshipd: end'
-
--- =========================================================
--- Section 046: wpbagdtl
--- =========================================================
-
--- Column changes:
---  - Set [wpbagdtlid] to be primary key
--- Maps:
---	- [wpbagdtl].[wpbaghdrid]	-- FK = [wpbaghdr].[wpbaghdrid] 
---	- [wpbagdtl].[cmpcasesid]	-- FK = [cmpcases].[cmpcasesid] 
-
-    PRINT 'Table: dbo.wpbagdtl: start'
-
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbagdtl'))
-	BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbagdtl')) > 0)
-		BEGIN		
-			--DECLARE @SQL varchar(4000)=''
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbagdtl')
-			EXEC (@SQL)
-		END
-		
-		DROP TABLE [dbo].[wpbagdtl]
-	END
-
-	CREATE TABLE [dbo].[wpbagdtl](
-		[wpbagdtlid] [int] IDENTITY(1,1) NOT NULL,
-		[wpbaghdrid] [int] NOT NULL DEFAULT 0,		-- FK = [wpbaghdr].[wpbaghdrid] 
-		[bar_code] [char](13) NOT NULL DEFAULT '',
-		[init_qty] [int] NOT NULL DEFAULT 0,
-		[qty] [int] NOT NULL DEFAULT 0,
-		[restocked] [bit] NOT NULL DEFAULT 0,
-		[restck_qty] [int] NOT NULL DEFAULT 0,
-		[out_dt] [datetime] NULL,
-		[cmpcasesid] [int] NOT NULL DEFAULT 0,		-- FK = [cmpcases].[cmpcasesid] 
-		CONSTRAINT [PK_wpbagdtl] PRIMARY KEY CLUSTERED 
-		(
-			[wpbagdtlid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
-
-	SET IDENTITY_INSERT [dbo].[wpbagdtl] ON;
-
-	INSERT INTO [dbo].[wpbagdtl] ([wpbagdtlid],[wpbaghdrid],[bar_code],[init_qty],[qty],[restocked],[restck_qty],[out_dt],[cmpcasesid])
-	SELECT [rawUpsize_Contech].[dbo].[wpbagdtl].[wpbagdtlid]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[wpbaghdrid]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[bar_code]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[init_qty]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[qty]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[restocked]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[restck_qty]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[out_dt]
-		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[cmpcasesid]		
-	  FROM [rawUpsize_Contech].[dbo].[wpbagdtl]
-  
-	SET IDENTITY_INSERT [dbo].[wpbagdtl] OFF;
-
-	--SELECT * FROM [dbo].[wpbagdtl]
-
-    PRINT 'Table: dbo.wpbagdtl: end'
-
+	
 -- =========================================================
 -- Section 046: wpbaghdr
 -- =========================================================
@@ -221,36 +160,45 @@ BEGIN TRY
 
 	CREATE TABLE [dbo].[wpbaghdr](
 		[wpbaghdrid] [int] IDENTITY(1,1) NOT NULL,
-		[cmpcasesid] [int] NOT NULL DEFAULT 0,		-- FK = [cmpcases].[cmpcasesid] 
-		[req_hdrid] [int] NOT NULL DEFAULT 0,		-- FK = [req_hdr].[req_hdrid]
+		[cmpcaseid] [int] NULL,						-- FK = [cmpcases].[cmpcaseid] 
+		[req_hdrid] [int] NULL,						-- FK = [req_hdr].[req_hdrid]
 		--[job_no] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] 
-		[orderid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,						-- FK = [orders].[job_no] --> [orders].[orderid]
 		[in_qty] [int] NOT NULL DEFAULT 0,
 		[rem_qty] [int] NOT NULL DEFAULT 0,
 		[in_dt] [datetime] NULL,
 		[mod_dt] [datetime] NULL,
 		--[userid] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
+		[userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
 		CONSTRAINT [PK_wpbaghdr] PRIMARY KEY CLUSTERED 
 		(
 			[wpbaghdrid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_wpbaghdr_cmpcases FOREIGN KEY ([cmpcaseid]) REFERENCES [dbo].[cmpcases] ([cmpcaseid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_wpbaghdr_req_hdr FOREIGN KEY ([req_hdrid]) REFERENCES [dbo].[req_hdr] ([req_hdrid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_wpbaghdr_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_wpbaghdr_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[wpbaghdr] NOCHECK CONSTRAINT [FK_wpbaghdr_cmpcases];
+	ALTER TABLE [dbo].[wpbaghdr] NOCHECK CONSTRAINT [FK_wpbaghdr_req_hdr];
+	ALTER TABLE [dbo].[wpbaghdr] NOCHECK CONSTRAINT [FK_wpbaghdr_orders];
+	ALTER TABLE [dbo].[wpbaghdr] NOCHECK CONSTRAINT [FK_wpbaghdr_users];
 
 	SET IDENTITY_INSERT [dbo].[wpbaghdr] ON;
 
-	INSERT INTO [dbo].[wpbaghdr] ([wpbaghdrid],[cmpcasesid],[req_hdrid],[orderid],[in_qty],[rem_qty],[in_dt],[mod_dt],[userid])
+	INSERT INTO [dbo].[wpbaghdr] ([wpbaghdrid],[cmpcaseid],[req_hdrid],[orderid],[in_qty],[rem_qty],[in_dt],[mod_dt],[userid])
 	SELECT [rawUpsize_Contech].[dbo].[wpbaghdr].[wpbaghdrid]
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[cmpcasesid]
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[req_hdrid]
 		  --,[rawUpsize_Contech].[dbo].[wpbaghdr].[job_no]
-		  ,ISNULL(orders.[orderid], 0) AS [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]     
+		  ,ISNULL(orders.[orderid], NULL) AS [orderid]		-- FK = [orders].[job_no] --> [orders].[orderid]     
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[in_qty]
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[rem_qty]
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[in_dt]
 		  ,[rawUpsize_Contech].[dbo].[wpbaghdr].[mod_dt]
 		  --,[rawUpsize_Contech].[dbo].[wpbaghdr].[userid]
-		  ,ISNULL(users.[userid] , 0) as [userid]			-- FK = [users].[username] --> [users].[userid]
+		  ,ISNULL(users.[userid], NULL) as [userid]			-- FK = [users].[username] --> [users].[userid]
 	  FROM [rawUpsize_Contech].[dbo].[wpbaghdr]
 	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[wpbaghdr].[job_no] = orders.[job_no]		
 	  LEFT JOIN [dbo].[users] users ON [rawUpsize_Contech].[dbo].[wpbaghdr].[userid] = users.[username]	
@@ -260,6 +208,72 @@ BEGIN TRY
 	--SELECT * FROM [dbo].[wpbaghdr]
 
     PRINT 'Table: dbo.wpbaghdr: end'
+
+-- =========================================================
+-- Section 046: wpbagdtl
+-- =========================================================
+
+-- Column changes:
+--  - Set [wpbagdtlid] to be primary key
+-- Maps:
+--	- [wpbagdtl].[wpbaghdrid]	-- FK = [wpbaghdr].[wpbaghdrid] 
+--	- [wpbagdtl].[cmpcaseid]	-- FK = [cmpcases].[cmpcaseid] 
+
+    PRINT 'Table: dbo.wpbagdtl: start'
+
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbagdtl'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbagdtl')) > 0)
+		BEGIN		
+			--DECLARE @SQL varchar(4000)=''
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbagdtl')
+			EXEC (@SQL)
+		END
+		
+		DROP TABLE [dbo].[wpbagdtl]
+	END
+
+	CREATE TABLE [dbo].[wpbagdtl](
+		[wpbagdtlid] [int] IDENTITY(1,1) NOT NULL,
+		[wpbaghdrid] [int] NOT NULL DEFAULT 0,		-- FK = [wpbaghdr].[wpbaghdrid] 
+		[bar_code] [char](13) NOT NULL DEFAULT '',
+		[init_qty] [int] NOT NULL DEFAULT 0,
+		[qty] [int] NOT NULL DEFAULT 0,
+		[restocked] [bit] NOT NULL DEFAULT 0,
+		[restck_qty] [int] NOT NULL DEFAULT 0,
+		[out_dt] [datetime] NULL,
+		[cmpcaseid] [int] NULL,						-- FK = [cmpcases].[cmpcaseid] 
+		CONSTRAINT [PK_wpbagdtl] PRIMARY KEY CLUSTERED 
+		(
+			[wpbagdtlid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_wpbagdtl_wpbaghdr FOREIGN KEY ([wpbaghdrid]) REFERENCES [dbo].[wpbaghdr] ([wpbaghdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_wpbagdtl_cmpcases FOREIGN KEY ([cmpcaseid]) REFERENCES [dbo].[cmpcases] ([cmpcaseid]) ON DELETE NO ACTION
+	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[wpbagdtl] NOCHECK CONSTRAINT [FK_wpbagdtl_cmpcases];
+
+	SET IDENTITY_INSERT [dbo].[wpbagdtl] ON;
+
+	INSERT INTO [dbo].[wpbagdtl] ([wpbagdtlid],[wpbaghdrid],[bar_code],[init_qty],[qty],[restocked],[restck_qty],[out_dt],[cmpcaseid])
+	SELECT [rawUpsize_Contech].[dbo].[wpbagdtl].[wpbagdtlid]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[wpbaghdrid]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[bar_code]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[init_qty]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[qty]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[restocked]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[restck_qty]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[out_dt]
+		  ,[rawUpsize_Contech].[dbo].[wpbagdtl].[cmpcasesid]		
+	  FROM [rawUpsize_Contech].[dbo].[wpbagdtl]
+	  WHERE [wpbaghdrid] IN (SELECT [wpbaghdrid] FROM [wpbaghdr])
+
+	SET IDENTITY_INSERT [dbo].[wpbagdtl] OFF;
+
+	--SELECT * FROM [dbo].[wpbagdtl]
+
+    PRINT 'Table: dbo.wpbagdtl: end'
 
 -- =========================================================
 

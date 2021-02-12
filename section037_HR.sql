@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section037_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -152,17 +153,29 @@ BEGIN TRY
 
     PRINT 'Table: dbo.ladinghd: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladinghd'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladinghd')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ladinghd')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ladinghd')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[ladinghd]
+		PRINT 'Table [dbo].[ladinghd] dropped'
+    END
 
 	CREATE TABLE [dbo].[ladinghd](
 		--[shipper_no] [char](6) NOT NULL DEFAULT '',
-		[ladinghdid] [int] IDENTITY(1,1) NOT NULL,
+		[ladinghdid] [int] IDENTITY(1,1) NOT NULL,	-- new PK to replace [shipper_no]
 		[carrier] [char](20) NOT NULL DEFAULT '',
 		--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
-		[customerid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] --> [customer].[customerid]			
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] --> [customer].[customerid]			
 		--[ship_to] [char](1) NOT NULL DEFAULT '',	-- FK = [custship].[ship_to] 
-		[custshipid] [int] NOT NULL DEFAULT 0,		-- FK = [custship].[ship_to] --> [custship].[custshipid]	
+		[custshipid] [int] NULL,					-- FK = [custship].[ship_to] --> [custship].[custshipid]	
 		[ship_date] [datetime] NULL,
 		[skids] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[cases] [numeric](4, 0) NOT NULL DEFAULT 0,
@@ -177,7 +190,12 @@ BEGIN TRY
 		(
 			[ladinghdid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ladinghd_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_ladinghd_custship FOREIGN KEY ([custshipid]) REFERENCES [dbo].[custship] ([custshipid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[ladinghd] NOCHECK CONSTRAINT [FK_ladinghd_customer];
+	ALTER TABLE [dbo].[ladinghd] NOCHECK CONSTRAINT [FK_ladinghd_custship];
 
 	SET IDENTITY_INSERT [dbo].[ladinghd] ON;
 
@@ -185,9 +203,9 @@ BEGIN TRY
 	SELECT [rawUpsize_Contech].[dbo].[ladinghd].[shipper_no]
 		  ,[rawUpsize_Contech].[dbo].[ladinghd].[carrier]      
 		  --,[rawUpsize_Contech].[dbo].[ladinghd].[cust_no]		
-		  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
 		  --,[rawUpsize_Contech].[dbo].[ladinghd].[ship_to]		
-		  ,ISNULL(custship.[custshipid], 0) AS [custshipid]		-- FK = [custship].[ship_to] --> [custship].[custshipid] 
+		  ,ISNULL(custship.[custshipid], NULL) AS [custshipid]		-- FK = [custship].[ship_to] --> [custship].[custshipid] 
 		  ,[rawUpsize_Contech].[dbo].[ladinghd].[ship_date]
 		  ,[rawUpsize_Contech].[dbo].[ladinghd].[skids]
 		  ,[rawUpsize_Contech].[dbo].[ladinghd].[cases]
@@ -224,32 +242,49 @@ BEGIN TRY
 
     PRINT 'Table: dbo.ladingdt: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladingdt'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ladingdt')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ladingdt')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ladingdt')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[ladingdt]
+		PRINT 'Table [dbo].[ladingdt] dropped'
+    END
 
 	CREATE TABLE [dbo].[ladingdt](
 		[ladingdtid] [int] IDENTITY(1,1) NOT NULL,
 		--[shipper_no] [char](6) NOT NULL DEFAULT '',		-- FK = [ladinghd].[shipper_no] 
-		[ladinghdid] [int] NOT NULL DEFAULT '',				-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
+		[ladinghdid] [int] NOT NULL DEFAULT 0,				-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 		--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no] 
-		[aropenid] [int] NOT NULL DEFAULT 0,				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,								-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[rev_relid] [int] NOT NULL DEFAULT 0,
 		CONSTRAINT [PK_ladingdt] PRIMARY KEY CLUSTERED 
 		(
 			[ladingdtid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ladingdt_ladinghd FOREIGN KEY ([ladinghdid]) REFERENCES [dbo].[ladinghd] ([ladinghdid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_ladingdt_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[ladingdt] NOCHECK CONSTRAINT [FK_ladingdt_aropen];
 
 	SET IDENTITY_INSERT [dbo].[ladingdt] ON;
 
 	INSERT INTO [dbo].[ladingdt] ([ladingdtid],[ladinghdid],[aropenid],[rev_relid])
 	SELECT [rawUpsize_Contech].[dbo].[ladingdt].[ladingdtid]
-		  ,[rawUpsize_Contech].[dbo].[ladingdt].[shipper_no]		-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
+		  ,[rawUpsize_Contech].[dbo].[ladingdt].[shipper_no] AS [ladinghdid]-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 		  --,[rawUpsize_Contech].[dbo].[ladingdt].[invoice_no]
-		  ,ISNULL(aropen.[aropenid], 0) AS [aropenid]				-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) AS [aropenid]					-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[ladingdt].[rev_relid]
 	  FROM [rawUpsize_Contech].[dbo].[ladingdt]
-	  LEFT JOIN [dbo].[aropen] aropen ON [rawUpsize_Contech].[dbo].[ladingdt].[invoice_no] = aropen.[invoice_no]		-- FK = [aropen].[invoice_no] 
+	  LEFT JOIN [dbo].[aropen] aropen ON [rawUpsize_Contech].[dbo].[ladingdt].[invoice_no] = aropen.[invoice_no]	-- FK = [aropen].[invoice_no] 
+	  WHERE [shipper_no] IN (SELECT [ladinghdid] FROM [dbo].[ladinghd])
 	ORDER BY [rawUpsize_Contech].[dbo].[ladingdt].[ladingdtid]
 
 	SET IDENTITY_INSERT [dbo].[ladingdt] OFF;
@@ -274,43 +309,62 @@ BEGIN TRY
 
     PRINT 'Table: dbo.lblrecon: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lblrecon'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'lblrecon')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('lblrecon')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('lblrecon')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[lblrecon]
+		PRINT 'Table [dbo].[lblrecon] dropped'
+    END
 
 	CREATE TABLE [dbo].[lblrecon](
 		[lblreconid] [int] IDENTITY(1,1) NOT NULL,
-		--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
+		--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[cus_lot] [char](12) NOT NULL DEFAULT '',
 		[add_dt] [datetime] NULL,
 		--[add_user] [char](10) NOT NULL,
-		[add_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
+		[add_userid] [int] NULL,					-- FK = [users].[username] --> [users].[userid]
 		[mod_dt] [datetime] NULL,
 		--[mod_user] [char](10) NOT NULL,
-		[mod_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
+		[mod_userid] [int] NULL,					-- FK = [users].[username] --> [users].[userid]
 		CONSTRAINT [PK_lblrecon] PRIMARY KEY CLUSTERED 
 		(
 			[lblreconid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY] 
+		,CONSTRAINT FK_lblrecon_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION 
+		,CONSTRAINT FK_lblrecon_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION 
+		,CONSTRAINT FK_lblrecon_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[lblrecon] NOCHECK CONSTRAINT [FK_lblrecon_customer];
+	ALTER TABLE [dbo].[lblrecon] NOCHECK CONSTRAINT [FK_lblrecon_add_user];
+	ALTER TABLE [dbo].[lblrecon] NOCHECK CONSTRAINT [FK_lblrecon_mod_user];
 
 	SET IDENTITY_INSERT [dbo].[lblrecon] ON;
 
 	INSERT INTO [dbo].[lblrecon] ([lblreconid],[customerid],[cus_lot],[add_dt],[add_userid],[mod_dt],[mod_userid])
 	SELECT [rawUpsize_Contech].[dbo].[lblrecon].[lblreconid]
 		  --,[rawUpsize_Contech].[dbo].[lblrecon].[cust_no]	
-		  ,ISNULL(customer.[customerid], 0) as [customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]
 		  ,[rawUpsize_Contech].[dbo].[lblrecon].[cus_lot]
 		  ,[rawUpsize_Contech].[dbo].[lblrecon].[add_dt]
 		  --,[rawUpsize_Contech].[dbo].[lblrecon].[add_user]
-		  ,ISNULL(addUser.[userid] , 0) as [userid]			
+		  ,ISNULL(addUser.[userid], NULL) as [userid]			
 		  ,[rawUpsize_Contech].[dbo].[lblrecon].[mod_dt]
 		  --,[rawUpsize_Contech].[dbo].[lblrecon].[mod_user]
-		  ,ISNULL(modUser.[userid] , 0) as [userid]			
+		  ,ISNULL(modUser.[userid], NULL) as [userid]			
 	  FROM [rawUpsize_Contech].[dbo].[lblrecon]
 	  LEFT JOIN [dbo].[customer] customer ON [rawUpsize_Contech].[dbo].[lblrecon].[cust_no] = customer.[cust_no]	-- FK = [customer].[cust_no] --> [customer].[customerid]
-	  LEFT JOIN [dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]					-- FK = [users].[userid]
-	  LEFT JOIN [dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]					-- FK = [users].[userid]
+	  LEFT JOIN [dbo].[users] addUser ON [rawUpsize_Contech].[dbo].[lblrecon].[add_user] = addUser.[username]		-- FK = [users].[userid]
+	  LEFT JOIN [dbo].[users] modUser ON [rawUpsize_Contech].[dbo].[lblrecon].[mod_user] = modUser.[username]		-- FK = [users].[userid]
 
 	SET IDENTITY_INSERT [dbo].[lblrecon] OFF;
 

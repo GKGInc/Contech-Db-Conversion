@@ -192,12 +192,12 @@ BEGIN TRY
 		[asset_no] [char](10) NOT NULL DEFAULT '',
 		[asset_desc] [char](75) NOT NULL DEFAULT '',
 		--[ven_id] [char](10) NOT NULL DEFAULT 0,		-- FK = [vendor].[ven_id] 
-		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+		[vendorid] [int] NULL,							-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 		[pur_date] [datetime] NULL,
-		--[location] [char](3) NOT NULL DEFAULT 0,		-- FK = [lookups].[code]  --> ([lookups].[lookupid])
-		[locationid] [int] NOT NULL DEFAULT 0,			-- FK = [lookups].[code]  --> ([lookups].[lookupid])
-		--[asset_type] [char](3) NOT NULL DEFAULT 0,	-- FK = [lookups].[code]  --> ([lookups].[lookupid])
-		[asset_typeid] [int] NOT NULL DEFAULT 0,		-- FK = [lookups].[code]  --> ([lookups].[lookupid])
+		--[location] [char](3) NOT NULL DEFAULT 0,		-- FK = [lookups].[code]  
+		[locationid] [int] NULL,						-- FK = [lookups].[code]  --> ([lookups].[lookupid])
+		--[asset_type] [char](3) NOT NULL DEFAULT 0,	-- FK = [lookups].[code]  
+		[asset_typeid] [int] NULL,						-- FK = [lookups].[code]  --> ([lookups].[lookupid])
 		[pur_cost] [numeric](9, 2) NOT NULL,
 		[contact] [char](50) NOT NULL DEFAULT '',
 		[serial_no] [char](30) NOT NULL DEFAULT '',
@@ -217,7 +217,14 @@ BEGIN TRY
 		(
 			[assetid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_assets_vendor FOREIGN KEY ([vendorid]) REFERENCES [dbo].[vendor] ([vendorid])  ON DELETE NO ACTION
+		,CONSTRAINT FK_assets_lookupslocation FOREIGN KEY ([locationid]) REFERENCES [dbo].[lookups] ([lookupid])  ON DELETE NO ACTION
+		,CONSTRAINT FK_assets_lookupsasset_type FOREIGN KEY ([asset_typeid]) REFERENCES [dbo].[lookups] ([lookupid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+
+	ALTER TABLE [dbo].[assets] NOCHECK CONSTRAINT [FK_assets_vendor];
+	ALTER TABLE [dbo].[assets] NOCHECK CONSTRAINT [FK_assets_lookupslocation];
+	ALTER TABLE [dbo].[assets] NOCHECK CONSTRAINT [FK_assets_lookupsasset_type];
 	
 	SET IDENTITY_INSERT [dbo].[assets] ON;
 
@@ -226,12 +233,12 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[assets].[asset_no]
 		  ,[rawUpsize_Contech].[dbo].[assets].[asset_desc]
 		  --,[rawUpsize_Contech].[dbo].[assets].[ven_id]		
-		  ,ISNULL(vendor.[vendorid], 0) AS [vend_pk]					-- FK = [vendor].[ven_id] --> [vendor].[pk188]
+		  ,ISNULL(vendor.[vendorid], NULL) AS [vend_pk]					-- FK = [vendor].[ven_id] --> [vendor].[pk188]
 		  ,[rawUpsize_Contech].[dbo].[assets].[pur_date]
 		  --,[rawUpsize_Contech].[dbo].[assets].[location]		
-		  ,ISNULL(assetLocation.[lookupid], 0) AS [location_lookupid]	-- FK = [lookups].[code] --> ([lookups].[lookupid])
+		  ,ISNULL(assetLocation.[lookupid], NULL) AS [location_lookupid]-- FK = [lookups].[code] --> ([lookups].[lookupid])
 		  --,[rawUpsize_Contech].[dbo].[assets].[asset_type]	
-		  ,ISNULL(assetType.[lookupid], 0) AS [type_lookupid]			-- FK = [lookups].[code] --> ([lookups].[lookupid])
+		  ,ISNULL(assetType.[lookupid], NULL) AS [type_lookupid]		-- FK = [lookups].[code] --> ([lookups].[lookupid])
 		  ,[rawUpsize_Contech].[dbo].[assets].[pur_cost]
 		  ,[rawUpsize_Contech].[dbo].[assets].[contact]
 		  ,[rawUpsize_Contech].[dbo].[assets].[serial_no]

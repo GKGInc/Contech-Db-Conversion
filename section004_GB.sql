@@ -157,8 +157,8 @@ BEGIN TRY
         [unit] [char](4) NOT NULL DEFAULT '',
         [date_rev] [datetime] NULL,
         [sts] [char](1) NOT NULL DEFAULT '',
-        -- [cust_no] [char](5) NOT NULL,
-        [customerid] int NOT NULL DEFAULT 0,
+        -- [cust_no] [char](5) NOT NULL,				
+        [customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]
         [date_ent] [datetime] NULL,
         [code_info] [numeric](1, 0) NOT NULL DEFAULT 0,
         [tube_lenth] [char](40) NOT NULL DEFAULT '',
@@ -181,7 +181,7 @@ BEGIN TRY
         -- [price_note] [text] NOT NULL,
         [price_note] varchar(2000) NOT NULL DEFAULT '',
         -- [mfg_cat] [char](2) NOT NULL,
-        [mfgcatid] int NOT NULL DEFAULT 0,			
+        [mfgcatid] [int] NULL,							-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
         [expfactor] [int] NOT NULL DEFAULT 0,
         [sts_loc] [char](20) NOT NULL DEFAULT '',
         [expunit] [char](1) NOT NULL DEFAULT '',
@@ -212,7 +212,7 @@ BEGIN TRY
            bom_hdr.date_rev,
            bom_hdr.sts,
            -- cust_no,
-           isnull(cus.customerid, 0),
+           isnull(cus.customerid, NULL),
            --cus.customerid,
            bom_hdr.date_ent,
            bom_hdr.code_info,
@@ -234,7 +234,7 @@ BEGIN TRY
            bom_hdr.qty_case,
            bom_hdr.price_note,
            -- mfg_cat,
-           isnull(mc.mfgcatid, 0),
+           isnull(mc.mfgcatid, NULL),
            bom_hdr.expfactor,
            bom_hdr.sts_loc,
            bom_hdr.expunit
@@ -299,7 +299,7 @@ BEGIN TRY
         [bom_dtlref] int not null, -- values come from the original bom_dtl.bom_dtlid (not unique)
         [order] [numeric](2, 0) NOT NULL DEFAULT 0,
         -- [comp] [char](5) NOT NULL,
-        [componetid] int NOT NULL DEFAULT 0,
+        [componetid] [int] NULL,		-- FK = [componet].[comp] --> [componet].[componetid]
         [quan] [numeric](8, 6) NOT NULL DEFAULT 0.0,
         [coc] [char](1) NOT NULL DEFAULT '',
         CONSTRAINT [PK_bom_dtl] PRIMARY KEY CLUSTERED
@@ -317,7 +317,7 @@ BEGIN TRY
     SELECT bom_hdr.[bom_hdrid]
         ,bom_dtl.[bom_dtlid]
         ,bom_dtl.[order]
-        ,isnull(componet.[componetid], 0)
+        ,isnull(componet.[componetid], NULL)
         ,bom_dtl.[quan]
         ,bom_dtl.[coc]
     FROM [rawUpsize_Contech].[dbo].[bom_dtl] bom_dtl -- SELECT * FROM [rawUpsize_Contech].dbo.bom_dtl

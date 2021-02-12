@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section013_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 013: fplocatn
@@ -16,8 +17,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.fplocatn: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fplocatn'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fplocatn')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fplocatn')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fplocatn')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[fplocatn]
+		PRINT 'Table [dbo].[fplocatn] dropped'
+    END
 
 	CREATE TABLE [dbo].[fplocatn](
 		[fplocatnid] [int] IDENTITY(1,1) NOT NULL,
@@ -84,18 +97,30 @@ BEGIN TRY
 
     PRINT 'Table: dbo.prodctra: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodctra'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodctra')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('prodctra')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('prodctra')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[prodctra]
+		PRINT 'Table [dbo].[prodctra] dropped'
+    END
 
 	CREATE TABLE [dbo].[prodctra](
 		[prodctraid] [int] IDENTITY(1,1) NOT NULL,
 		[ra_no] [char](9) NOT NULL DEFAULT '',
 		[ra_dt] [datetime] NULL,
 		--[invoice_no] [numeric](9, 0) NOT NULL,		-- FK = [aropen].[invoice_no] 
-		[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,							-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[ra_qty] [int] NOT NULL DEFAULT 0,
 		--[complnt_no] [int] NOT NULL DEFAULT 0,		-- FK = [complnts].[complnt_no] 
-		[complntid] [int] NOT NULL DEFAULT 0,			-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
+		[complntid] [int] NULL,							-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
 		[contact] [char](3) NOT NULL DEFAULT '',
 		[ship_via] [char](30) NOT NULL DEFAULT '',
 		[rcvd_dt] [datetime] NULL,
@@ -116,7 +141,7 @@ BEGIN TRY
 		[freight] [numeric](1, 0) NOT NULL DEFAULT 0,
 		[cust_issue] [varchar](2000) NOT NULL DEFAULT '',
 		--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] 
-		[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,							-- FK = [orders].[job_no] --> [orders].[orderid]
 		[rework_no] [char](10) NOT NULL DEFAULT '',
 		[viapay] [char](1) NOT NULL DEFAULT '',
 		[shpcustvia] [char](30) NOT NULL DEFAULT '',
@@ -130,7 +155,14 @@ BEGIN TRY
 		(
 			[prodctraid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_prodctra_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_prodctra_complnt FOREIGN KEY ([complntid]) REFERENCES [dbo].[complnts] ([complntid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_prodctra_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[prodctra] NOCHECK CONSTRAINT [FK_prodctra_aropen];
+	ALTER TABLE [dbo].[prodctra] NOCHECK CONSTRAINT [FK_prodctra_complnt];
+	ALTER TABLE [dbo].[prodctra] NOCHECK CONSTRAINT [FK_prodctra_orders];
 
 	SET IDENTITY_INSERT [dbo].[prodctra] ON;
 
@@ -139,10 +171,10 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[ra_no]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[ra_dt]
 		  --,[rawUpsize_Contech].[dbo].[prodctra].[invoice_no]
-		  ,ISNULL(aropen.[aropenid], 0) AS [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) AS [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[ra_qty]
 		  --,[rawUpsize_Contech].[dbo].[prodctra].[complnt_no]
-		  ,ISNULL(complnts.[complntid], 0) AS [complntid]		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
+		  ,ISNULL(complnts.[complntid], NULL) AS [complntid]		-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[contact]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[ship_via]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[rcvd_dt]
@@ -163,7 +195,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[freight]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[cust_issue]
 		  --,[rawUpsize_Contech].[dbo].[prodctra].[job_no]
-		  ,ISNULL(orders.[orderid], 0) AS [ordersid]			-- FK = [orders].[job_no] --> [orders].[orderid]
+		  ,ISNULL(orders.[orderid], NULL) AS [ordersid]				-- FK = [orders].[job_no] --> [orders].[orderid]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[rework_no]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[viapay]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[shpcustvia]
@@ -174,9 +206,9 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[disp_doc]
 		  ,[rawUpsize_Contech].[dbo].[prodctra].[inspresult]
 	  FROM [rawUpsize_Contech].[dbo].[prodctra]
-	  LEFT JOIN [dbo].[aropen] aropen ON [rawUpsize_Contech].[dbo].[prodctra].[invoice_no] = aropen.[invoice_no]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+	  LEFT JOIN [dbo].[aropen] aropen ON [rawUpsize_Contech].[dbo].[prodctra].[invoice_no] = aropen.[invoice_no]		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 	  LEFT JOIN [dbo].[complnts] complnts ON [rawUpsize_Contech].[dbo].[prodctra].[complnt_no] = complnts.[complnt_no]	-- FK = [complnts].[complnt_no] --> [complnts].[complntid]
-	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[prodctra].[job_no] = orders.[job_no]					-- FK = [orders].[job_no] --> [orders].[orderid]
+	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[prodctra].[job_no] = orders.[job_no]				-- FK = [orders].[job_no] --> [orders].[orderid]
   
 	SET IDENTITY_INSERT [dbo].[prodctra] OFF;
 
@@ -216,15 +248,27 @@ BEGIN TRY
 
     PRINT 'Table: dbo.prodschd: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodschd'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodschd')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('prodschd')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('prodschd')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[prodschd]
+		PRINT 'Table [dbo].[prodschd] dropped'
+    END
 
 	CREATE TABLE [dbo].[prodschd](
 		[prodschdid] [int] IDENTITY(1,1) NOT NULL,
 		--[empnumber] [char](10) NOT NULL DEFAULT '', -- FK = [employee].[empnumber] 
-		[employeeid] [int] NOT NULL DEFAULT 0,		-- FK = [employee].[empnumber] --> [employee].[employeeid] 
+		[employeeid] [int] NULL,					-- FK = [employee].[empnumber] --> [employee].[employeeid] 
 		--[job_no] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] 
-		[orderid] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,						-- FK = [orders].[job_no] --> [orders].[orderid]
 		[start_date] [datetime] NULL,
 		[end_date] [datetime] NULL,
 		[qty_comp] [numeric](7, 0) NOT NULL DEFAULT 0,
@@ -235,7 +279,12 @@ BEGIN TRY
 		(
 			[prodschdid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_prodschd_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_prodschd_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[prodschd] NOCHECK CONSTRAINT [FK_prodschd_employee];
+	ALTER TABLE [dbo].[prodschd] NOCHECK CONSTRAINT [FK_prodschd_orders];
 
 	SET IDENTITY_INSERT [dbo].[prodschd] ON;
 
@@ -254,7 +303,7 @@ BEGIN TRY
 	  FROM [rawUpsize_Contech].[dbo].[prodschd]  
 	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[prodschd].[empnumber] = employee.[empnumber]
 	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[prodschd].[job_no] = orders.[job_no]
-
+	  
 	SET IDENTITY_INSERT [dbo].[prodschd] OFF;
 
 	--SELECT * FROM [dbo].[prodschd]
@@ -288,8 +337,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.prodtabl: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodtabl'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'prodtabl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('prodtabl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('prodtabl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[prodtabl]
+		PRINT 'Table [dbo].[prodtabl] dropped'
+    END
 
 	CREATE TABLE [dbo].[prodtabl](
 		[prodtablid] [int] IDENTITY(1,1) NOT NULL,
@@ -299,7 +360,10 @@ BEGIN TRY
 		(
 			[prodtablid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_prodtabl_prodschd FOREIGN KEY ([prodschdid]) REFERENCES [dbo].[prodschd] ([prodschdid]) ON DELETE CASCADE NOT FOR REPLICATION 
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[prodtabl] NOCHECK CONSTRAINT [FK_prodtabl_prodschd];
 
 	SET IDENTITY_INSERT [dbo].[prodtabl] ON;
 

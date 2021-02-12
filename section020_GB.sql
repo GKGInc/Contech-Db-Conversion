@@ -3,6 +3,7 @@
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section020_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
@@ -10,6 +11,7 @@ begin try
 
     -- ***************************************************
     -- table: fplabel
+    -- ***************************************************
 
     -- re-mapped columns:
     -- req_hdrid -> orderid
@@ -28,22 +30,34 @@ begin try
     -- (1) Victor: req_hdrid needs to change to job_no -> orders.job_no. values in req_hdrid are orders.job_no values
 
     print 'table: dbo.fplabel: start'
-
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fplabel')
-            drop table dbo.fplabel
+	
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fplabel')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fplabel')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fplabel')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fplabel]
+		PRINT 'Table [dbo].[fplabel] dropped'
+    END
 
     CREATE TABLE [dbo].[fplabel](
         -- [fplabelid] [int] NOT NULL,
         [fplabelid] [int] identity (1, 1),
         -- [req_hdrid] [int] NOT NULL, -- see Note#1
-        orderid int NOT NULL, -- see Note#1
+        [orderid] [int] NULL, -- see Note#1
         [labelno] [int] NOT NULL,
         [qty] [int] NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        add_userid int default 0 not null,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         -- [mod_user] [char](10) NOT NULL,
-        mod_userid int default 0 not null,
+        [mod_userid] [int] NULL,
         [mod_dt] [datetime] NULL,
         [ship_via] [char](20) default '' NOT NULL,
         [mfg_locid] [int] NOT NULL,
@@ -51,7 +65,14 @@ begin try
         (
             [fplabelid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fplabel_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_fplabel_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_fplabel_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fplabel] NOCHECK CONSTRAINT [FK_fplabel_orders];
+	ALTER TABLE [dbo].[fplabel] NOCHECK CONSTRAINT [FK_fplabel_add_user];
+	ALTER TABLE [dbo].[fplabel] NOCHECK CONSTRAINT [FK_fplabel_mod_user];
 
     set identity_insert dbo.fplabel ON;
 
@@ -62,14 +83,14 @@ begin try
     (fplabelid, orderid, labelno, qty, add_userid, add_dt, mod_userid, mod_dt, ship_via, mfg_locid)
     select fplabelid,
            -- req_hdrid,
-           isnull(o.orderid, 0),
+           isnull(o.orderid, NULL),
            labelno,
            fplabel.qty,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            fplabel.add_dt,
            -- mod_user,
-           isnull(modu.userid, 0),
+           isnull(modu.userid, NULL),
            mod_dt,
            ship_via,
            fplabel.mfg_locid
@@ -85,6 +106,7 @@ begin try
 
     -- ***************************************************
     -- table: fpbox
+    -- ***************************************************
 
     -- re-mapped columns:
     -- add_user (char) -> add_userid (int)
@@ -98,8 +120,20 @@ begin try
 
     print 'table: dbo.fpbox: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fpbox')
-            drop table dbo.fpbox
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fpbox')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fpbox')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fpbox')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fpbox]
+		PRINT 'Table [dbo].[fpbox] dropped'
+    END
 
     CREATE TABLE [dbo].[fpbox](
         -- [fpboxid] [int] NOT NULL,
@@ -107,13 +141,16 @@ begin try
         [fplabelid] [int] NOT NULL,
         [qty] [int] default 0 NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        [add_userid] int default 0 NOT NULL,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         CONSTRAINT [PK_fpbox] PRIMARY KEY CLUSTERED
         (
             [fpboxid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fpbox_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fpbox] NOCHECK CONSTRAINT [FK_fpbox_add_user];
 
     set identity_insert dbo.fpbox ON
 
@@ -123,7 +160,7 @@ begin try
            fplabelid,
            qty,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt
     FROM [rawUpsize_Contech].dbo.fpbox
     left outer join dbo.users addu ON fpbox.add_user = addu.username
@@ -134,14 +171,27 @@ begin try
 
     -- ***************************************************
     -- table: fplocatn
+    -- ***************************************************
 
     -- table PK:
     -- fplocatnid: convert existing col to identity
 
     print 'table: dbo.fplocatn: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fplocatn')
-            drop table dbo.fplocatn
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fplocatn')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fplocatn')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fplocatn')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fplocatn]
+		PRINT 'Table [dbo].[fplocatn] dropped'
+    END
 
     CREATE TABLE [dbo].[fplocatn](
         -- [fplocatnid] [int] NOT NULL,
@@ -157,8 +207,7 @@ begin try
     ) ON [PRIMARY]
 
     set identity_insert dbo.fplocatn ON
-
-
+	
     insert into dbo.fplocatn
     (fplocatnid, staging, location, locfloor, allowmix)
     select fplocatnid, staging, location, locfloor, allowmix
@@ -171,6 +220,7 @@ begin try
 
     -- ***************************************************
     -- table: fppallet
+    -- ***************************************************
 
     -- re-mapped columns:
     -- add_user (char) -> add_userid (int)
@@ -186,18 +236,30 @@ begin try
 
     print 'table: dbo.fppallet: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fppallet')
-            drop table dbo.fppallet
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fppallet')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fppallet')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fppallet')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fppallet]
+		PRINT 'Table [dbo].[fppallet] dropped'
+    END
 
     CREATE TABLE [dbo].[fppallet](
         -- [fppalletid] [int] NOT NULL,
         [fppalletid] [int] identity (1, 1),
         [fplocatnid] [int] NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        add_userid int default 0 not null,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         -- [mod_user] [char](10) NOT NULL,
-        mod_userid int default 0 not null,
+        [mod_userid] [int] NULL,
         [mod_dt] [datetime] NULL,
         [ship_dt] [datetime] NULL,
         [ship_user] [char](10) default '' NOT NULL,
@@ -206,7 +268,12 @@ begin try
         (
             [fppalletid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fppallet_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_fppallet_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fppallet] NOCHECK CONSTRAINT [FK_fppallet_add_user];
+	ALTER TABLE [dbo].[fppallet] NOCHECK CONSTRAINT [FK_fppallet_mod_user];
 
     set identity_insert dbo.fppallet ON
 
@@ -215,10 +282,10 @@ begin try
     select fppalletid,
            fplocatnid,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt,
            -- mod_user,
-           isnull(modu.userid, 0),
+           isnull(modu.userid, NULL),
            mod_dt,
            ship_dt,
            ship_user,
@@ -233,6 +300,7 @@ begin try
 
     -- ***************************************************
     -- table: fppltbox
+    -- ***************************************************
 
     -- re-mapped columns:
     -- add_user (char) -> add_userid (int)
@@ -247,8 +315,20 @@ begin try
 
     print 'table: dbo.fppltbox: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fppltbox')
-            drop table dbo.fppltbox
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fppltbox')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fppltbox')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fppltbox')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fppltbox]
+		PRINT 'Table [dbo].[fppltbox] dropped'
+    END
 
     CREATE TABLE [dbo].[fppltbox](
         -- [fppltboxid] [int] NOT NULL,
@@ -256,13 +336,16 @@ begin try
         [fppalletid] [int] NOT NULL,
         [fplabelid] [int] NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        add_userid int default 0 NOT NULL,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         CONSTRAINT [PK_fppltbox] PRIMARY KEY CLUSTERED
         (
             [fppltboxid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fppltbox_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fppltbox] NOCHECK CONSTRAINT [FK_fppltbox_add_user];
 
     set identity_insert dbo.fppltbox ON
 
@@ -272,7 +355,7 @@ begin try
            fppalletid,
            fplabelid,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt
     FROM [rawUpsize_Contech].dbo.fppltbox
     left outer join users addu ON fppltbox.add_user = addu.username
@@ -283,6 +366,7 @@ begin try
 
     -- ***************************************************
     -- table: fpshpbox
+    -- ***************************************************
 
     -- re-mapped columns:
     -- add_user (char) -> add_userid
@@ -301,8 +385,20 @@ begin try
 
     print 'table: dbo.fpshpbox: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fpshpbox')
-            drop table dbo.fpshpbox
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fpshpbox')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fpshpbox')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fpshpbox')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fpshpbox]
+		PRINT 'Table [dbo].[fpshpbox] dropped'
+    END
 
     CREATE TABLE [dbo].[fpshpbox](
         -- [fpshpboxid] [int] NOT NULL,
@@ -311,13 +407,16 @@ begin try
         [fplabelid] [int] NOT NULL,
         [qty] [int] NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        [add_userid] int default 0 NOT NULL,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         CONSTRAINT [PK_fpshpbox] PRIMARY KEY CLUSTERED
         (
             [fpshpboxid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fpshpbox_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fpshpbox] NOCHECK CONSTRAINT [FK_fpshpbox_add_user];
 
     set identity_insert dbo.fpshpbox ON
 
@@ -328,7 +427,7 @@ begin try
            fplabelid,
            qty,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt
     from [rawUpsize_Contech].dbo.fpshpbox
     left outer join dbo.users addu ON fpshpbox.add_user = addu.username
@@ -339,6 +438,7 @@ begin try
 
     -- ***************************************************
     -- table: fptransfer
+    -- ***************************************************
 
     -- re-mapped columns:
     -- job_no -> orderid
@@ -356,14 +456,26 @@ begin try
 
     print 'table: dbo.fptransfer: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fptransfer')
-            drop table dbo.fptransfer
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fptransfer')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fptransfer')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fptransfer')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fptransfer]
+		PRINT 'Table [dbo].[fptransfer] dropped'
+    END
 
     CREATE TABLE [dbo].[fptransfer](
         -- [fptransferid] [int] NOT NULL,
         [fptransferid] [int] identity (1, 1),
         -- [job_no] [int] NOT NULL,
-        orderid [int] NOT NULL,
+        [orderid] [int] NULL,
         [rel_qty] [int] default 0 NOT NULL,
         [jobstatus] [char](1) default '' NOT NULL,
         [postatus] [char](1) default '' NOT NULL,
@@ -385,7 +497,14 @@ begin try
         (
             [fptransferid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_fptransfer_order FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_fptransfer_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_fptransfer_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[fptransfer] NOCHECK CONSTRAINT [FK_fptransfer_order];
+	ALTER TABLE [dbo].[fptransfer] NOCHECK CONSTRAINT [FK_fptransfer_add_user];
+	ALTER TABLE [dbo].[fptransfer] NOCHECK CONSTRAINT [FK_fptransfer_mod_user];
 
     set identity_insert dbo.fptransfer ON
 
@@ -400,10 +519,10 @@ begin try
            fptransfer.price,
            fptransfer.add_dt,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            mod_dt,
            -- mod_user,
-           isnull(modu.userid, 0),
+           isnull(modu.userid, NULL),
            ship_dt,
            lading,
            nolading,
@@ -422,6 +541,7 @@ begin try
 
     -- ***************************************************
     -- table: fptrnbox
+    -- ***************************************************
 
     -- table PK:
     -- fptrnboxid: converted to identity PK
@@ -432,8 +552,20 @@ begin try
 
     print 'table: dbo.fptrnbox: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fptrnbox')
-            drop table dbo.fptrnbox
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fptrnbox')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fptrnbox')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fptrnbox')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fptrnbox]
+		PRINT 'Table [dbo].[fptrnbox] dropped'
+    END
 
     CREATE TABLE [dbo].[fptrnbox](
         -- [fptrnboxid] [int] NOT NULL,
@@ -463,6 +595,7 @@ begin try
 
     -- ***************************************************
     -- table: fpweight
+    -- ***************************************************
 
     -- re-mapped columns:
     --
@@ -481,8 +614,20 @@ begin try
 
     print 'table: dbo.fpweight: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'fpweight')
-            drop table dbo.fpweight
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'fpweight')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('fpweight')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('fpweight')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[fpweight]
+		PRINT 'Table [dbo].[fpweight] dropped'
+    END
 
     CREATE TABLE [dbo].[fpweight](
         -- [fpweightid] [int] NOT NULL,

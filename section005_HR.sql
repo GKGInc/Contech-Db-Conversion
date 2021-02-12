@@ -2,7 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section005_HR.sql'
-			DECLARE @SQL varchar(4000)=''
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 005: orders -- Moved from Section 007
@@ -49,7 +49,7 @@ BEGIN TRY
 		[job_rev] [numeric](2, 0) NOT NULL,
 		--[bom_no] [numeric](5, 0) NOT NULL,			-- FK = [bom_hdr].[bom_no] 
 		--[bom_rev] [numeric](2, 0) NOT NULL,			-- FK = [bom_hdr].[bom_rev] 
-		[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+		[bom_hdrid] [int] NULL,							-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
 		[status] [char](1) NOT NULL DEFAULT '',
 		[cus_lot] [char](12) NOT NULL DEFAULT '',
 		[ct_lot] [char](8) NOT NULL DEFAULT '',
@@ -61,7 +61,7 @@ BEGIN TRY
 		[requested] [datetime] NULL,
 		[awk_date] [datetime] NULL,
 		--[cust_no] [int] NOT NULL,						-- FK = [customer].[cust_no]
-		[customerid] [int] NOT NULL,					-- FK = [customer].[cust_no] --> [vendor].[customerid]
+		[customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [vendor].[customerid]
 		[ship_to] [char](1) NOT NULL DEFAULT '',
 		[entered] [datetime] NULL,
 		[unit] [char](4) NOT NULL DEFAULT '',
@@ -71,7 +71,7 @@ BEGIN TRY
 		[memo] [varchar](2000) NOT NULL DEFAULT '',
 		[rev] [numeric](1, 0) NOT NULL DEFAULT 0,
 		--[mfg_cat] [char](2) NOT NULL DEFAULT 0,		-- FK = [mfgcat].[mfg_cat] 
-		[mfgcatid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
+		[mfgcatid] [int] NULL,							-- FK = [mfgcat].[mfg_cat] --> [mfgcat].[mfgcatid]
 		[ar_qty_shi] [numeric](7, 0) NOT NULL DEFAULT 0,
 		[ar_qty_cr] [numeric](7, 0) NOT NULL DEFAULT 0,
 		[part_desc] [char](50) NOT NULL DEFAULT '',
@@ -93,19 +93,28 @@ BEGIN TRY
 		[cust_po_ln] [char](5) NOT NULL DEFAULT '',
 		[cust_po_um] [char](5) NOT NULL DEFAULT '',
 		[bill_to] [char](1) NOT NULL DEFAULT '',
-		[mfg_locid] [int] NOT NULL DEFAULT 0,			-- FK = [mfg_loc].[mfg_locid]
+		[mfg_locid] [int] NULL,							-- FK = [mfg_loc].[mfg_locid]
 		CONSTRAINT [PK_orders] PRIMARY KEY CLUSTERED 
 		(
 			[orderid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_orders_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_orders_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_orders_mfgcat FOREIGN KEY ([mfgcatid]) REFERENCES [dbo].[mfgcat] ([mfgcatid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_orders_mfg_loc FOREIGN KEY ([mfg_locid]) REFERENCES [dbo].[mfg_loc] ([mfg_locid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+
+	ALTER TABLE [dbo].[orders] NOCHECK CONSTRAINT [FK_orders_bom_hdr];
+	ALTER TABLE [dbo].[orders] NOCHECK CONSTRAINT [FK_orders_customer];
+	ALTER TABLE [dbo].[orders] NOCHECK CONSTRAINT [FK_orders_mfgcat];
+	ALTER TABLE [dbo].[orders] NOCHECK CONSTRAINT [FK_orders_mfg_loc];
 
 	INSERT INTO [dbo].[orders]
 	SELECT [rawUpsize_Contech].[dbo].[orders].[job_no]
 		  ,[rawUpsize_Contech].[dbo].[orders].[job_rev]
 		  --,[rawUpsize_Contech].[dbo].[orders].[bom_no]
 		  --,[rawUpsize_Contech].[dbo].[orders].[bom_rev]
-		  ,ISNULL(bom_hdr.[bom_hdrid], 0) as [bom_hdrid]
+		  ,ISNULL(bom_hdr.[bom_hdrid], NULL) as [bom_hdrid]
 		  ,[rawUpsize_Contech].[dbo].[orders].[status]
 		  ,[rawUpsize_Contech].[dbo].[orders].[cus_lot]
 		  ,[rawUpsize_Contech].[dbo].[orders].[ct_lot]
@@ -117,7 +126,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[orders].[requested]
 		  ,[rawUpsize_Contech].[dbo].[orders].[awk_date]
 		  --,[rawUpsize_Contech].[dbo].[orders].[cust_no] --
-		  ,ISNULL(customer.[customerid], 0) as [customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]
 		  ,[rawUpsize_Contech].[dbo].[orders].[ship_to]
 		  ,[rawUpsize_Contech].[dbo].[orders].[entered]
 		  ,[rawUpsize_Contech].[dbo].[orders].[unit]
@@ -127,7 +136,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[orders].[memo]
 		  ,[rawUpsize_Contech].[dbo].[orders].[rev]
 		  --,[rawUpsize_Contech].[dbo].[orders].[mfg_cat] --
-		  ,ISNULL(mfgcat.[mfgcatid], 0) AS [mfgcatid]
+		  ,ISNULL(mfgcat.[mfgcatid], NULL) AS [mfgcatid]
 		  ,[rawUpsize_Contech].[dbo].[orders].[ar_qty_shi]
 		  ,[rawUpsize_Contech].[dbo].[orders].[ar_qty_cr]
 		  ,[rawUpsize_Contech].[dbo].[orders].[part_desc]
@@ -215,7 +224,10 @@ BEGIN TRY
 		(
 			[venshipid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_venship_mfg_loc FOREIGN KEY ([mfg_locid]) REFERENCES [dbo].[mfg_loc] ([mfg_locid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[venship] NOCHECK CONSTRAINT [FK_venship_mfg_loc];
 
 	INSERT INTO [dbo].[venship] ([company],[shven_no],[saddress],[saddress2],[city],[state],[zip],[ship_via],[fob_point],[country],[mfg_locid])
 	SELECT [rawUpsize_Contech].[dbo].[venship].[company]

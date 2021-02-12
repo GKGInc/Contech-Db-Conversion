@@ -4,6 +4,7 @@
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section010_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
@@ -11,6 +12,7 @@ begin try
 
     -- ***************************************************
     -- table: cmpcases
+    -- ***************************************************
 
     -- column name changes:
     --  cmpcasesid -> cmpcaseid  (PK)
@@ -26,17 +28,29 @@ begin try
 
     print 'table: dbo.cmpcases: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'cmpcases')
-            drop table dbo.cmpcases
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cmpcases')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cmpcases')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cmpcases')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[cmpcases]
+		PRINT 'Table [dbo].[cmpcases] dropped'
+    END
 
     CREATE TABLE [dbo].[cmpcases](
         [cmpcaseid] [int] identity (1, 1),
         [bar_code] [char](9) default '' NOT NULL,
         [case_no] [int] default 0 NOT NULL,
         -- [matlin_key] [int] default 0 NOT NULL,
-        [matlinid] int default 0 NOT NULL,
+        [matlinid] [int] NULL,
         -- [comp] [char](5) default '' NOT NULL,
-        [componetid] int default 0 NOT NULL,
+        [componetid] [int] NULL,
         [ct_lot] [char](4) default '' NOT NULL,
         [loc_row] [int] default 0 NOT NULL,
         [loc_rack] [int] default 0 NOT NULL,
@@ -46,7 +60,7 @@ begin try
         [restock] [bit] default 0 NOT NULL,
         [last_mod] [datetime] NULL,
         -- [userid] [char](10) default '' NOT NULL,
-        [userid] int default 0 NOT NULL,
+        [userid] [int] NULL,
         [insp_date] [datetime] NULL,
         [consign] [bit] default 0 NOT NULL,
         [mfg_locid] [int] default 0 NOT NULL,
@@ -54,7 +68,14 @@ begin try
         (
             [cmpcaseid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_cmpcases_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_cmpcases_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_cmpcases_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_matlin];
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_componet];
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_users];
 
     set identity_insert dbo.cmpcases ON
 
@@ -87,6 +108,7 @@ begin try
 
     -- ***************************************************
     -- table: ralabel
+    -- ***************************************************
 
     -- column name changes:
     --  add_user -> add_userid
@@ -106,8 +128,20 @@ begin try
 
     print 'table: dbo.ralabel: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'ralabel')
-            drop table dbo.ralabel
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ralabel')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ralabel')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ralabel')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[ralabel]
+		PRINT 'Table [dbo].[ralabel] dropped'
+    END
 
     CREATE TABLE [dbo].[ralabel](
         [ralabelid] [int] identity (1, 1),
@@ -115,10 +149,10 @@ begin try
         [labelno] [int] default 0 NOT NULL,
         [qty] [int] default 0 NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        add_userid [int] default 0 NOT NULL,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         -- [mod_user] [char](10) NOT NULL,
-        mod_userid [int] default 0 NOT NULL,
+        [mod_userid] [int] NULL,
         [mod_dt] [datetime] NULL,
         [fplocatnid] [int] default 0 NOT NULL,
         [orig_qty] [int] default 0 NOT NULL,
@@ -126,7 +160,12 @@ begin try
         (
             [ralabelid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ralabel_adduser FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_ralabel_moduser FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[ralabel] NOCHECK CONSTRAINT [FK_ralabel_adduser];
+	ALTER TABLE [dbo].[ralabel] NOCHECK CONSTRAINT [FK_ralabel_moduser];
 
     set identity_insert [dbo].[ralabel] ON
 
@@ -137,10 +176,10 @@ begin try
            labelno,
            qty,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt,
            -- mod_user,
-           isnull(modu.userid, 0),
+           isnull(modu.userid, NULL),
            mod_dt,
            fplocatnid,
            orig_qty
@@ -154,6 +193,7 @@ begin try
 
     -- ***************************************************
     -- table: rabox
+    -- ***************************************************
 
     -- column name changes:
     -- add_user -> add_userid
@@ -173,8 +213,20 @@ begin try
 
     print 'table: dbo.rabox: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'rabox')
-            drop table dbo.rabox
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'rabox')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('rabox')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('rabox')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[rabox]
+		PRINT 'Table [dbo].[rabox] dropped'
+    END
 
     CREATE TABLE [dbo].[rabox](
         [raboxid] int identity (1, 1),
@@ -182,10 +234,10 @@ begin try
         [labelno] [int] default 0 NOT NULL,
         [qty] [int] default 0 NOT NULL,
         -- [add_user] [char](10) NOT NULL,
-        [add_userid] int default 0 NOT NULL,
+        [add_userid] [int] NULL,
         [add_dt] [datetime] NULL,
         -- [mod_user] [char](10) NOT NULL,
-        [mod_userid] [int] default 0 NOT NULL,
+        [mod_userid] [int] NULL,
         [mod_dt] [datetime] NULL,
         [fplocatnid] [int] default 0 NOT NULL,
         [orig_qty] [int] default 0 NOT NULL,
@@ -193,7 +245,12 @@ begin try
         (
             [raboxid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_rabox_adduser FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_rabox_moduser FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[rabox] NOCHECK CONSTRAINT [FK_rabox_adduser];
+	ALTER TABLE [dbo].[rabox] NOCHECK CONSTRAINT [FK_rabox_moduser];
 
     set identity_insert [dbo].[rabox] ON
 
@@ -204,10 +261,10 @@ begin try
            labelno,
            qty,
            -- add_user,
-           isnull(addu.userid, 0),
+           isnull(addu.userid, NULL),
            add_dt,
            -- mod_user,
-          isnull(addu.userid, 0),
+          isnull(addu.userid, NULL),
            mod_dt,
            fplocatnid,
            orig_qty
@@ -222,6 +279,7 @@ begin try
 
     -- ***************************************************
     -- table: complnts
+    -- ***************************************************
 
     -- column name changes:
     --   invoice_no -> aropenid, converting ref# to FK id
@@ -238,15 +296,27 @@ begin try
 
     print 'table: dbo.complnts: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'complnts')
-            drop table dbo.complnts
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'complnts')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('complnts')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('complnts')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[complnts]
+		PRINT 'Table [dbo].[complnts] dropped'
+    END
 
     CREATE TABLE [dbo].[complnts](
-        complntid int identity (1, 1),
+        [complntid] int identity (1, 1),
         [complnt_no] [int] NOT NULL,
         [custcompln] [char](25) default '' NOT NULL,
         -- [invoice_no] [numeric](9, 0) NOT NULL,
-        aropenid int NOT NULL,
+        [aropenid] [int] NULL,
         [complntqty] [int] default 0 NOT NULL,
         [samples] [bit] default 0 NOT NULL,
         [complaint] varchar(2000) default '' NOT NULL,
@@ -259,7 +329,7 @@ begin try
         [date2] [datetime] NULL,
         [cnfrm_code] [char](2) default '' NOT NULL,
         -- [car_no] [char](8) default '' NOT NULL,
-        corractnid int default 0 NOT NULL,
+        [corractnid] [int] NULL,
         [complnt_dt] [datetime] NULL,
         [complainer] [int] default 0 NOT NULL,
         [complnttyp] [char](3) default '' NOT NULL,
@@ -272,12 +342,17 @@ begin try
         (
             [complntid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_complnts_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_complnts_corractn FOREIGN KEY ([corractnid]) REFERENCES [dbo].[corractn] ([corractnid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[complnts] NOCHECK CONSTRAINT [FK_complnts_aropen];
+	ALTER TABLE [dbo].[complnts] NOCHECK CONSTRAINT [FK_complnts_corractn];
 
     insert into dbo.complnts
     select complnts.complnt_no,
            custcompln,
-           ISNULL(aro.aropenid, 0),
+           ISNULL(aro.aropenid, NULL),
            complntqty,
            samples,
            complaint,
@@ -290,7 +365,7 @@ begin try
            date2,
            cnfrm_code,
            -- car_no,
-           0, -- see note(1)
+           NULL, -- see note(1)
            complnt_dt,
            complainer,
            complnttyp,
@@ -303,8 +378,7 @@ begin try
     left outer join dbo.aropen aro on complnts.invoice_no = aro.invoice_no and aro.invoice_no != 0
 
     print 'table: dbo.complnts: end'
-
-
+	
 -- =========================================================
 -- Section 010: corractn --> Moved from section 029
 -- =========================================================
@@ -329,8 +403,20 @@ begin try
 
     PRINT 'Table: dbo.corractn: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'corractn'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'corractn')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('corractn')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('corractn')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[corractn]
+		PRINT 'Table [dbo].[corractn] dropped'
+    END
 
 	CREATE TABLE [dbo].[corractn](
 		[corractnid] [int] identity(1,1) NOT NULL,
@@ -388,7 +474,18 @@ begin try
 		(
 			[corractnid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		--,CONSTRAINT FK_corractn_corractn FOREIGN KEY ([car_no]) REFERENCES [dbo].[corractn] ([car_no]) ON DELETE NO ACTION
+		,CONSTRAINT FK_corractn_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_corractn_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_corractn_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_corractn_complnts FOREIGN KEY ([complntid]) REFERENCES [dbo].[complnts] ([complntid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	--ALTER TABLE [dbo].[corractn] NOCHECK CONSTRAINT [FK_corractn_corractn];
+	ALTER TABLE [dbo].[corractn] NOCHECK CONSTRAINT [FK_corractn_qrn];
+	ALTER TABLE [dbo].[corractn] NOCHECK CONSTRAINT [FK_corractn_matlin];
+	ALTER TABLE [dbo].[corractn] NOCHECK CONSTRAINT [FK_corractn_componet];
+	ALTER TABLE [dbo].[corractn] NOCHECK CONSTRAINT [FK_corractn_complnts];
 
 	SET IDENTITY_INSERT [dbo].[corractn] ON;
 

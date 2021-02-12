@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section026_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -16,8 +17,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.clsficat: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'clsficat'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'clsficat')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('clsficat')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('clsficat')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[clsficat]
+		PRINT 'Table [dbo].[clsficat] dropped'
+    END
 
 	CREATE TABLE [dbo].[clsficat](
 		[clsficatid] [int] IDENTITY(1,1) NOT NULL,

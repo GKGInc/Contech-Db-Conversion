@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section021_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -23,22 +24,34 @@ BEGIN TRY
 
     PRINT 'Table: dbo.asstevnt: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'asstevnt'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'asstevnt')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('asstevnt')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('asstevnt')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[asstevnt]
+		PRINT 'Table [dbo].[asstevnt] dropped'
+    END
 
 	CREATE TABLE [dbo].[asstevnt](
 		[asstevntid] [int] IDENTITY(1,1) NOT NULL,
 		--[asset_no] [char](10) NOT NULL DEFAULT '',	-- FK = [assets].[asset_no]
-		[assetid] [int] NOT NULL DEFAULT 0,				-- FK = [assets].[asset_no] --> [assets].[assetid]
+		[assetid] [int] NULL,							-- FK = [assets].[asset_no] --> [assets].[assetid]
 		[evnt_type] [char](2) NOT NULL DEFAULT '',
 		[evnt_name] [char](30) NOT NULL DEFAULT '',
 		[interval] [char](2) NOT NULL DEFAULT '',
 		[intervalno] [int] NOT NULL DEFAULT 0,
 		[rmndr_days] [int] NOT NULL DEFAULT 0,
 		--[evntperson] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber] 
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] --> [employee].[employeeid]
+		[employeeid] [int] NULL,						-- FK = [employee].[empnumber] --> [employee].[employeeid]
 		--[document] [char](10) NOT NULL DEFAULT '',	-- FK = [docs_dtl].[document] 
-		[docs_dtlid] [int] NOT NULL DEFAULT 0,			-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
+		[docs_dtlid] [int] NULL,						-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
 		[future_due] [datetime] NULL,
 		[lastaction] [datetime] NULL,
 		[rmndr_date] [datetime] NULL,
@@ -50,23 +63,30 @@ BEGIN TRY
 		(
 			[asstevntid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_asstevnt_assets FOREIGN KEY ([assetid]) REFERENCES [dbo].[assets] ([assetid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_asstevnt_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_asstevnt_docs_dtl FOREIGN KEY ([docs_dtlid]) REFERENCES [dbo].[docs_dtl] ([docs_dtlid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[asstevnt] NOCHECK CONSTRAINT [FK_asstevnt_assets];
+	ALTER TABLE [dbo].[asstevnt] NOCHECK CONSTRAINT [FK_asstevnt_employee];
+	ALTER TABLE [dbo].[asstevnt] NOCHECK CONSTRAINT [FK_asstevnt_docs_dtl];
 
 	SET IDENTITY_INSERT [dbo].[asstevnt] ON;
 
 	INSERT INTO [dbo].[asstevnt] ([asstevntid],[assetid],[evnt_type],[evnt_name],[interval],[intervalno],[rmndr_days],[employeeid],[docs_dtlid],[future_due],[lastaction],[rmndr_date],[evntmpltid],[rev_rec],[rev_dt],[rev_emp])
 	SELECT [rawUpsize_Contech].[dbo].[asstevnt].[asstevntid]
 		  --,[rawUpsize_Contech].[dbo].[asstevnt].[asset_no]
-		  ,ISNULL(assets.[assetid], 0) AS [assetid]			-- FK = [assets].[asset_no] --> [assets].[assetid]
+		  ,ISNULL(assets.[assetid], NULL) AS [assetid]			-- FK = [assets].[asset_no] --> [assets].[assetid]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[evnt_type]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[evnt_name]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[interval]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[intervalno]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[rmndr_days]
 		  --,[rawUpsize_Contech].[dbo].[asstevnt].[evntperson]
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
 		  --,[rawUpsize_Contech].[dbo].[asstevnt].[document]
-		  ,ISNULL(docs_dtl.[docs_dtlid], 0) AS [docs_dtlid] -- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
+		  ,ISNULL(docs_dtl.[docs_dtlid], NULL) AS [docs_dtlid]	-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[future_due]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[lastaction]
 		  ,[rawUpsize_Contech].[dbo].[asstevnt].[rmndr_date]

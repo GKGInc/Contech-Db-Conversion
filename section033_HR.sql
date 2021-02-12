@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section033_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -62,13 +63,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.ftorders: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ftorders'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ftorders')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ftorders')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ftorders')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[ftorders]
+		PRINT 'Table [dbo].[ftorders] dropped'
+    END
 
 	CREATE TABLE [dbo].[ftorders](
 		--[job_no] [int] NOT NULL,	
 		[ftordersid] [int] IDENTITY(1,1) NOT NULL,
-		[bom_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
+		[bom_hdrid] [int] NULL,							-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
 		--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
 		--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
 		[status] [char](1) NOT NULL DEFAULT '',
@@ -80,24 +93,31 @@ BEGIN TRY
 		[requested] [datetime] NULL,
 		[awk_date] [datetime] NULL,
 		--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
+		[customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[entered] [datetime] NULL,
 		[unit] [char](4) NOT NULL DEFAULT '',
 		[bo] [numeric](7, 0) NOT NULL DEFAULT 0.0,
 		[part_desc] [char](50) NOT NULL DEFAULT '',
 		[qty_firm_po] [int] NOT NULL DEFAULT 0,
-		[mfg_locid] [int] NOT NULL DEFAULT 0,			-- FK = [mfg_loc].[mfg_locid]
+		[mfg_locid] [int] NULL,							-- FK = [mfg_loc].[mfg_locid]
 		CONSTRAINT [PK_ftorders] PRIMARY KEY CLUSTERED 
 		(
 			[ftordersid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ftorders_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_ftorders_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_ftorders_mfg_loc FOREIGN KEY ([mfg_locid]) REFERENCES [dbo].[mfg_loc] ([mfg_locid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[ftorders] NOCHECK CONSTRAINT [FK_ftorders_bom_hdr];
+	ALTER TABLE [dbo].[ftorders] NOCHECK CONSTRAINT [FK_ftorders_customer];
+	ALTER TABLE [dbo].[ftorders] NOCHECK CONSTRAINT [FK_ftorders_mfg_loc];
 
 	SET IDENTITY_INSERT [dbo].[ftorders] ON;
 
 	INSERT INTO [dbo].[ftorders] ([ftordersid],[bom_hdrid],[status],[part_no],[part_rev],[cust_po],[qty_ord],[price],[requested],[awk_date],[customerid],[entered],[unit],[bo],[part_desc],[qty_firm_po],[mfg_locid])
 	SELECT [rawUpsize_Contech].[dbo].[ftorders].[job_no]
-		  ,ISNULL(bom_hdr.[bom_hdrid], 0) AS [bom_hdrid]		-- FK = [bom_hdr].[bom_hdrid]
+		  ,ISNULL(bom_hdr.[bom_hdrid], NULL) AS [bom_hdrid]		-- FK = [bom_hdr].[bom_hdrid]
 		  --,[rawUpsize_Contech].[dbo].[ftorders].[bom_no]
 		  --,[rawUpsize_Contech].[dbo].[ftorders].[bom_rev]	  
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[status]
@@ -109,7 +129,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[requested]
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[awk_date]
 		  --,[rawUpsize_Contech].[dbo].[ftorders].[cust_no]
-		  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[entered]
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[unit]
 		  ,[rawUpsize_Contech].[dbo].[ftorders].[bo]
@@ -136,8 +156,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.holidays: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'holidays'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'holidays')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('holidays')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('holidays')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[holidays]
+		PRINT 'Table [dbo].[holidays] dropped'
+    END
 
 	CREATE TABLE [dbo].[holidays](
 		[holidayid] [int] IDENTITY(1,1) NOT NULL,
@@ -175,13 +207,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.holidays: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'hotcomps'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'hotcomps')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('hotcomps')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('hotcomps')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[hotcomps]
+		PRINT 'Table [dbo].[hotcomps] dropped'
+    END
 
 	CREATE TABLE [dbo].[hotcomps](
 		[hotcompid] [int] IDENTITY(1,1) NOT NULL,
 		--[comp] [char](5) NOT NULL DEFAULT '',		-- FK = [componet].[comp]
-		[componetid] [int] NOT NULL DEFAULT 0,		-- FK = [componet].[comp] --> [componet].[componetid]
+		[componetid] [int] NULL,					-- FK = [componet].[comp] --> [componet].[componetid]
 		[ent_date] [datetime] NULL,
 		[job_no] [int] NOT NULL DEFAULT 0,
 		[mod_date] [datetime] NULL,
@@ -193,11 +237,14 @@ BEGIN TRY
 		(
 			[hotcompid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_hotcomps_dtlcomponet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[hotcomps] NOCHECK CONSTRAINT [FK_hotcomps_dtlcomponet];
 
 	INSERT INTO [dbo].[hotcomps] ([componetid],[ent_date],[job_no],[mod_date],[reqd_amt],[rcvd_amt],[reqd_date],[rej_amt])
 	SELECT --[rawUpsize_Contech].[dbo].[hotcomps].[comp]
-		  ISNULL(componet.[componetid], 0) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
+		  ISNULL(componet.[componetid], NULL) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 		  ,[rawUpsize_Contech].[dbo].[hotcomps].[ent_date]
 		  ,[rawUpsize_Contech].[dbo].[hotcomps].[job_no]
 		  ,[rawUpsize_Contech].[dbo].[hotcomps].[mod_date]
@@ -227,21 +274,38 @@ BEGIN TRY
 
     PRINT 'Table: dbo.incasdsp: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'incasdsp'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'incasdsp')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('incasdsp')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('incasdsp')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[incasdsp]
+		PRINT 'Table [dbo].[incasdsp] dropped'
+    END
 
 	CREATE TABLE [dbo].[incasdsp](
 		[incasdspid] [int] IDENTITY(1,1) NOT NULL,
-		[credit_no] [char](6) NOT NULL DEFAULT '',	-- FK = [matlincr].[ct_cr_no]
-		[cmpcaseid] [int] NOT NULL DEFAULT 0,			-- FK = [cmpcases].[cmpcaseid]
+		[credit_no] [char](6) NOT NULL DEFAULT '',		-- FK = [matlincr].[ct_cr_no]
+		[cmpcaseid] [int] NULL,							-- FK = [cmpcases].[cmpcaseid]
 		--[add_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username] 
-		[add_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
+		[add_userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
 		[add_dt] [datetime] NULL,
 		CONSTRAINT [PK_incasdsp] PRIMARY KEY CLUSTERED 
 		(
 			[incasdspid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_incasdsp_cmpcases FOREIGN KEY ([cmpcaseid]) REFERENCES [dbo].[cmpcases] ([cmpcaseid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_incasdsp_users FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[incasdsp] NOCHECK CONSTRAINT [FK_incasdsp_cmpcases];
+	ALTER TABLE [dbo].[incasdsp] NOCHECK CONSTRAINT [FK_incasdsp_users];
 
 	SET IDENTITY_INSERT [dbo].[incasdsp] ON;
 
@@ -250,7 +314,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[credit_no]
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[cmpcasesid]	-- FK = [cmpcases].[cmpcaseid]
 		  --,[rawUpsize_Contech].[dbo].[incasdsp].[add_user]
-		  ,ISNULL(users.[userid] , 0) as [userid]	
+		  ,ISNULL(users.[userid], NULL) as [userid]	
 		  ,[rawUpsize_Contech].[dbo].[incasdsp].[add_dt]
 	  FROM [rawUpsize_Contech].[dbo].[incasdsp]
 	  LEFT JOIN [dbo].[users] users ON [rawUpsize_Contech].[dbo].[incasdsp].[add_user] = users.[username]	-- FK = [users].[username] --> [users].[userid]

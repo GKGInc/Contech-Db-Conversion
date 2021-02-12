@@ -3,6 +3,7 @@
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section006_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
@@ -26,19 +27,29 @@ begin try
 
     print 'table: dbo.aropen: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'aropen')
-        BEGIN
-            drop table dbo.aropen
-        END
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'aropen')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('aropen')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('aropen')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[aropen]
+		PRINT 'Table [dbo].[aropen] dropped'
+    END
 
     CREATE TABLE [dbo].[aropen](
         [aropenid] int identity(1, 1),
         [invoice_no] [numeric](9, 0) NOT NULL,
         -- [job_no] [int] NOT NULL,
-        orderid int default (0) not null,
+        [orderid] [int] NULL,					-- FK = [orders].[job_no] --> [orders].[ordersid]
         [total] [numeric](9, 2) NOT NULL,
         -- [cust_no] [char](5) default '' NOT NULL,
-        customerid int default (0) not null,
+        [customerid] [int] NULL,				-- FK = [customer].[cust_no] --> [customer].[customerid]
         [balancedue] [numeric](9, 2) NOT NULL,
         [codepd] [char](1) default '' NOT NULL,
         [cust_po] [char](15) default '' NOT NULL,
@@ -89,15 +100,20 @@ begin try
         (
             [aropenid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_aropen_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_aropen_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
     ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[aropen] NOCHECK CONSTRAINT [FK_aropen_orders];
+	ALTER TABLE [dbo].[aropen] NOCHECK CONSTRAINT [FK_aropen_customer];
 
     insert into dbo.aropen
     select invoice_no,
            -- job_no,
-           isnull(ord.orderid, 0),
+           isnull(ord.orderid, NULL),
            total,
            -- cust_no,
-           isnull(cus.customerid, 0),
+           isnull(cus.customerid, NULL),
            balancedue,
            codepd,
            aropen.cust_po,

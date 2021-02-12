@@ -3,6 +3,7 @@
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section018_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
@@ -10,6 +11,7 @@ begin try
 
     -- ***************************************************
     -- table: tcompont
+    -- ***************************************************
 
     -- re-mapped columns:
     -- cust_no -> customerid
@@ -27,8 +29,20 @@ begin try
 
     print 'table: dbo.tcompont: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tcompont')
-            drop table dbo.tcompont
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tcompont')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tcompont')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tcompont')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tcompont]
+		PRINT 'Table [dbo].[tcompont] dropped'
+    END
 
     CREATE TABLE [dbo].[tcompont](
         tcompontid int identity (1, 1),
@@ -38,18 +52,18 @@ begin try
         [memo1] [char](51) default '' NOT NULL,
         [insp] [char](2) default '' NOT NULL,
         -- [cust_no] [char](5) NOT NULL,
-        customerid int default 0 NOT NULL,
+        [customerid] [int] NULL,
         [cost] [numeric](9, 5) default 0 NOT NULL,
         [unit] [char](4) default '' NOT NULL,
         -- [ven_id] [char](6) default '' NOT NULL,
-        vendorid int default 0 NOT NULL,
+        [vendorid] [int] NULL,
         [price] [numeric](9, 5) default 0 NOT NULL,
         [ctp_min] [numeric](10, 0) default 0 NOT NULL,
         [cmi_inv] [char](1) default '' NOT NULL,
         [cmi_min] [numeric](10, 0) default 0 NOT NULL,
         [cmi_price] [numeric](9, 5) default 0 NOT NULL,
         -- [material] [char](3) NOT NULL,
-        materialid int default 0 NOT NULL,
+        [materialid] [int] NULL,
         [cust_comp] [char](12) default '' NOT NULL,
         [cus_comp_r] [char](3) default '' NOT NULL,
         [cust_desc] [char](50) default '' NOT NULL,
@@ -85,7 +99,14 @@ begin try
         (
             [tcompontid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tcompont_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_tcompont_vendor FOREIGN KEY ([vendorid]) REFERENCES [dbo].[vendor] ([vendorid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_tcompont_material FOREIGN KEY ([materialid]) REFERENCES [dbo].[material] ([materialid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[tcompont] NOCHECK CONSTRAINT [FK_tcompont_customer];
+	ALTER TABLE [dbo].[tcompont] NOCHECK CONSTRAINT [FK_tcompont_vendor];
+	ALTER TABLE [dbo].[tcompont] NOCHECK CONSTRAINT [FK_tcompont_material];
 
     insert into dbo.tcompont
     select comp,
@@ -94,18 +115,18 @@ begin try
            memo1,
            insp,
            -- cust_no,
-           isnull(c.customerid, 0),
+           isnull(c.customerid, NULL),
            cost,
            tcompont.[unit],
            -- ven_id,
-           isnull(ven.vendorid, 0),
+           isnull(ven.vendorid, NULL),
            price,
            ctp_min,
            cmi_inv,
            cmi_min,
            cmi_price,
            -- material,
-           isnull(mat.materialid, 0),
+           isnull(mat.materialid, NULL),
            cust_comp,
            cus_comp_r,
            cust_desc,
@@ -146,6 +167,7 @@ begin try
 
     -- ***************************************************
     -- table: tbom_hdr
+    -- ***************************************************
 
     -- re-mapped columns:
     -- cust_no (char) -> customerid (int)
@@ -163,8 +185,20 @@ begin try
 
     print 'table: dbo.tbom_hdr: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tbom_hdr')
-            drop table dbo.tbom_hdr
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tbom_hdr')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tbom_hdr')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tbom_hdr')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tbom_hdr]
+		PRINT 'Table [dbo].[tbom_hdr] dropped'
+    END
 
     CREATE TABLE [dbo].[tbom_hdr](
         [tbom_hdrid] int identity (1, 1),
@@ -180,7 +214,7 @@ begin try
         [date_rev] [datetime] NULL,
         [sts] [char](1) default '' NOT NULL,
         -- [cust_no] [char](5) NOT NULL,
-        [customerid] int default 0 NOT NULL,
+        [customerid] [int] NULL,
         [date_ent] [datetime] NULL,
         [code_info] [numeric](1, 0) default 0 NOT NULL,
         [tube_lenth] [char](40) default '' NOT NULL,
@@ -201,14 +235,19 @@ begin try
         [qty_case] [numeric](6, 0) default 0 NOT NULL,
         [price_note] varchar(500) default '' NOT NULL,
         -- [mfg_cat] [char](2) NOT NULL,
-        mfgcatid int default 0 NOT NULL,
+        [mfgcatid] [int] NULL,
         [rbom_no] [numeric](5, 0) default 0 NOT NULL,
         [sts_loc] [char](20) default '' NOT NULL,
         CONSTRAINT [PK_tbom_hdr] PRIMARY KEY CLUSTERED
         (
             [tbom_hdrid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tbom_hdr_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_tbom_hdr_mfgcat FOREIGN KEY ([mfgcatid]) REFERENCES [dbo].[mfgcat] ([mfgcatid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[tbom_hdr] NOCHECK CONSTRAINT [FK_tbom_hdr_customer];
+	ALTER TABLE [dbo].[tbom_hdr] NOCHECK CONSTRAINT [FK_tbom_hdr_mfgcat];
 
 	--SELECT * FROM [dbo].[tbom_hdr]
 	 
@@ -226,7 +265,7 @@ begin try
            date_rev,
            sts,
            -- tbom_hdr.cust_no,
-           isnull(c.customerid, 0) as [customerid],
+           isnull(c.customerid, NULL) as [customerid],
            date_ent,
            code_info,
            tube_lenth,
@@ -247,7 +286,7 @@ begin try
            qty_case,
            price_note,
            -- mfg_cat,
-           isnull(mfgc.mfgcatid, 0),
+           isnull(mfgc.mfgcatid, NULL),
            rbom_no,
            sts_loc
     from [rawUpsize_Contech].dbo.tbom_hdr
@@ -258,6 +297,7 @@ begin try
 
     -- ***************************************************
     -- table: tbom_dtl
+    -- ***************************************************
 
     -- re-mapped columns:
     -- comp (char) -> tcompontid (int)
@@ -280,15 +320,27 @@ begin try
 
     print 'table: dbo.tbom_dtl: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tbom_dtl')
-            drop table dbo.tbom_dtl
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tbom_dtl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tbom_dtl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tbom_dtl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tbom_dtl]
+		PRINT 'Table [dbo].[tbom_dtl] dropped'
+    END
 
     CREATE TABLE [dbo].[tbom_dtl](
         tbom_dtlid int identity (1, 1),
-        tbom_hdrid int not null,
+        [tbom_hdrid] [int] NOT NULL,
         [order] [numeric](2, 0) NOT NULL,
         -- [comp] [char](5) NOT NULL,
-        tcompontid int default 0 NOT NULL,
+        [tcompontid] [int] NULL,
         [quan] [numeric](8, 6) NOT NULL,
         [coc] [char](1) NOT NULL,
         -- [bom_no] [numeric](5, 0) NOT NULL,
@@ -297,12 +349,16 @@ begin try
         (
             [tbom_dtlid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tbom_dtl_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_tbom_dtl_componet FOREIGN KEY ([tcompontid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[tbom_dtl] NOCHECK CONSTRAINT [FK_tbom_dtl_componet];
 
     insert into dbo.tbom_dtl
     select tbh.tbom_hdrid,
            [order],
-           isnull(tc.tcompontid, 0),
+           isnull(tc.tcompontid, NULL),
            quan,
            coc
     from [rawUpsize_Contech].dbo.tbom_dtl
@@ -313,6 +369,7 @@ begin try
 
     -- ***************************************************
     -- table: tbom_his
+    -- ***************************************************
 
     -- re-mapped columns:
     -- mod_user (char) -> mod_userid (int)
@@ -332,12 +389,24 @@ begin try
 
     print 'table: dbo.tbom_his: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tbom_his')
-            drop table dbo.tbom_his
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tbom_his')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tbom_his')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tbom_his')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tbom_his]
+		PRINT 'Table [dbo].[tbom_his] dropped'
+    END
 
     CREATE TABLE [dbo].[tbom_his](
         tbom_hisid int identity (1, 1),
-        tbom_hdrid int not null,
+        [tbom_hdrid] [int] NOT NULL,
         -- [bom_no] [numeric](5, 0) NOT NULL,
         [type] [char](4) NOT NULL,
         [notes] varchar(500) NOT NULL,
@@ -345,13 +414,17 @@ begin try
         -- [rev] [char](2) NOT NULL,
         [daterev] [datetime] NULL,
         -- [mod_user] [char](10) NOT NULL,
-        [mod_userid] int default 0 not null,
+        [mod_userid] [int] NULL,
         [mod_dt] [datetime] NULL,
         CONSTRAINT [PK_tbom_his] PRIMARY KEY CLUSTERED
         (
             [tbom_hisid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tbom_his_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_tbom_his_users FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[tbom_his] NOCHECK CONSTRAINT [FK_tbom_his_users];
 
     insert into dbo.tbom_his
     select tbom.tbom_hdrid,
@@ -362,7 +435,7 @@ begin try
            -- rev,
            daterev,
            -- mod_user,
-           isnull(modu.userid, 0),
+           isnull(modu.userid, NULL),
            mod_dt
     from [rawUpsize_Contech].dbo.tbom_his
     inner join dbo.tbom_hdr tbom ON tbom_his.bom_no = tbom.bom_no AND tbom_his.rev = tbom.bom_rev
@@ -372,6 +445,7 @@ begin try
 
     -- ***************************************************
     -- table: tbomdocs
+    -- ***************************************************
 
     -- new columns:
     -- tbom_hdrid
@@ -392,8 +466,20 @@ begin try
 
     print 'table: dbo.tbomdocs: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tbomdocs')
-            drop table dbo.tbomdocs
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tbomdocs')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tbomdocs')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tbomdocs')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tbomdocs]
+		PRINT 'Table [dbo].[tbomdocs] dropped'
+    END
 
     CREATE TABLE [dbo].[tbomdocs](
         tbomdocsid int identity (1, 1),
@@ -406,6 +492,7 @@ begin try
         (
             [tbomdocsid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tbomdocs_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
     ) ON [PRIMARY]
 
     insert into dbo.tbomdocs
@@ -421,6 +508,7 @@ begin try
 
     -- ***************************************************
     -- table: tbomtble
+    -- ***************************************************
 
     -- new columns:
     -- tbom_hdrid: FK to tbom_hdr
@@ -440,19 +528,32 @@ begin try
 
     print 'table: dbo.tbomtble: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tbomtble')
-            drop table dbo.tbomtble
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tbomtble')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tbomtble')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tbomtble')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tbomtble]
+		PRINT 'Table [dbo].[tbomtble] dropped'
+    END
 
     CREATE TABLE [dbo].[tbomtble](
         [tbomtbleid] int identity (1, 1),
         [tbom_hdrid] int not null,
         -- [bom_no] [numeric](5, 0) NOT NULL,
+        -- [bom_rev] [numeric](2, 0) NOT NULL
         [table] [char](10) NOT NULL,
         CONSTRAINT [PK_tbomtble] PRIMARY KEY CLUSTERED
         (
             [tbomtbleid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-        -- [bom_rev] [numeric](2, 0) NOT NULL
+		,CONSTRAINT FK_tbomtble_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
     ) ON [PRIMARY]
 
     insert into dbo.tbomtble
@@ -465,6 +566,7 @@ begin try
 
     -- ***************************************************
     -- table: tdspnser
+    -- ***************************************************
 
     -- new columns:
     -- tbom_hdrid: FK to tbom_hdr
@@ -481,8 +583,20 @@ begin try
 
     print 'table: dbo.tdspnser: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tdspnser')
-            drop table dbo.tdspnser
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tdspnser')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tdspnser')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tdspnser')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tdspnser]
+		PRINT 'Table [dbo].[tdspnser] dropped'
+    END
 
     CREATE TABLE [dbo].[tdspnser](
         [tdspnserid] int identity (1, 1),
@@ -507,6 +621,7 @@ begin try
         (
             [tdspnserid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tdspnser_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
     ) ON [PRIMARY]
 
     insert into dbo.tdspnser
@@ -534,6 +649,7 @@ begin try
 
     -- ***************************************************
     -- table: tpouches
+    -- ***************************************************
 
     -- new columns:
     -- tbom_hdrid: FK to tbom_hdr
@@ -550,8 +666,20 @@ begin try
 
     print 'table: dbo.tpouches: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tpouches')
-            drop table dbo.tpouches
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tpouches')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tpouches')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tpouches')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tpouches]
+		PRINT 'Table [dbo].[tpouches] dropped'
+    END
 
     CREATE TABLE [dbo].[tpouches](
         [tpouchesid] int identity (1, 1),
@@ -580,6 +708,7 @@ begin try
         (
             [tpouchesid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tpouches_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
     ) ON [PRIMARY]
 
     insert into dbo.tpouches
@@ -612,6 +741,7 @@ begin try
 
     -- ***************************************************
     -- table: tquotas
+    -- ***************************************************
 
     -- new columns:
     -- tbom_hdrid: FK to tbom_hdr
@@ -634,6 +764,20 @@ begin try
     IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'tquotas')
             drop table dbo.tquotas
 
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'tquotas')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('tquotas')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('tquotas')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[tquotas]
+		PRINT 'Table [dbo].[tquotas] dropped'
+    END
 
     CREATE TABLE [dbo].[tquotas](
         [tquotasid] int identity (1, 1),
@@ -647,6 +791,7 @@ begin try
         (
             [tquotasid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_tquotas_tbom_hdr FOREIGN KEY ([tbom_hdrid]) REFERENCES [dbo].[tbom_hdr] ([tbom_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
     ) ON [PRIMARY]
 
     insert into dbo.tquotas

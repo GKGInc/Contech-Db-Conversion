@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section029HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 029: cractdtl
@@ -19,13 +20,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.cractdtl: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cractdtl'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cractdtl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cractdtl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cractdtl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[cractdtl]
+		PRINT 'Table [dbo].[cractdtl] dropped'
+    END
 
 	CREATE TABLE [dbo].[cractdtl](
 		[cractdtlid] [int] identity(1,1) NOT NULL,
 		--[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [corractn].[car_no] 
-		[corractnid] [int] NOT NULL DEFAULT 0,			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
+		[corractnid] [int] NULL,						-- FK = [corractn].[car_no] --> [corractn].[corractnid]
 		[requiremnt] [char](100) NOT NULL DEFAULT '',
 		[actual] [char](100) NOT NULL DEFAULT '',
 		[sampl_size] [int] NOT NULL DEFAULT 0,
@@ -39,14 +52,17 @@ BEGIN TRY
 		(
 			[cractdtlid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_cractdtl_corractn FOREIGN KEY ([corractnid]) REFERENCES [dbo].[corractn] ([corractnid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[cractdtl] NOCHECK CONSTRAINT [FK_cractdtl_corractn];
 
 	SET IDENTITY_INSERT [dbo].[cractdtl] ON;
 
 	INSERT INTO [dbo].[cractdtl] ([cractdtlid],[corractnid],[requiremnt],[actual],[sampl_size],[defects],[coractnreq],[use_as],[return],[scrap],[rework])
 	SELECT [rawUpsize_Contech].[dbo].[cractdtl].[cractdtlid]
 		  --,[rawUpsize_Contech].[dbo].[cractdtl].[car_no]
-		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	
+		  ,ISNULL(corractn.[corractnid], NULL) as [corractnid]	
 		  ,[rawUpsize_Contech].[dbo].[cractdtl].[requiremnt]
 		  ,[rawUpsize_Contech].[dbo].[cractdtl].[actual]
 		  ,[rawUpsize_Contech].[dbo].[cractdtl].[sampl_size]
@@ -81,13 +97,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.cuslblft: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cuslblft'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cuslblft')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cuslblft')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cuslblft')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[cuslblft]
+		PRINT 'Table [dbo].[cuslblft] dropped'
+    END
 
 	CREATE TABLE [dbo].[cuslblft](
 		[cuslblftid] [int] identity(1,1) NOT NULL,
 		--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
-		[customerid] int NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] -> [customer].[customerid]
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] -> [customer].[customerid]
 		[flag] [char](1) NOT NULL DEFAULT '',
 		[lic] [char](4) NOT NULL DEFAULT '',
 		[r] [char](2) NOT NULL DEFAULT '',
@@ -99,19 +127,24 @@ BEGIN TRY
 		[rev_rec] [int] NOT NULL DEFAULT 0,
 		[rev_dt] [datetime] NULL,
 		--[rev_emp] [char](10) NOT NULL,			-- FK = [employee].[empnumber] -
-		[employeeid] int NOT NULL,					-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		[employeeid] [int] NULL,					-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		CONSTRAINT [PK_cuslblft] PRIMARY KEY CLUSTERED 
 		(
 			[cuslblftid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_cuslblft_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_cuslblft_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[cuslblft] NOCHECK CONSTRAINT [FK_cuslblft_customer];
+	ALTER TABLE [dbo].[cuslblft] NOCHECK CONSTRAINT [FK_cuslblft_employee];
 
 	SET IDENTITY_INSERT [dbo].[cuslblft] ON;
 
 	INSERT INTO [dbo].[cuslblft] ([cuslblftid],[customerid],[flag],[lic],[r],[q],[umid1],[umid2],[umid3],[umid4],[rev_rec],[rev_dt],[employeeid])
 	SELECT [rawUpsize_Contech].[dbo].[cuslblft].[cuslblftid]
 		  --,[rawUpsize_Contech].[dbo].[cuslblft].[cust_no]		-- FK = [customer].[cust_no]
-		  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] -> [customer].[customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 		  ,[rawUpsize_Contech].[dbo].[cuslblft].[flag]
 		  ,[rawUpsize_Contech].[dbo].[cuslblft].[lic]
 		  ,[rawUpsize_Contech].[dbo].[cuslblft].[r]
@@ -123,7 +156,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[cuslblft].[rev_rec]
 		  ,[rawUpsize_Contech].[dbo].[cuslblft].[rev_dt]
 		  --,[rawUpsize_Contech].[dbo].[cuslblft].[rev_emp]		-- FK = [employee].[empnumber] 		
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	  FROM [rawUpsize_Contech].[dbo].[cuslblft]
 	  LEFT JOIN [dbo].[customer] customer ON [rawUpsize_Contech].[dbo].[cuslblft].[cust_no] = customer.[cust_no]		-- FK = [customer].[cust_no] -> [customer].[customerid]
 	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[cuslblft].[rev_emp] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
@@ -147,13 +180,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.custctct: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'custctct'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'custctct')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('custctct')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('custctct')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[custctct]
+		PRINT 'Table [dbo].[custctct] dropped'
+    END
 
 	CREATE TABLE [dbo].[custctct](
 		[custctctid] [int] identity(1,1) NOT NULL,
 		--[cust_no] [char](5) NOT NULL,			-- FK = [customer].[cust_no] 
-		[customerid] int NOT NULL DEFAULT 0,	-- FK = [customer].[cust_no] -> [customer].[customerid]
+		[customerid] [int] NULL,				-- FK = [customer].[cust_no] -> [customer].[customerid]
 		[first_name] [char](15) NOT NULL DEFAULT '',
 		[last_name] [char](25) NOT NULL DEFAULT '',
 		[mi] [char](1) NOT NULL DEFAULT '',
@@ -173,14 +218,17 @@ BEGIN TRY
 		(
 			[custctctid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_custctct_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[custctct] NOCHECK CONSTRAINT [FK_custctct_customer];
 
 	SET IDENTITY_INSERT [custctct] ON;
 
 	INSERT INTO [custctct] ([custctctid],[customerid],[first_name],[last_name],[mi],[department],[email],[ext],[phone],[fax],[address],[address2],[city],[state],[zip],[country],[job_title])
 	SELECT [rawUpsize_Contech].[dbo].[custctct].[custctctid]
 		  --,[rawUpsize_Contech].[dbo].[custctct].[cust_no]		
-		  ,ISNULL(customer.[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 		  ,[rawUpsize_Contech].[dbo].[custctct].[first_name]
 		  ,[rawUpsize_Contech].[dbo].[custctct].[last_name]
 		  ,[rawUpsize_Contech].[dbo].[custctct].[mi]
@@ -219,13 +267,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.custship: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'custship'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'custship')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('custship')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('custship')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[custship]
+		PRINT 'Table [dbo].[custship] dropped'
+    END
 
 	CREATE TABLE [dbo].[custship](
 		[custshipid] [int] identity(1,1) NOT NULL,
 		--[cust_no] [char](5) NOT NULL,				-- FK = [customer].[cust_no] 
-		[customerid] int NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] -> [customer].[customerid]
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] -> [customer].[customerid]
 		[ship_to] [char](1) NOT NULL DEFAULT '',	
 		[ship_via] [char](20) NOT NULL DEFAULT '',
 		[name] [char](100) NOT NULL DEFAULT '',
@@ -239,16 +299,21 @@ BEGIN TRY
 		[fob_point] [char](15) NOT NULL DEFAULT '',
 		[phone] [char](17) NOT NULL DEFAULT '',
 		[fax] [char](17) NOT NULL DEFAULT '',
-		[fplocatnid] [int] NOT NULL DEFAULT 0,		-- FK = [fplocatn].[fplocatnid]
+		[fplocatnid] [int] NULL,					-- FK = [fplocatn].[fplocatnid]
 		CONSTRAINT [PK_custship] PRIMARY KEY CLUSTERED 
 		(
 			[custshipid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_custship_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_custship_fplocatn FOREIGN KEY ([fplocatnid]) REFERENCES [dbo].[fplocatn] ([fplocatnid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[custship] NOCHECK CONSTRAINT [FK_custship_customer];
+	ALTER TABLE [dbo].[custship] NOCHECK CONSTRAINT [FK_custship_fplocatn];
 
 	INSERT INTO [dbo].[custship] ([customerid],[ship_to],[ship_via],[name],[address],[address2],[city],[state],[zip],[country],[acct_no],[fob_point],[phone],[fax],[fplocatnid])
 	SELECT --[rawUpsize_Contech].[dbo].[custship].[cust_no]		-- FK = [customer].[cust_no] 
-		  ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] -> [customer].[customerid]
+		  ISNULL(customer.[customerid], NULL) as [customerid]	-- FK = [customer].[cust_no] -> [customer].[customerid]
 		  ,[rawUpsize_Contech].[dbo].[custship].[ship_to]
 		  ,[rawUpsize_Contech].[dbo].[custship].[ship_via]
 		  ,[rawUpsize_Contech].[dbo].[custship].[name]

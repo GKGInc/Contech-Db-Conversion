@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section034_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -13,8 +14,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.inspectionplanhdr: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inspectionplanhdr'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inspectionplanhdr')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('inspectionplanhdr')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('inspectionplanhdr')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[inspectionplanhdr]
+		PRINT 'Table [dbo].[inspectionplanhdr] dropped'
+    END
 
 	CREATE TABLE [dbo].[inspectionplanhdr](
 		[inspectionplanhdrid] [int] IDENTITY(1,1) NOT NULL,
@@ -57,8 +70,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.inspstps: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inspstps'))
-		DROP TABLE [inspstps]
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inspstps')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('inspstps')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('inspstps')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[inspstps]
+		PRINT 'Table [dbo].[inspstps] dropped'
+    END
 
 	CREATE TABLE [dbo].[inspstps](
 		[inspstpsid] [int] IDENTITY(1,1) NOT NULL,
@@ -66,20 +91,28 @@ BEGIN TRY
 		--[plan] [char](2) NOT NULL DEFAULT '',			-- FK = [inspectionplanhdr].[plan] 
 		[inspectionplanhdrid] [int] NOT NULL DEFAULT 0, -- FK = [inspectionplanhdr].[inspectionplanhdrid] = [inspectionplanhdr].[inc] + [inspectionplanhdr].[plan]
 		--[clsficat] [int] NOT NULL DEFAULT 0,
-		[clsficatid] [int] NOT NULL DEFAULT 0,			-- FK = [clsficat].[clsficatid]
+		[clsficatid] [int] NULL,						-- FK = [clsficat].[clsficatid]
 		[step] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[descript] [char](70) NOT NULL DEFAULT '',
 		--[comp] [char](5) NOT NULL DEFAULT '',			-- Empty -- FK = [componet].[comp] 
-		[componetid] [int] NOT NULL,					-- FK = [componet].[comp] --> [componet].[componetid]
+		[componetid] [int] NULL,						-- FK = [componet].[comp] --> [componet].[componetid]
 		[rev_rec] [int] NOT NULL DEFAULT 0,
 		[rev_dt] [datetime] NULL,
 		--[rev_emp] [char](10) NOT NULL DEFAULT '',		-- FK = [employee].[empnumber] 
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] --> [employee].[employeeid]
+		[employeeid] [int] NULL,						-- FK = [employee].[empnumber] --> [employee].[employeeid]
 		CONSTRAINT [PK_inspstps] PRIMARY KEY CLUSTERED 
 		(
 			[inspstpsid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_inspstps_inspectionplanhdr FOREIGN KEY ([inspectionplanhdrid]) REFERENCES [dbo].[inspectionplanhdr] ([inspectionplanhdrid]) ON DELETE CASCADE NOT FOR REPLICATION
+		,CONSTRAINT FK_inspstps_clsficat FOREIGN KEY ([clsficatid]) REFERENCES [dbo].[clsficat] ([clsficatid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_inspstps_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_inspstps_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[inspstps] NOCHECK CONSTRAINT [FK_inspstps_clsficat];
+	ALTER TABLE [dbo].[inspstps] NOCHECK CONSTRAINT [FK_inspstps_componet];
+	ALTER TABLE [dbo].[inspstps] NOCHECK CONSTRAINT [FK_inspstps_employee];
 
 	SET IDENTITY_INSERT [dbo].[inspstps] ON;
 
@@ -92,11 +125,11 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[inspstps].[step]
 		  ,[rawUpsize_Contech].[dbo].[inspstps].[descript]
 		  --,[rawUpsize_Contech].[dbo].[inspstps].[comp]
-		  ,ISNULL(componet.[componetid], 0) AS [componetid] 
+		  ,ISNULL(componet.[componetid], NULL) AS [componetid] 
 		  ,[rawUpsize_Contech].[dbo].[inspstps].[rev_rec]
 		  ,[rawUpsize_Contech].[dbo].[inspstps].[rev_dt]
 		  --,[rawUpsize_Contech].[dbo].[inspstps].[rev_emp]		-- FK = [employee].[empnumber] 
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 	  FROM [rawUpsize_Contech].[dbo].[inspstps]
 	  LEFT JOIN [inspectionplanhdr] inspectionplanhdr 
 		ON [rawUpsize_Contech].[dbo].[inspstps].[inc] = inspectionplanhdr.[inc] 
@@ -125,8 +158,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.instpcmp: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'instpcmp'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'instpcmp')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('instpcmp')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('instpcmp')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[instpcmp]
+		PRINT 'Table [dbo].[instpcmp] dropped'
+    END
 
 	CREATE TABLE [dbo].[instpcmp](
 		[instpcmpid] [int] IDENTITY(1,1) NOT NULL,
@@ -134,12 +179,16 @@ BEGIN TRY
 		--[plan] [char](2) NOT NULL DEFAULT '',			-- FK = [inspectionplanhdr].[plan]
 		[inspectionplanhdrid] [int] NOT NULL DEFAULT 0, -- FK = [inspectionplanhdr].[inspectionplanhdrid] = [inspectionplanhdr].[inc] + [inspectionplanhdr].[plan]
 		--[comp] [char](5) NOT NULL DEFAULT '',			-- FK = [componet].[comp]
-		[componetid] [int] NOT NULL,					-- FK = [componet].[comp] --> [componet].[componetid]
+		[componetid] [int] NULL,						-- FK = [componet].[comp] --> [componet].[componetid]
 		CONSTRAINT [PK_instpcmp] PRIMARY KEY CLUSTERED 
 		(
 			[instpcmpid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_instpcmp_inspectionplanhdr FOREIGN KEY ([inspectionplanhdrid]) REFERENCES [dbo].[inspectionplanhdr] ([inspectionplanhdrid]) ON DELETE CASCADE NOT FOR REPLICATION
+		,CONSTRAINT FK_instpcmp_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[instpcmp] NOCHECK CONSTRAINT [FK_instpcmp_componet];
 
 	SET IDENTITY_INSERT [dbo].[instpcmp] ON;
 
@@ -149,7 +198,7 @@ BEGIN TRY
 		  --,[rawUpsize_Contech].[dbo].[instpcmp].[plan]
 		  ,ISNULL(inspectionplanhdr.[inspectionplanhdrid], 0) AS [inspectionplanhdrid]		
 		  --,[rawUpsize_Contech].[dbo].[instpcmp].[comp]
-		  ,ISNULL(componet.[componetid], 0) AS [componetid] 
+		  ,ISNULL(componet.[componetid], NULL) AS [componetid] 
 	  FROM [rawUpsize_Contech].[dbo].[instpcmp]  
 	  LEFT JOIN [inspectionplanhdr] inspectionplanhdr							-- FK = [inspectionplanhdr].[inspectionplanhdrid] = [inspectionplanhdr].[inc] + [inspectionplanhdr].[plan]
 		ON [rawUpsize_Contech].[dbo].[instpcmp].[inc] = inspectionplanhdr.[inc] 
@@ -178,24 +227,41 @@ BEGIN TRY
 
     PRINT 'Table: dbo.inv_adj: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inv_adj'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inv_adj')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('inv_adj')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('inv_adj')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[inv_adj]
+		PRINT 'Table [dbo].[inv_adj] dropped'
+    END
 
 	CREATE TABLE [dbo].[inv_adj](
 		[inv_adjid] [int] IDENTITY(1,1) NOT NULL,
 		--[comp] [char](5) NOT NULL DEFAULT '',			-- FK = [matlin].[comp]
 		--[ct_lot] [char](4) NOT NULL DEFAULT '',		-- FK = [matlin].[ct_lot]
-		[matlinid] [int] NOT NULL DEFAULT 0,			-- FK = [matlin].[matlinid] = [matlin].[comp] + [matlin].[ct_lot] 
+		[matlinid] [int] NULL,							-- FK = [matlin].[matlinid] = [matlin].[comp] + [matlin].[ct_lot] 
 		[adjustment] [int] NOT NULL DEFAULT 0,
 		[reason] [varchar](2000) NOT NULL DEFAULT '',
 		--[userid] [char](10) NOT NULL DEFAULT '',		-- FK = [users].[username]
-		[userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[userid] [int] NULL,							-- FK = [users].[username] --> [users].[userid]
 		[add_dt] [datetime] NULL,
 		CONSTRAINT [PK_inv_adj] PRIMARY KEY CLUSTERED 
 		(
 			[inv_adjid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_inv_adj_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_inv_adj_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[inv_adj] NOCHECK CONSTRAINT [FK_inv_adj_matlin];
+	ALTER TABLE [dbo].[inv_adj] NOCHECK CONSTRAINT [FK_inv_adj_users];
 
 	SET IDENTITY_INSERT [dbo].[inv_adj] ON;
 
@@ -205,11 +271,11 @@ BEGIN TRY
 	SELECT inv_adj.[inv_adjid]
 		  --,inv_adj.[comp]
 		  --,inv_adj.[ct_lot]
-		  ,ISNULL(matlin.[matlinid] , 0) as [matlinid]			
+		  ,ISNULL(matlin.[matlinid] , NULL) as [matlinid]			
 		  ,inv_adj.[adjustment]
 		  ,inv_adj.[reason]
 		  --,[rawUpsize_Contech].[dbo].[inv_adj].[userid]
-		  ,ISNULL(users.[userid] , 0) as [userid]			
+		  ,ISNULL(users.[userid] , NULL) as [userid]			
 		  ,inv_adj.[add_dt]	
 		FROM 
 			(
@@ -250,8 +316,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.inv_sess: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inv_sess'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'inv_sess')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('inv_sess')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('inv_sess')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[inv_sess]
+		PRINT 'Table [dbo].[inv_sess] dropped'
+    END
 
 	CREATE TABLE [dbo].[inv_sess](
 		--[inv_sessid] [char](9) NOT NULL,

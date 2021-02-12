@@ -29,6 +29,7 @@ BEGIN TRY
 		END
 
 		DROP TABLE [dbo].[matlin]
+		PRINT 'Table [dbo].[matlin] dropped'
 	END
 
 	CREATE TABLE [dbo].[matlin](
@@ -140,15 +141,15 @@ BEGIN TRY
 		[po_rev] [numeric](2, 0) NOT NULL,
 		[rev_date] [datetime] NULL,
 		--[bill_to] [char](5) NOT NULL DEFAULT '',		
-		[billto_custid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[bill_to] --> [customer].[customerid]
+		[billto_custid] [int] NULL,				-- FK = [customer].[bill_to] --> [customer].[customerid]
 		--[ship_to] [char](6) NOT NULL DEFAULT '',
 		[date] [datetime] NULL,
 		--[buyer] [char](5) NOT NULL DEFAULT '',		
-		[buyerid] [int] NOT NULL DEFAULT 0,				-- FK = [buyer].[buyer] --> [buyer].[buyerid]
+		[buyerid] [int] NULL,					-- FK = [buyer].[buyer] --> [buyer].[buyerid]
 		--[ven_id] [char](6) NOT NULL DEFAULT '',
-		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+		[vendorid] [int] NULL,					-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 		--[comp] [char](5) NOT NULL DEFAULT '',
-		[componetid] [int] NOT NULL DEFAULT 0,			-- FK = [componet].[comp] --> [componet].[componetid]
+		[componetid] [int] NULL,				-- FK = [componet].[comp] --> [componet].[componetid]
 		[total] [numeric](9, 2) NOT NULL DEFAULT 0.0,
 		[charge1] [numeric](8, 2) NOT NULL DEFAULT 0.0,
 		[charge1_desc] [char](40) NOT NULL DEFAULT '',
@@ -172,19 +173,19 @@ BEGIN TRY
 		[tot_recd_acc] [int] NOT NULL DEFAULT 0,
 		[comp_rev] [char](2) NOT NULL DEFAULT '',
 		--[cusno] [char](5) NOT NULL DEFAULT '',
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[cus_po] [char](15) NOT NULL DEFAULT '',
 		[ship_via] [char](20) NOT NULL DEFAULT '',
 		[fob] [char](15) NOT NULL DEFAULT '',
 		--[shven_no] [char](5) NOT NULL DEFAULT '',	
-		[venshipid] [int] NOT NULL DEFAULT 0,			-- FK = [venship].[shven_no] --> [venship].[venshipid]
+		[venshipid] [int] NULL,						-- FK = [venship].[shven_no] --> [venship].[venshipid]
 		[currency] [char](3) NOT NULL DEFAULT '',
 		[comp_desc] [char](75) NOT NULL DEFAULT '',
 		[comp_desc2] [char](75) NOT NULL DEFAULT '',
 		--[material] [char](3) NOT NULL DEFAULT '',	
-		[materialid] [int] NOT NULL DEFAULT 0,			-- FK = [material].[material] --> [material].[materialid]
+		[materialid] [int] NULL,					-- FK = [material].[material] --> [material].[materialid]
 		--[class] [char](4) NOT NULL DEFAULT '',		
-		[classid] [int] NOT NULL DEFAULT 0,				-- FK = [class].[class] --> [class].[classid]
+		[classid] [int] NULL,						-- FK = [class].[class] --> [class].[classid]
 		[cpmr] [varchar](2000) NOT NULL DEFAULT '',
 		[coc] [bit] NOT NULL DEFAULT 0,
 		[conf_dlvry] [bit] NOT NULL DEFAULT 0,
@@ -195,7 +196,7 @@ BEGIN TRY
 		[kbrel_freq] [char](2) NOT NULL DEFAULT '',
 		[kbstart_dt] [datetime] NULL,
 		[kbrel_qty] [int] NOT NULL DEFAULT 0,
-		[mfg_locid] [int] NOT NULL DEFAULT 0,		-- FK = [mfg_loc].[mfg_locid]
+		[mfg_locid] [int] NULL,						-- FK = [mfg_loc].[mfg_locid]
 		[prepaid] [bit] NOT NULL DEFAULT 0,
 		CONSTRAINT [PK_po_hdr] PRIMARY KEY CLUSTERED 
 		(
@@ -231,15 +232,15 @@ BEGIN TRY
 			,pohdr.[po_rev]
 			,pohdr.[rev_date]
 			--,pohdr.[bill_to]
-			,ISNULL(billto.[customerid], 0) as [billto_custid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+			,ISNULL(billto.[customerid], NULL) as [billto_custid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 			--,pohdr.[ship_to]
 			,pohdr.[date]
 			--,pohdr.[buyer]
-			,ISNULL(buyer.[buyerid], 0) AS [buyerid]			-- FK = [buyer].[buyer] --> [buyer].[buyerid]
+			,ISNULL(buyer.[buyerid], NULL) AS [buyerid]				-- FK = [buyer].[buyer] --> [buyer].[buyerid]
 			--,pohdr.[ven_id]
-			,ISNULL(vendor.[vendorid], 0) AS [vendorid]			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+			,ISNULL(vendor.[vendorid], NULL) AS [vendorid]			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 			--,pohdr.[comp]
-			,ISNULL(componet.[componetid], 0) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
+			,ISNULL(componet.[componetid], NULL) AS [componetid]	-- FK = [componet].[comp] --> [componet].[componetid]
 			,pohdr.[total]
 			,pohdr.[charge1]
 			,pohdr.[charge1_desc]
@@ -263,19 +264,19 @@ BEGIN TRY
 			,pohdr.[tot_recd_acc]
 			,pohdr.[comp_rev]
 			--,pohdr.[cusno]	
-			,ISNULL(customer.[customerid], 0) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+			,ISNULL(customer.[customerid], NULL) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 			,pohdr.[cus_po]
 			,pohdr.[ship_via]
 			,pohdr.[fob]
 			--,pohdr.[shven_no]	
-			,ISNULL(venship.[venshipid], 0) as [venshipid]		-- FK = [venship].[shven_no] --> [venship].[venshipid]
+			,ISNULL(venship.[venshipid], NULL) as [venshipid]		-- FK = [venship].[shven_no] --> [venship].[venshipid]
 			,pohdr.[currency]
 			,pohdr.[comp_desc]
 			,pohdr.[comp_desc2]
 			--,pohdr.[material]
-			,ISNULL(material.[materialid], 0) as [materialid]		-- FK = [material].[material] --> [material].[materialid]
+			,ISNULL(material.[materialid], NULL) as [materialid]	-- FK = [material].[material] --> [material].[materialid]
 			--,pohdr.[class]
-			,ISNULL(class.[classid], 0) as [classid]		-- FK = [class].[class] --> [class].[classid]
+			,ISNULL(class.[classid], NULL) as [classid]				-- FK = [class].[class] --> [class].[classid]
 			,pohdr.[cpmr]
 			,pohdr.[coc]
 			,pohdr.[conf_dlvry]
@@ -351,7 +352,7 @@ BEGIN TRY
 
 	CREATE TABLE [dbo].[po_dtl](
 		[po_dtlid] [int] IDENTITY(1,1) NOT NULL,
-		[po_hdrid] [int] NOT NULL DEFAULT 0 ,			-- FK = [po_hdr].[po_hdrid]
+		[po_hdrid] [int] NOT NULL,			-- FK = [po_hdr].[po_hdrid]
 		--[po_no] [char](8) NOT NULL DEFAULT '',
 		[ref_no] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[due_date] [datetime] NULL,

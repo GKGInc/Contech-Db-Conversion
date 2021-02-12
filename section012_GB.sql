@@ -3,6 +3,7 @@
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section012_GB.sql'
+DECLARE @SQL varchar(4000)=''
 
 begin tran
 
@@ -10,6 +11,7 @@ begin try
 
     -- ***************************************************
     -- table: req_hdr
+    -- ***************************************************
 
     -- re-mapped columns:
     -- job_no (int) -> ordersid (int)
@@ -25,13 +27,25 @@ begin try
 
     print 'table: dbo.req_hdr: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'req_hdr')
-            drop table dbo.req_hdr
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'req_hdr')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('req_hdr')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('req_hdr')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[req_hdr]
+		PRINT 'Table [dbo].[req_hdr] dropped'
+    END
 
     CREATE TABLE [dbo].[req_hdr](
         [req_hdrid] [int] identity (1, 1),
         -- [job_no] [int] NOT NULL,
-        [orderid] [int] default 0 NOT NULL,
+        [orderid] [int] NULL,
         [qty] [int] default 0 NOT NULL,
         [start_dt] [datetime] NULL,
         [end_dt] [datetime] NULL,
@@ -43,7 +57,11 @@ begin try
         (
             [req_hdrid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_req_hdr_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[req_hdr] NOCHECK CONSTRAINT [FK_req_hdr_orders];
 
     set identity_insert dbo.req_hdr ON
 
@@ -51,7 +69,7 @@ begin try
     (req_hdrid, orderid, qty, start_dt, end_dt, req_status, add_dt, coffer, qty_prod)
     select req_hdrid,
            -- job_no,
-           isnull(ord.orderid, 0),
+           isnull(ord.orderid, NULL),
            qty,
            start_dt,
            end_dt,
@@ -65,10 +83,10 @@ begin try
     set identity_insert dbo.req_hdr OFF
 
     print 'table: dbo.req_hdr: end'
-
-
+	
     -- ***************************************************
     -- table: req_dtl
+    -- ***************************************************
 
     -- re-mapped columns:
     -- comp (char) -> componetid (int)
@@ -87,14 +105,26 @@ begin try
 
     print 'table: dbo.req_dtl: start'
 
-    IF EXISTS(select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = 'dbo' and table_name = 'req_dtl')
-            drop table dbo.req_dtl
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'req_dtl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('req_dtl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('req_dtl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[req_dtl]
+		PRINT 'Table [dbo].[req_dtl] dropped'
+    END
 
     CREATE TABLE [dbo].[req_dtl](
         [req_dtlid] [int] identity (1, 1),
         [req_hdrid] [int] NOT NULL,
         -- [comp] [char](5) default '' NOT NULL,
-        [componetid] [int] default 0 NOT NULL,
+        [componetid] [int] NULL,
         [qty] [int] default 0 NOT NULL,
         [ratio] [numeric](8, 6) default 0 NOT NULL,
         [scrap] [int] default 0 NOT NULL,
@@ -106,7 +136,10 @@ begin try
         (
             [req_dtlid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_req_dtl_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[req_dtl] NOCHECK CONSTRAINT [FK_req_dtl_componet];
 
     set identity_insert dbo.req_dtl ON;
 
@@ -120,7 +153,7 @@ begin try
     select req_dtl.req_dtlid,
            req_dtl.req_hdrid,
            -- comp,
-           isnull(cmp.componetid, 0) as componetid,
+           isnull(cmp.componetid, NULL) as componetid,
            req_dtl.qty,
            req_dtl.ratio,
            req_dtl.scrap,

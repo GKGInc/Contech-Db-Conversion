@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section035_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -16,10 +17,22 @@ BEGIN TRY
 
     PRINT 'Table: dbo.issuetyp: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'issuetyp'))
-		DROP TABLE [issuetyp]
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'issuetyp')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('issuetyp')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('issuetyp')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[issuetyp]
+		PRINT 'Table [dbo].[issuetyp] dropped'
+    END
 
-	CREATE TABLE [issuetyp](
+	CREATE TABLE [dbo].[issuetyp](
 		[issuetypid] [int] IDENTITY(1,1) NOT NULL,
 		[issue_type] [char](15) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_issuetyp] PRIMARY KEY CLUSTERED 
@@ -28,11 +41,11 @@ BEGIN TRY
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] 
 
-	INSERT INTO [issuetyp] ([issue_type])
+	INSERT INTO [dbo].[issuetyp] ([issue_type])
 	SELECT [issue_type]
 	  FROM [rawUpsize_Contech].[dbo].[issuetyp]
   
-	--SELECT * FROM [issuetyp]
+	--SELECT * FROM [dbo].[issuetyp]
 
     PRINT 'Table: dbo.issuetyp: end'
 
@@ -170,13 +183,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.joblabel: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabel'))
-		DROP TABLE [joblabel]
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabel')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('joblabel')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('joblabel')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[joblabel]
+		PRINT 'Table [dbo].[joblabel] dropped'
+    END
 
-	CREATE TABLE [joblabel](
+	CREATE TABLE [dbo].[joblabel](
 		[joblabelid] [int] IDENTITY(1,1) NOT NULL,
 		--[job_no] [int] NOT NULL DEFAULT 0,		-- FK = [orders].[job_no]
-		[orderid] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,						-- FK = [orders].[job_no] --> [orders].[orderid]
 		[flag] [char](1) NOT NULL DEFAULT '',
 		[lic] [char](4) NOT NULL DEFAULT '',
 		[pcn] [char](13) NOT NULL DEFAULT '',
@@ -200,11 +225,14 @@ BEGIN TRY
 		(
 			[joblabelid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_joblabel_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[joblabel] NOCHECK CONSTRAINT [FK_joblabel_orders];
 
-	INSERT INTO [joblabel] ([orderid],[flag],[lic],[pcn],[r],[q],[ct_lot],[cust_lot],[expyyyy],[expyy],[expmm],[expdd],[expjjj],[created],[modified],[umid1],[umid2],[umid3],[umid4],[expcmonth])
+	INSERT INTO [dbo].[joblabel] ([orderid],[flag],[lic],[pcn],[r],[q],[ct_lot],[cust_lot],[expyyyy],[expyy],[expmm],[expdd],[expjjj],[created],[modified],[umid1],[umid2],[umid3],[umid4],[expcmonth])
 	SELECT --[rawUpsize_Contech].[dbo].[joblabel].[job_no]
-		  ISNULL(orders.[orderid], 0) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[orderid] 
+		  ISNULL(orders.[orderid], NULL) AS [ordersid]		-- FK = [orders].[job_no] --> [orders].[orderid] 
 		  ,[rawUpsize_Contech].[dbo].[joblabel].[flag]
 		  ,[rawUpsize_Contech].[dbo].[joblabel].[lic]
 		  ,[rawUpsize_Contech].[dbo].[joblabel].[pcn]
@@ -225,9 +253,9 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[joblabel].[umid4]
 		  ,[rawUpsize_Contech].[dbo].[joblabel].[expcmonth]
 	  FROM [rawUpsize_Contech].[dbo].[joblabel]
-	  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[joblabel].[job_no] = orders.[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
+	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[joblabel].[job_no] = orders.[job_no]		-- FK = [orders].[job_no] --> [orders].[ordersid]
 
-	--SELECT * FROM [joblabel]
+	--SELECT * FROM [dbo].[joblabel]
 
     PRINT 'Table: dbo.joblabel: end'
 
@@ -247,16 +275,28 @@ BEGIN TRY
 
     PRINT 'Table: dbo.joblabor: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabor'))
-		DROP TABLE [joblabor]
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'joblabor')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('joblabor')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('joblabor')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[joblabor]
+		PRINT 'Table [dbo].[joblabor] dropped'
+    END
 
-	CREATE TABLE [joblabor](
+	CREATE TABLE [dbo].[joblabor](
 		[joblaborid] [int] IDENTITY(1,1) NOT NULL,
 		--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
-		[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,							-- FK = [orders].[job_no] --> [orders].[orderid]
 		[mfgstageid] [int] NOT NULL DEFAULT 0,			-- FK = [mfgstage].[mfgstageid]
 		--[empnumber] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber]
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		[employeeid] [int] NULL,						-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		[emp_rate] [numeric](5, 2) NOT NULL DEFAULT 0.0,
 		[labor_date] [datetime] NULL,
 		[timein] [char](6) NOT NULL DEFAULT '',
@@ -273,17 +313,24 @@ BEGIN TRY
 		(
 			[joblaborid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_joblabor_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_joblabor_mfgstage FOREIGN KEY ([mfgstageid]) REFERENCES [dbo].[mfgstage] ([mfgstageid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_joblabor_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[joblabor] NOCHECK CONSTRAINT [FK_joblabor_orders];
+	ALTER TABLE [dbo].[joblabor] NOCHECK CONSTRAINT [FK_joblabor_mfgstage];
+	ALTER TABLE [dbo].[joblabor] NOCHECK CONSTRAINT [FK_joblabor_employee];
 
-	SET IDENTITY_INSERT [joblabor] ON;
+	SET IDENTITY_INSERT [dbo].[joblabor] ON;
 
-	INSERT INTO [joblabor] ([joblaborid],[orderid],[mfgstageid],[employeeid],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
+	INSERT INTO [dbo].[joblabor] ([joblaborid],[orderid],[mfgstageid],[employeeid],[emp_rate],[labor_date],[timein],[timeout],[pcs],[hrs],[pcs_over_q],[inc_pay],[time_cost],[lunch],[quota],[notes])
 	SELECT [rawUpsize_Contech].[dbo].[joblabor].[joblaborid]
 		  --,[rawUpsize_Contech].[dbo].[joblabor].[job_no]		-- FK = [orders].[job_no]
-		  ,ISNULL(orders.[orderid], 0) AS [ordersid]			-- FK = [orders].[job_no] --> [orders].[ordersid] 
+		  ,ISNULL(orders.[orderid], NULL) AS [ordersid]			-- FK = [orders].[job_no] --> [orders].[ordersid] 
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[mfgstageid]	-- FK = [mfgstage].[mfgstageid]
 		  --,[rawUpsize_Contech].[dbo].[joblabor].[empnumber]	-- FK = [employee].[empnumber] 
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[emp_rate]
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[labor_date]
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[timein]
@@ -297,12 +344,12 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[quota]
 		  ,[rawUpsize_Contech].[dbo].[joblabor].[notes]
 	  FROM [rawUpsize_Contech].[dbo].[joblabor]
-	  LEFT JOIN [orders] orders ON [rawUpsize_Contech].[dbo].[joblabor].[job_no] = orders.[job_no]				-- FK = [orders].[job_no] --> [orders].[ordersid]
-	  LEFT JOIN [employee] employee ON [rawUpsize_Contech].[dbo].[joblabor].[empnumber] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[joblabor].[job_no] = orders.[job_no]				-- FK = [orders].[job_no] --> [orders].[ordersid]
+	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[joblabor].[empnumber] = employee.[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
 
-	SET IDENTITY_INSERT [joblabor] OFF;
+	SET IDENTITY_INSERT [dbo].[joblabor] OFF;
 
-	--SELECT * FROM [joblabor]
+	--SELECT * FROM [dbo].[joblabor]
 
     PRINT 'Table: dbo.joblabor: end'
 

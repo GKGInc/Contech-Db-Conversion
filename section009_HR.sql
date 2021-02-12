@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section009_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 -- =========================================================
 -- Section 009: qrn
@@ -26,8 +27,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.qrn: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrn'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrn')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrn')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrn')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrn]
+		PRINT 'Table [dbo].[qrn] dropped'
+    END
 	
 	CREATE TABLE [dbo].[qrn](
 		[qrnid] [int] IDENTITY(1,1) NOT NULL,
@@ -38,10 +51,10 @@ BEGIN TRY
 		[fin_lot] [char](8) NOT NULL DEFAULT '',
 		[ct_lot] [char](4) NOT NULL DEFAULT '',
 		--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no] 
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]	
+		[customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]	
 		[cust_lot] [char](15) NOT NULL DEFAULT '',
 		--[ven_id] [char](6) NOT NULL DEFAULT 0,		-- FK = [vendor].[ven_id] 
-		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+		[vendorid] [int] NULL,							-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 		[ven_lot] [char](15) NOT NULL DEFAULT '',
 		[po_no] [char](8) NOT NULL DEFAULT '',
 		[cust_po] [char](15) NOT NULL DEFAULT '',
@@ -55,7 +68,7 @@ BEGIN TRY
 		[ct_cpa] [char](10) NOT NULL DEFAULT '',
 		[action] [bit] NOT NULL DEFAULT 0,
 		[post] [bit] NOT NULL DEFAULT 0,
-		[matlinid] [int] NOT NULL DEFAULT 0,			-- FK = [matlin].[matlinid]
+		[matlinid] [int] NULL,							-- FK = [matlin].[matlinid]
 		[matlincrid] [int] NOT NULL DEFAULT 0,
 		[use_as] [bit] NOT NULL DEFAULT 0,
 		[rework] [bit] NOT NULL DEFAULT 0,
@@ -71,7 +84,7 @@ BEGIN TRY
 		[internal] [bit] NOT NULL DEFAULT 0,
 		[comp_desc] [char](75) NOT NULL DEFAULT '',
 		--[empnumber] [char](10) NOT NULL DEFAULT 0,	-- FK = [employee].[empnumber]
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] --> [employee].[employeeid]
+		[employeeid] [int] NULL,						-- FK = [employee].[empnumber] --> [employee].[employeeid]
 		[external] [bit] NOT NULL DEFAULT 0,
 		[rework_no] [char](10) NOT NULL DEFAULT '',
 		[rjct_close] [datetime] NULL,
@@ -84,8 +97,17 @@ BEGIN TRY
 		(
 			[qrnid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrn_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_qrn_vendor FOREIGN KEY ([vendorid]) REFERENCES [dbo].[vendor] ([vendorid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_qrn_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_qrn_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
   
+	ALTER TABLE [dbo].[qrn] NOCHECK CONSTRAINT [FK_qrn_customer];
+	ALTER TABLE [dbo].[qrn] NOCHECK CONSTRAINT [FK_qrn_vendor];
+	ALTER TABLE [dbo].[qrn] NOCHECK CONSTRAINT [FK_qrn_matlin];
+	ALTER TABLE [dbo].[qrn] NOCHECK CONSTRAINT [FK_qrn_employee];
+
 	SET IDENTITY_INSERT [dbo].[qrn] ON;
 
 	INSERT INTO [dbo].[qrn] ([qrnid],[qrn_no],[source],[comp],[fin_good],[fin_lot],[ct_lot],[customerid],[cust_lot],[vendorid],[ven_lot],[po_no],[cust_po],[recd],[rejected],[inspected],[defective],[inspector],[qrn_date],[reason],[ct_cpa],[action],[post],[matlinid],[matlincrid],[use_as],[rework],[return],[scrap],[mrc],[returned],[kept],[comments],[rev_dt],[hold],[reopen_po],[internal],[comp_desc],[employeeid],[external],[rework_no],[rjct_close],[keep_close],[vndnotfied],[vndrsponse],[sort],[regrade])
@@ -97,10 +119,10 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[qrn].[fin_lot]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[ct_lot]
 		  --,[rawUpsize_Contech].[dbo].[qrn].[cust_no]	
-		  ,ISNULL(customer.[customerid], 0) AS [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
+		  ,ISNULL(customer.[customerid], NULL) AS [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[cust_lot]
 		  --,[rawUpsize_Contech].[dbo].[qrn].[ven_id]		
-		  ,ISNULL(vendor.[vendorid], 0) AS [vendorid]		-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
+		  ,ISNULL(vendor.[vendorid], NULL) AS [vendorid]		-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[ven_lot]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[po_no]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[cust_po]
@@ -115,7 +137,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[qrn].[action]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[post]
 		  --,[rawUpsize_Contech].[dbo].[qrn].[matlinid]	
-		  ,ISNULL(matlin.[matlinid], 0) AS [matlinid]		-- FK = [matlin].[matlin_key] == [matlin].[matlinid]
+		  ,ISNULL(matlin.[matlinid], NULL) AS [matlinid]		-- FK = [matlin].[matlin_key] == [matlin].[matlinid]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[matlincrid]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[use_as]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[rework]
@@ -131,7 +153,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[qrn].[internal]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[comp_desc]
 		  --,[rawUpsize_Contech].[dbo].[qrn].[empnumber]	
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] --> [employee].[employeeid]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[external]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[rework_no]
 		  ,[rawUpsize_Contech].[dbo].[qrn].[rjct_close]
@@ -159,20 +181,33 @@ BEGIN TRY
 -- Column changes:
 --  - Changed [qrn_dtlid] to be primary key
 --  - Changed [qrn_no] [char](8) to [qrnid] [int] to reference [qrn] table
+--  - Changed [cmpcasesid] to [cmpcaseid]
 -- Maps:
 --	- [qrn_dtl].[qrn_no] --> [qrnid]	-- FK = [qrn].[qrnid]
---	- [qrn_dtl].[cmpcasesid]			-- FK = [cmpcases].[cmpcasesid]
+--	- [qrn_dtl].[cmpcaseid]			-- FK = [cmpcases].[cmpcaseid]
 
     PRINT 'Table: dbo.qrn_dtl: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrn_dtl'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrn_dtl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrn_dtl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrn_dtl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrn_dtl]
-	
+		PRINT 'Table [dbo].[qrn_dtl] dropped'
+    END
+
 	CREATE TABLE [dbo].[qrn_dtl](
 		[qrn_dtlid] [int] IDENTITY(1,1) NOT NULL,	-- PK
 		--[qrn_no] [char](8) NOT NULL DEFAULT '',	-- FK = [qrn].[qrn_no]  
-		[qrnid] [int] NOT NULL DEFAULT '',			-- FK = [qrn].[qrnid]
-		[cmpcasesid] [int] NOT NULL DEFAULT 0,		-- FK = [cmpcases].[cmpcasesid]
+		[qrnid] [int] NOT NULL DEFAULT 0,			-- FK = [qrn].[qrnid]
+		[cmpcaseid] [int] NOT NULL DEFAULT 0,		-- FK = [cmpcases].[cmpcaseid]
 		[qty_rej] [int] NOT NULL DEFAULT 0,
 		[id_type] [char](5) NOT NULL DEFAULT '',
 		[picked] [bit] NOT NULL DEFAULT 0,
@@ -181,21 +216,26 @@ BEGIN TRY
 		(
 			[qrn_dtlid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrn_dtl_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_qrn_dtl_cmpcases FOREIGN KEY ([cmpcaseid]) REFERENCES [dbo].[cmpcases] ([cmpcaseid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[qrn_dtl] NOCHECK CONSTRAINT [FK_qrn_dtl_cmpcases];
 
 	SET IDENTITY_INSERT [dbo].[qrn_dtl] ON;
 
-	INSERT INTO [dbo].[qrn_dtl] ([qrn_dtlid],[qrnid],[cmpcasesid],[qty_rej],[id_type],[picked],[bar_code])
+	INSERT INTO [dbo].[qrn_dtl] ([qrn_dtlid],[qrnid],[cmpcaseid],[qty_rej],[id_type],[picked],[bar_code])
 	SELECT [rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_dtlid]
 		  --,[rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_no]				
 		  ,ISNULL(qrn.[qrnid], 0) AS [qrnid]					-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
-		  ,[rawUpsize_Contech].[dbo].[qrn_dtl].[cmpcasesid]		-- FK = [cmpcases].[cmpcasesid]
+		 ,[rawUpsize_Contech].[dbo].[qrn_dtl].[cmpcasesid]		-- FK = [cmpcases].[cmpcasesid]
 		  ,[rawUpsize_Contech].[dbo].[qrn_dtl].[qty_rej]
 		  ,[rawUpsize_Contech].[dbo].[qrn_dtl].[id_type]
 		  ,[rawUpsize_Contech].[dbo].[qrn_dtl].[picked]
 		  ,[rawUpsize_Contech].[dbo].[qrn_dtl].[bar_code]
 	  FROM [rawUpsize_Contech].[dbo].[qrn_dtl]
-	  LEFT JOIN [dbo].[qrn] qrn ON [rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_no] = qrn.[qrn_no]
+	  LEFT JOIN [dbo].[qrn] qrn ON [rawUpsize_Contech].[dbo].[qrn_dtl].[qrn_no] = qrn.[qrn_no] 
+	  WHERE [qrnid] IN (SELECT [qrnid] FROM [dbo].[qrn])
 
 	SET IDENTITY_INSERT [dbo].[qrn_dtl] OFF;
 
@@ -215,19 +255,35 @@ BEGIN TRY
 
     PRINT 'Table: dbo.qrnexcpt: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnexcpt'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnexcpt')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrnexcpt')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrnexcpt')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrnexcpt]
+		PRINT 'Table [dbo].[qrnexcpt] dropped'
+    END
 	
 	CREATE TABLE [dbo].[qrnexcpt](
 		[qrnexcptid] [int] IDENTITY(1,1) NOT NULL,
 		[qrnid] [int] NOT NULL DEFAULT 0,				-- FK = [qrn].[qrnid]
 		[extype] [char](1) NOT NULL DEFAULT '',
-		[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
+		[bom_no] [numeric](5, 0) NULL,					-- FK = [bom_hdr].[bom_no]
 		CONSTRAINT [PK_qrnexcpt] PRIMARY KEY CLUSTERED 
 		(
 			[qrnexcptid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrnexcpt_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		--,CONSTRAINT FK_qrnexcpt_bom_hdr FOREIGN KEY ([bom_no]) REFERENCES [dbo].[bom_hdr] ([bom_no]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	--ALTER TABLE [dbo].[qrnexcpt] NOCHECK CONSTRAINT [FK_qrnexcpt_bom_hdr];
 
 	SET IDENTITY_INSERT [dbo].[qrnexcpt] ON;
 
@@ -257,24 +313,42 @@ BEGIN TRY
 
     PRINT 'Table: dbo.qrnissue: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnissue'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnissue')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrnissue')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrnissue')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrnissue]
-		
+		PRINT 'Table [dbo].[qrnissue] dropped'
+    END
+	
 	CREATE TABLE [dbo].[qrnissue](
 		[qrnissueid] [int] IDENTITY(1,1) NOT NULL,
-		[issuesid] [int] NOT NULL DEFAULT 0,			-- FK = [issues].[issuesid]
+		[issueid] [int] NULL,							-- FK = [issues].[issueid]
 		--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
-		[qrnid] [int] NOT NULL DEFAULT '',				-- FK = [qrn].[qrnid]
-		[issuesdtid] [int] NOT NULL DEFAULT 0,			-- FK = [issuesdt].[issuesdtid]
+		[qrnid] [int] NOT NULL DEFAULT 0,				-- FK = [qrn].[qrnid]
+		[issuesdtid] [int] NULL,						-- FK = [issuesdt].[issuesdtid]
 		CONSTRAINT [PK_qrnissue] PRIMARY KEY CLUSTERED 
 		(
 			[qrnissueid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrnissue_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_qrnissue_issues FOREIGN KEY ([issueid]) REFERENCES [dbo].[issues] ([issueid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_qrnissue_issuesdt FOREIGN KEY ([issuesdtid]) REFERENCES [dbo].[issuesdt] ([issuesdtid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[qrnissue] NOCHECK CONSTRAINT [FK_qrnissue_issues];
+	ALTER TABLE [dbo].[qrnissue] NOCHECK CONSTRAINT [FK_qrnissue_issuesdt];
 
 	SET IDENTITY_INSERT [dbo].[qrnissue] ON;
 
-	INSERT INTO [dbo].[qrnissue] ([qrnissueid],[issuesid],[qrnid],[issuesdtid])
+	INSERT INTO [dbo].[qrnissue] ([qrnissueid],[issueid],[qrnid],[issuesdtid])
 	SELECT [rawUpsize_Contech].[dbo].[qrnissue].[qrnissueid]
 		  ,[rawUpsize_Contech].[dbo].[qrnissue].[issuesid]
 		  --,[rawUpsize_Contech].[dbo].[qrnmachn].[qrn_no]		-- FK = [qrn].[qrn_no]
@@ -282,7 +356,8 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[qrnissue].[issuesdtid]
 	  FROM [rawUpsize_Contech].[dbo].[qrnissue]
 	  LEFT JOIN [dbo].[qrn] qrn ON [rawUpsize_Contech].[dbo].[qrnissue].[qrn_no] = qrn.[qrn_no]
-  
+	WHERE [qrnid] > 0
+
 	SET IDENTITY_INSERT [dbo].[qrnissue] OFF;
 
 	--SELECT * FROM [dbo].[qrnissue]
@@ -300,18 +375,31 @@ BEGIN TRY
 
     PRINT 'Table: dbo.qrnmachn: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnmachn'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnmachn')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrnmachn')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrnmachn')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrnmachn]
+		PRINT 'Table [dbo].[qrnmachn] dropped'
+    END
 
 	CREATE TABLE [dbo].[qrnmachn](
 		[qrnmachnid] [int] IDENTITY(1,1) NOT NULL,
 		--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
-		[qrnid] [int] NOT NULL DEFAULT '',				-- FK = [qrn].[qrnid]
+		[qrnid] [int] NOT NULL DEFAULT 0,				-- FK = [qrn].[qrnid]
 		[machine] [char](10) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_qrnmachn] PRIMARY KEY CLUSTERED 
 		(
 			[qrnmachnid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrnmachn_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE CASCADE NOT FOR REPLICATION 
 	) ON [PRIMARY] 
 
 	SET IDENTITY_INSERT [dbo].[qrnmachn] ON;
@@ -329,8 +417,7 @@ BEGIN TRY
 	--SELECT * FROM [dbo].[qrnmachn]
 
     PRINT 'Table: dbo.qrnmachn: end'
-
-
+	
 -- =========================================================
 -- Section 009: qrnsource
 -- =========================================================
@@ -340,8 +427,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.qrnsource: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnsource'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrnsource')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrnsource')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrnsource')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrnsource]
+		PRINT 'Table [dbo].[qrnsource] dropped'
+    END
 	
 	CREATE TABLE [dbo].[qrnsource](
 		[qrnsourceid] [int] identity(1,1) NOT NULL,
@@ -369,12 +468,23 @@ BEGIN TRY
 -- Maps:
 --	- [qrnmachn].[qrnid]		-- FK = [qrn].[qrnid]
 
-
     PRINT 'Table: dbo.qrntable: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrntable'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'qrntable')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('qrntable')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('qrntable')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[qrntable]
-	
+		PRINT 'Table [dbo].[qrntable] dropped'
+    END
+
 	CREATE TABLE [dbo].[qrntable](
 		[qrntableid] [int] IDENTITY(1,1) NOT NULL,
 		--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
@@ -385,6 +495,7 @@ BEGIN TRY
 		(
 			[qrntableid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_qrntable_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE CASCADE NOT FOR REPLICATION 
 	) ON [PRIMARY] 
 	
 	SET IDENTITY_INSERT [dbo].[qrntable] ON;

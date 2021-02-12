@@ -40,7 +40,7 @@ begin try
     END
 
     CREATE TABLE dbo.users
-        (
+    (
         userid int NOT NULL IDENTITY (1, 1),
         username char(10) NOT NULL,
         password char(15) NOT NULL,
@@ -51,7 +51,7 @@ begin try
         empnumber char(10) default '' NOT NULL,
         netuser char(50) default '' NOT NULL,
         mfg_locid int default 0 NOT NULL
-        )  ON [PRIMARY]
+    )  ON [PRIMARY]
 
     ALTER TABLE dbo.users SET (LOCK_ESCALATION = TABLE)
 

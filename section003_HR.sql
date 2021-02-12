@@ -95,87 +95,6 @@ BEGIN TRY
 	--SELECT * FROM [dbo].[doctypes]
 
     PRINT 'Table: dbo.doctypes: end'
-		
--- =========================================================
--- Section 003: docs_dtl -- Moved from section 030
--- =========================================================
-
--- Column changes:
---  - Set [docs_dtlid] to be primary key
---  - Changed [descript] from [text] to [varchar](2000)
---  - Changed [rev_emp] [char](10) to [rev_employeeid] [int] to reference [employee] table
--- Maps:
---	- [docs_dtl].[docs_hdrid]					-- FK = [docs_hdr].[docs_hdrid]
---	- [docs_dtl].[rev_emp] --> [rev_employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-
-    PRINT 'Table: dbo.docs_dtl: start'
-	
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'docs_dtl'))
-	BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		--DECLARE @SQL varchar(4000)=''
-		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('docs_dtl')) > 0)
-		BEGIN		
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('docs_dtl')
-			PRINT (@SQL)	
-			EXEC (@SQL)
-		END
-		
-		DROP TABLE [dbo].[docs_dtl]
-	END	
-
-	CREATE TABLE [dbo].[docs_dtl](
-		[docs_dtlid] [int] IDENTITY(1,1) NOT NULL,
-		[doctype] [char](4) NOT NULL DEFAULT '',
-		[series] [char](4) NOT NULL DEFAULT '',
-		[extension] [char](20) NOT NULL DEFAULT '',
-		[document] [char](15) NOT NULL DEFAULT '',
-		[descript] [varchar](2000) NOT NULL DEFAULT '',
-		[rev] [char](4) NOT NULL DEFAULT '',
-		[rev_date] [datetime] NULL,
-		[move_date] [datetime] NULL,
-		[docmod] [bit] NOT NULL DEFAULT 0,
-		[docs_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [docs_hdr].[docs_hdrid]
-		[cpmr_rev] [char](4) NOT NULL DEFAULT '',
-		[cpmr_date] [datetime] NULL,
-		[rev_rec] [int] NOT NULL DEFAULT 0,
-		[rev_dt] [datetime] NULL,
-		--[rev_emp] [char](10) NOT NULL DEFAULT '',
-		[rev_employeeid] [int] NOT NULL DEFAULT 0,		-- FK = [employee].[empnumber] -> [employee].[employeeid]
-		CONSTRAINT [PK_docs_dtl] PRIMARY KEY CLUSTERED 
-		(
-			[docs_dtlid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-	) ON [PRIMARY]
-
-	SET IDENTITY_INSERT [dbo].[docs_dtl] ON;
-
-	INSERT INTO [dbo].[docs_dtl] ([docs_dtlid],[doctype],[series],[extension],[document],[descript],[rev],[rev_date],[move_date],[docmod],[docs_hdrid],[cpmr_rev],[cpmr_date],[rev_rec],[rev_dt],[rev_employeeid])
-	SELECT [rawUpsize_Contech].[dbo].[docs_dtl].[docs_dtlid]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[doctype]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[series]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[extension]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[document]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[descript]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_date]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[move_date]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[docmod]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[docs_hdrid]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[cpmr_rev]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[cpmr_date]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_rec]
-		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_dt]
-		  --,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_emp]
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
-	  FROM [rawUpsize_Contech].[dbo].[docs_dtl]
-	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[docs_dtl].[rev_emp] = employee.[empnumber]	
-  
-	SET IDENTITY_INSERT [dbo].[docs_dtl] OFF;
-
-	--SELECT * FROM [dbo].[docs_dtl]
-
-    PRINT 'Table: dbo.docs_dtl: end'
 
 -- =========================================================
 -- Section 003: docs_hdr -- Moved from section 030
@@ -206,21 +125,24 @@ BEGIN TRY
 	CREATE TABLE [dbo].[docs_hdr](
 		[docs_hdrid] [int] IDENTITY(1,1) NOT NULL,
 		--[doctype] [char](4) NOT NULL DEFAULT '',		-- FK = [doctypes].[doctype]
-		[doctypeid] [int] NOT NULL DEFAULT 0,			-- FK = [doctypes].[doctype] -> [doctypes].[doctypeid]
+		[doctypeid] [int] NULL				,			-- FK = [doctypes].[doctype] -> [doctypes].[doctypeid]
 		[series] [char](4) NOT NULL DEFAULT '',
 		[descript] [char](75) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_docs_hdr] PRIMARY KEY CLUSTERED 
 		(
 			[docs_hdrid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	,CONSTRAINT FK_docs_hdr_doctype FOREIGN KEY ([doctypeid]) REFERENCES [dbo].[doctypes] ([doctypeid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+		
+	ALTER TABLE [dbo].[docs_hdr] NOCHECK CONSTRAINT [FK_docs_hdr_doctype];
 
 	SET IDENTITY_INSERT [dbo].[docs_hdr] ON;
 
 	INSERT INTO [dbo].[docs_hdr] ([docs_hdrid],[doctypeid],[series],[descript])
 	SELECT [rawUpsize_Contech].[dbo].[docs_hdr].[docs_hdrid]
 		  --,[rawUpsize_Contech].[dbo].[docs_hdr].[doctype]
-		  ,ISNULL(doctypes.[doctypeid], 0) AS [docs_dtlid] -- FK = [doctypes].[doctype] -> [doctypes].[doctypeid]
+		  ,ISNULL(doctypes.[doctypeid], NULL) AS [docs_dtlid] -- FK = [doctypes].[doctype] -> [doctypes].[doctypeid]
 		  ,[rawUpsize_Contech].[dbo].[docs_hdr].[series]
 		  ,[rawUpsize_Contech].[dbo].[docs_hdr].[descript]
 	  FROM [rawUpsize_Contech].[dbo].[docs_hdr]
@@ -232,6 +154,93 @@ BEGIN TRY
 
     PRINT 'Table: dbo.docs_hdr: end'
 
+-- =========================================================
+-- Section 003: docs_dtl -- Moved from section 030
+-- =========================================================
+
+-- Column changes:
+--  - Set [docs_dtlid] to be primary key
+--  - Moved [docs_hdrid] to second column
+--  - Changed [descript] from [text] to [varchar](2000)
+--  - Changed [rev_emp] [char](10) to [rev_employeeid] [int] to reference [employee] table
+-- Maps:
+--	- [docs_dtl].[docs_hdrid]					-- FK = [docs_hdr].[docs_hdrid]
+--	- [docs_dtl].[rev_emp] --> [rev_employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+    PRINT 'Table: dbo.docs_dtl: start'
+	
+	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'docs_dtl'))
+	BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		--DECLARE @SQL varchar(4000)=''
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('docs_dtl')) > 0)
+		BEGIN		
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('docs_dtl')
+			PRINT (@SQL)	
+			EXEC (@SQL)
+		END
+		
+		DROP TABLE [dbo].[docs_dtl]
+	END	
+
+	CREATE TABLE [dbo].[docs_dtl](
+		[docs_dtlid] [int] IDENTITY(1,1) NOT NULL,
+		[docs_hdrid] [int] NOT NULL DEFAULT 0,			-- FK = [docs_hdr].[docs_hdrid]
+		[doctype] [char](4) NOT NULL DEFAULT '',
+		[series] [char](4) NOT NULL DEFAULT '',
+		[extension] [char](20) NOT NULL DEFAULT '',
+		[document] [char](15) NOT NULL DEFAULT '',
+		[descript] [varchar](2000) NOT NULL DEFAULT '',
+		[rev] [char](4) NOT NULL DEFAULT '',
+		[rev_date] [datetime] NULL,
+		[move_date] [datetime] NULL,
+		[docmod] [bit] NOT NULL DEFAULT 0,
+		[cpmr_rev] [char](4) NOT NULL DEFAULT '',
+		[cpmr_date] [datetime] NULL,
+		[rev_rec] [int] NOT NULL DEFAULT 0,
+		[rev_dt] [datetime] NULL,
+		--[rev_emp] [char](10) NOT NULL DEFAULT '',
+		[rev_employeeid] [int] NULL,		-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		CONSTRAINT [PK_docs_dtl] PRIMARY KEY CLUSTERED 
+		(
+			[docs_dtlid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_docs_dtl_docs_hdr FOREIGN KEY ([docs_hdrid]) REFERENCES [dbo].[docs_hdr] ([docs_hdrid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_docs_dtl_employee FOREIGN KEY ([rev_employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
+	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[docs_dtl] NOCHECK CONSTRAINT [FK_docs_dtl_employee];
+
+	SET IDENTITY_INSERT [dbo].[docs_dtl] ON;
+
+	INSERT INTO [dbo].[docs_dtl] ([docs_dtlid],[docs_hdrid],[doctype],[series],[extension],[document],[descript],[rev],[rev_date],[move_date],[docmod],[cpmr_rev],[cpmr_date],[rev_rec],[rev_dt],[rev_employeeid])
+	SELECT [rawUpsize_Contech].[dbo].[docs_dtl].[docs_dtlid]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[docs_hdrid]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[doctype]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[series]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[extension]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[document]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[descript]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_date]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[move_date]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[docmod]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[cpmr_rev]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[cpmr_date]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_rec]
+		  ,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_dt]
+		  --,[rawUpsize_Contech].[dbo].[docs_dtl].[rev_emp]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+	  FROM [rawUpsize_Contech].[dbo].[docs_dtl]
+	  LEFT JOIN [dbo].[employee] employee ON [rawUpsize_Contech].[dbo].[docs_dtl].[rev_emp] = employee.[empnumber]	
+	  WHERE [docs_hdrid] > 0
+  
+	SET IDENTITY_INSERT [dbo].[docs_dtl] OFF;
+
+	--SELECT * FROM [dbo].[docs_dtl]
+
+    PRINT 'Table: dbo.docs_dtl: end'
+	
 -- =========================================================
 -- Section 003: colorant -- Moved from section 027
 -- =========================================================
@@ -263,7 +272,7 @@ BEGIN TRY
 		[colorantno] [char](20) NOT NULL DEFAULT '',
 		[color_desc] [char](50) NOT NULL DEFAULT '',
 		--[document] [char](15) NOT NULL DEFAULT '',	-- FK = [docs_dtl].[document] 
-		[docs_dtlid] [int] NOT NULL DEFAULT 0,			-- FK = [docs_dtl].[document] -> [docs_dtl].[docs_dtlid]
+		[docs_dtlid] [int] NULL,			-- FK = [docs_dtl].[document] -> [docs_dtl].[docs_dtlid]
 		CONSTRAINT [PK_colorant] PRIMARY KEY CLUSTERED 
 		(
 			[colorantid] ASC
@@ -277,7 +286,7 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[colorant].[colorantno]
 		  ,[rawUpsize_Contech].[dbo].[colorant].[color_desc]
 		  --,[rawUpsize_Contech].[dbo].[colorant].[document]
-		  ,ISNULL(docs_dtl.[docs_dtlid], 0) AS [docs_dtlid] 
+		  ,ISNULL(docs_dtl.[docs_dtlid], NULL) AS [docs_dtlid] 
 		  --,ISNULL([rawUpsize_Contech].[dbo].[docs_dtl].[docs_dtlid], 0) AS [docs_dtlid] 
 	  FROM [rawUpsize_Contech].[dbo].[colorant]
 	  LEFT JOIN [dbo].[docs_dtl] docs_dtl ON [rawUpsize_Contech].[dbo].[colorant].[document] = docs_dtl.[document]
@@ -333,11 +342,11 @@ BEGIN TRY
 		[memo1] [char](51) NOT NULL DEFAULT '',
 		[insp] [char](2) NOT NULL DEFAULT '',
 		--[cust_no] [char](5) NOT NULL DEFAULT '',		-- FK = [customer].[cust_no]
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
+		[customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[cost] [numeric](9, 5) NOT NULL DEFAULT 0.0,
 		[unit] [char](4) NOT NULL DEFAULT '',
 		--[ven_id] [char](6) NOT NULL DEFAULT '',		-- FK = [vendor].[ven_id] 
-		[vendorid] [int] NOT NULL DEFAULT 0,			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+		[vendorid] [int] NULL,							-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
 		[price] [numeric](9, 5) NOT NULL DEFAULT 0.0,
 		[ctp_min] [numeric](10, 0) NOT NULL DEFAULT 0,
 		[cmi_inv] [char](1) NOT NULL DEFAULT '',
@@ -358,7 +367,7 @@ BEGIN TRY
 		[hold] [numeric](10, 0) NOT NULL DEFAULT 0,
 		[reject] [numeric](10, 0) NOT NULL DEFAULT 0,
 		--[class] [char](4) NOT NULL DEFAULT 0,				-- FK = [class].[class]
-		[classid] [int] NOT NULL DEFAULT 0,					-- FK = [class].[class] --> [class].[classid]
+		[classid] [int] NULL,								-- FK = [class].[class] --> [class].[classid]
 		[comp_rev] [char](2) NOT NULL DEFAULT '',
 		[samp_plan] [char](2) NOT NULL DEFAULT '',
 		[lbl] [char](8) NOT NULL DEFAULT '',
@@ -369,7 +378,7 @@ BEGIN TRY
 		[comptype] [char](3) NOT NULL DEFAULT '',
 		[color] [char](15) NOT NULL DEFAULT '',
 		--[color_no] [char](20) NOT NULL DEFAULT '',		-- FK = [colorant].[color_no] 
-		[colorantid] [int] NOT NULL DEFAULT 0,				-- FK = [colorant].[color_no] --> [colorant].[colorantid]
+		[colorantid] [int] NULL,							-- FK = [colorant].[color_no] --> [colorant].[colorantid]
 		[pantone] [char](15) NOT NULL DEFAULT '',
 		[fda_food] [int] NOT NULL DEFAULT 0,
 		[fda_med] [int] NOT NULL DEFAULT 0,
@@ -399,11 +408,11 @@ BEGIN TRY
 		,[rawUpsize_Contech].[dbo].[componet].[memo1]
 		,[rawUpsize_Contech].[dbo].[componet].[insp]
 		--,[rawUpsize_Contech].[dbo].[componet].[cust_no]		
-		,ISNULL(customer.[customerid], 0) as [customerid]
+		,ISNULL(customer.[customerid], NULL) as [customerid]	-- FK = [customer].[cust_no] --> [customer].[customerid]
 		,[rawUpsize_Contech].[dbo].[componet].[cost]
 		,[rawUpsize_Contech].[dbo].[componet].[unit]
 		--,[rawUpsize_Contech].[dbo].[componet].[ven_id]
-		,ISNULL(vendor.[vendorid], 0) AS [vendorid]			-- FK = [vendor].[ven_id] -> [vendor].[vendorid]
+		,ISNULL(vendor.[vendorid], NULL) AS [vendorid]			-- FK = [vendor].[ven_id] --> [vendor].[vendorid]
 		,[rawUpsize_Contech].[dbo].[componet].[price]
 		,[rawUpsize_Contech].[dbo].[componet].[ctp_min]
 		,[rawUpsize_Contech].[dbo].[componet].[cmi_inv]
@@ -424,7 +433,7 @@ BEGIN TRY
 		,[rawUpsize_Contech].[dbo].[componet].[hold]
 		,[rawUpsize_Contech].[dbo].[componet].[reject]
 		--,[rawUpsize_Contech].[dbo].[componet].[class]
-		,ISNULL(class.classid, 0) AS [class]				-- FK = [class].[class] -> [class].[classid]
+		,ISNULL(class.classid, NULL) AS [class]					-- FK = [class].[class] --> [class].[classid]
 		,[rawUpsize_Contech].[dbo].[componet].[comp_rev]
 		,[rawUpsize_Contech].[dbo].[componet].[samp_plan]
 		,[rawUpsize_Contech].[dbo].[componet].[lbl]
@@ -435,7 +444,7 @@ BEGIN TRY
 		,[rawUpsize_Contech].[dbo].[componet].[comptype]
 		,[rawUpsize_Contech].[dbo].[componet].[color]
 		--,[rawUpsize_Contech].[dbo].[componet].[color_no]
-		,ISNULL(colorant.[colorantid], 0) AS [colorantid]	-- FK = [colorant].[color_no] --> [colorant].[colorantid]
+		,ISNULL(colorant.[colorantid], NULL) AS [colorantid]	-- FK = [colorant].[color_no] --> [colorant].[colorantid]
 		,[rawUpsize_Contech].[dbo].[componet].[pantone]
 		,[rawUpsize_Contech].[dbo].[componet].[fda_food]
 		,[rawUpsize_Contech].[dbo].[componet].[fda_med]

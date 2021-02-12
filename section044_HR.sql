@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section044_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -25,42 +26,61 @@ BEGIN TRY
 
     PRINT 'Table: dbo.shporder: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'shporder'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'shporder')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('shporder')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('shporder')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[shporder]
+		PRINT 'Table [dbo].[shporder] dropped'
+    END
 
 	CREATE TABLE [dbo].[shporder](
 		[shporderid] [int] IDENTITY(1,1) NOT NULL,
 		--[job_no] [int] NOT NULL DEFAULT 0,			-- FK = [orders].[job_no]
-		[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,							-- FK = [orders].[job_no] --> [orders].[orderid]
 		--[invoice_no] [int] NOT NULL DEFAULT 0,		-- FK = [aropen].[invoice_no]
-		[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,							-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[shipdate] [datetime] NULL,
 		[palletqty] [varchar](2000) NOT NULL DEFAULT '',
 		[ship_via] [char](30) NOT NULL DEFAULT '',
 		[comments] [varchar](2000) NOT NULL DEFAULT '',
 		--[add_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[add_userid] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[add_userid]
+		[add_userid] [int] NULL,						-- FK = [users].[username] --> [users].[add_userid]
 		[add_dt] [datetime] NULL,
 		CONSTRAINT [PK_shporder] PRIMARY KEY CLUSTERED 
 		(
 			[shporderid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_shporder_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_shporder_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_shporder_users FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[shporder] NOCHECK CONSTRAINT [FK_shporder_orders];
+	ALTER TABLE [dbo].[shporder] NOCHECK CONSTRAINT [FK_shporder_aropen];
+	ALTER TABLE [dbo].[shporder] NOCHECK CONSTRAINT [FK_shporder_users];
 
 	SET IDENTITY_INSERT [dbo].[shporder] ON;
 
 	INSERT INTO [dbo].[shporder] ([shporderid],[orderid],[aropenid],[shipdate],[palletqty],[ship_via],[comments],[add_userid],[add_dt])
 	SELECT [rawUpsize_Contech].[dbo].[shporder].[shporderid]
 		  --,[rawUpsize_Contech].[dbo].[shporder].[job_no]
-		  ,ISNULL(orders.[orderid], 0) AS [orderid]		-- FK = [orders].[job_no] --> [orders].[orderid]    
+		  ,ISNULL(orders.[orderid], NULL) AS [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]    
 		  --,[rawUpsize_Contech].[dbo].[shporder].[invoice_no]
-		  ,ISNULL(aropen.[aropenid], 0) AS [aropenid] 		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) AS [aropenid] 		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[shporder].[shipdate]
 		  ,[rawUpsize_Contech].[dbo].[shporder].[palletqty]
 		  ,[rawUpsize_Contech].[dbo].[shporder].[ship_via]
 		  ,[rawUpsize_Contech].[dbo].[shporder].[comments]
 		  --,[rawUpsize_Contech].[dbo].[shporder].[add_user]
-		  ,ISNULL(users.[userid] , 0) as [userid]			-- FK = [users].[username] --> [users].[add_userid]
+		  ,ISNULL(users.[userid], NULL) as [userid]				-- FK = [users].[username] --> [users].[add_userid]
 		  ,[rawUpsize_Contech].[dbo].[shporder].[add_dt]
 	  FROM [rawUpsize_Contech].[dbo].[shporder]
 	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[shporder].[job_no] = orders.[job_no]			-- FK = [orders].[job_no] --> [orders].[ordersid]
@@ -95,8 +115,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.system: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'system'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'system')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('system')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('system')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[system]
+		PRINT 'Table [dbo].[system] dropped'
+    END
 
 	CREATE TABLE [dbo].[system](
 		[systemid] [int] IDENTITY(1,1) NOT NULL,
@@ -111,11 +143,11 @@ BEGIN TRY
 		[fax] [char](17) NOT NULL DEFAULT '',
 		[email] [char](25) NOT NULL DEFAULT '',
 		--[job_no] [int] NOT NULL DEFAULT 0,
-		[orderid] [int] NOT NULL DEFAULT 0,				-- FK = [orders].[job_no] --> [orders].[orderid]
+		[orderid] [int] NULL,							-- FK = [orders].[job_no] --> [orders].[orderid]
 		--[cust_no] [char](5) NOT NULL DEFAULT '',
-		[customerid] [int] NOT NULL DEFAULT 0,			-- FK = [customer].[cust_no] --> [customer].[customerid]
+		[customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]
 		--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,
-		[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,							-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[po_tax] [numeric](3, 2) NOT NULL DEFAULT 0.0,
 		[rollover] [numeric](2, 0) NOT NULL DEFAULT 0,
 		[tax] [numeric](2, 2) NOT NULL DEFAULT 0.0,
@@ -138,19 +170,32 @@ BEGIN TRY
 		[rent_acct] [char](10) NOT NULL DEFAULT '',
 		[currency] [char](3) NOT NULL DEFAULT '',
 		--[qrn_no] [char](8) NOT NULL DEFAULT '',		-- FK = [qrn].[qrn_no]
-		[qrnid] [int] NOT NULL DEFAULT 0,				-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+		[qrnid] [int] NULL,								-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 		--[shipper_no] [char](6) NOT NULL DEFAULT '',	-- FK = [ladinghd].[shipper_no] 
-		[ladinghdid] [int] NOT NULL DEFAULT '',			-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
+		[ladinghdid] [int] NULL,						-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 		[crsec] [char](9) NOT NULL DEFAULT '',
 		[emp_files] [char](50) NOT NULL DEFAULT '',
 		--[car_no] [char](8) NOT NULL DEFAULT '',		-- FK = [corractn].[car_no]
-		[corractnid] [int] NOT NULL DEFAULT 0,			-- FK = [corractn].[car_no] --> [corractn].[corractnid]
+		[corractnid] [int] NULL,						-- FK = [corractn].[car_no] --> [corractn].[corractnid]
 		[consign_loc_level] [char](2) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_system] PRIMARY KEY CLUSTERED 
 		(
 			[systemid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_system_orders FOREIGN KEY ([orderid]) REFERENCES [dbo].[orders] ([orderid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_system_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_system_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_system_qrn FOREIGN KEY ([qrnid]) REFERENCES [dbo].[qrn] ([qrnid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_system_ladinghd FOREIGN KEY ([ladinghdid]) REFERENCES [dbo].[ladinghd] ([ladinghdid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_system_corractn FOREIGN KEY ([corractnid]) REFERENCES [dbo].[corractn] ([corractnid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_orders];
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_customer];
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_aropen];
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_qrn];
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_ladinghd];
+	ALTER TABLE [dbo].[system] NOCHECK CONSTRAINT [FK_system_corractn];
 
 	INSERT INTO [dbo].[system] ([company],[address],[address2],[city],[state],[zip],[country],[phone],[fax],[email],[orderid],[customerid],[aropenid],[po_tax],[rollover],[tax],[vat],[paid_acct],[open_acct],[ass_acct],[cont_acct]
 	,[tool_acct],[misc_acct],[resal_acct],[frt_acct],[vat_acct],[frout_acct],[crsl_acct],[labor_acct],[wo_acct],[disc_acct],[misin_acct],[rent_acct],[currency],[qrnid],[ladinghdid],[crsec],[emp_files],[corractnid],[consign_loc_level])
@@ -165,11 +210,11 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[system].[fax]
 		  ,[rawUpsize_Contech].[dbo].[system].[email]
 		  --,[rawUpsize_Contech].[dbo].[system].[job_no]
-		  ,ISNULL(orders.[orderid], 0) AS [orderid]				-- FK = [orders].[job_no] --> [orders].[orderid]    
+		  ,ISNULL(orders.[orderid], NULL) AS [orderid]			-- FK = [orders].[job_no] --> [orders].[orderid]    
 		  --,[rawUpsize_Contech].[dbo].[system].[cust_no]		
 		  ,ISNULL(customer.[customerid], 0) as [customerid]		-- FK = [customer].[cust_no] --> [customer].[customerid]
 		  --,[rawUpsize_Contech].[dbo].[system].[invoice_no]
-		  ,ISNULL(aropen.[aropenid], 0) AS [aropenid] 			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) AS [aropenid] 		-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[system].[po_tax]
 		  ,[rawUpsize_Contech].[dbo].[system].[rollover]
 		  ,[rawUpsize_Contech].[dbo].[system].[tax]
@@ -192,12 +237,12 @@ BEGIN TRY
 		  ,[rawUpsize_Contech].[dbo].[system].[rent_acct]
 		  ,[rawUpsize_Contech].[dbo].[system].[currency]
 		  --,[rawUpsize_Contech].[dbo].[system].[qrn_no]
-		  ,ISNULL(qrn.[qrnid], 0) AS [qrnid]					-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
+		  ,ISNULL(qrn.[qrnid], NULL) AS [qrnid]					-- FK = [qrn].[qrn_no] --> [qrn].[qrnid]
 		  ,[rawUpsize_Contech].[dbo].[system].[shipper_no]		-- FK = [ladinghd].[shipper_no] == [ladinghd].[ladinghdid]
 		  ,[rawUpsize_Contech].[dbo].[system].[crsec]
 		  ,[rawUpsize_Contech].[dbo].[system].[emp_files]
 		  --,[rawUpsize_Contech].[dbo].[system].[car_no]
-		  ,ISNULL(corractn.[corractnid] , 0) as [corractnid]	-- FK = [corractn].[car_no] --> [corractn].[corractnid]	
+		  ,ISNULL(corractn.[corractnid],NULL) as [corractnid]	-- FK = [corractn].[car_no] --> [corractn].[corractnid]	
 		  ,[rawUpsize_Contech].[dbo].[system].[consign_loc_level]
 	  FROM [rawUpsize_Contech].[dbo].[system]
 	  LEFT JOIN [dbo].[orders] orders ON [rawUpsize_Contech].[dbo].[system].[job_no] = orders.[job_no]			-- FK = [orders].[job_no] --> [orders].[ordersid]
@@ -219,8 +264,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.turn_tbl: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'turn_tbl'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'turn_tbl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('turn_tbl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('turn_tbl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[turn_tbl]
+		PRINT 'Table [dbo].[turn_tbl] dropped'
+    END
 
 	CREATE TABLE [dbo].[turn_tbl](
 		[turn_tblid] [int] IDENTITY(1,1) NOT NULL,
@@ -264,32 +321,48 @@ BEGIN TRY
 
     PRINT 'Table: dbo.turnmemo: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'turnmemo'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'turnmemo')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('turnmemo')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('turnmemo')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[turnmemo]
+		PRINT 'Table [dbo].[turnmemo] dropped'
+    END
 
 	CREATE TABLE [dbo].[turnmemo](
 		[turnmemoid] [int] IDENTITY(1,1) NOT NULL,
 		--[table] [char](10) NOT NULL DEFAULT '',		-- FK = [turn_tbl].[table] 
-		[turn_tblid] [int] NOT NULL DEFAULT '',			-- FK = [turn_tbl].[table] --> [turn_tbl].[turn_tblid]
+		[turn_tblid] [int] NULL,						-- FK = [turn_tbl].[table] --> [turn_tbl].[turn_tblid]
 		[memodate] [datetime] NULL,
 		--[memouser] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[memouser] [int] NOT NULL DEFAULT 0,			-- FK = [users].[username] --> [users].[userid]
+		[memouser] [int] NULL,							-- FK = [users].[username] --> [users].[userid]
 		[memonote] [varchar](2000) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_turnmemo] PRIMARY KEY CLUSTERED 
 		(
 			[turnmemoid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_turnmemo_turn_tbl FOREIGN KEY ([turn_tblid]) REFERENCES [dbo].[turn_tbl] ([turn_tblid]) ON DELETE CASCADE NOT FOR REPLICATION 
+		,CONSTRAINT FK_turnmemo_users FOREIGN KEY ([memouser]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[turnmemo] NOCHECK CONSTRAINT [FK_turnmemo_users];
 
 	SET IDENTITY_INSERT [dbo].[turnmemo] ON;
 
 	INSERT INTO [dbo].[turnmemo] ([turnmemoid],[turn_tblid],[memodate],[memouser],[memonote])
 	SELECT [rawUpsize_Contech].[dbo].[turnmemo].[turnmemoid]
 		  --,[rawUpsize_Contech].[dbo].[turnmemo].[table]
-		  ,ISNULL(turn_tbl.[turn_tblid] , 0) as [turn_tblid]	-- FK = [turn_tbl].[table] --> [turn_tbl].[turn_tblid]	
+		  ,ISNULL(turn_tbl.[turn_tblid], NULL) as [turn_tblid]	-- FK = [turn_tbl].[table] --> [turn_tbl].[turn_tblid]	
 		  ,[rawUpsize_Contech].[dbo].[turnmemo].[memodate]
 		  --,[rawUpsize_Contech].[dbo].[turnmemo].[memouser]
-		  ,ISNULL(users.[userid] , 0) as [userid]			
+		  ,ISNULL(users.[userid], NULL) as [userid]			
 		  ,[rawUpsize_Contech].[dbo].[turnmemo].[memonote]		-- FK = [users].[username] --> [users].[userid]
 	  FROM [rawUpsize_Contech].[dbo].[turnmemo]
 	  LEFT JOIN [dbo].[turn_tbl] turn_tbl ON [rawUpsize_Contech].[dbo].[turnmemo].[table] = turn_tbl.[table]	

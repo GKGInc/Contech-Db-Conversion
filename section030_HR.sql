@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section030_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -19,19 +20,34 @@ BEGIN TRY
 
     PRINT 'Table: dbo.cyclcomp: start'
 	
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cyclcomp'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cyclcomp')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cyclcomp')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cyclcomp')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[cyclcomp]
+		PRINT 'Table [dbo].[cyclcomp] dropped'
+    END
 
 	CREATE TABLE [dbo].[cyclcomp](
 		[cyclcompid] [int] IDENTITY(1,1) NOT NULL,
 		[inv_sessid] [char](9) NOT NULL DEFAULT '',
 		--[comp] [char](5) NOT NULL DEFAULT '',
-		[componetid] [int] NOT NULL,		-- FK = [componet].[comp] --> [componet].[componetid]
+		[componetid] [int] NULL,		-- FK = [componet].[comp] --> [componet].[componetid]
 		CONSTRAINT [PK_cyclcomp] PRIMARY KEY CLUSTERED 
 		(
 			[cyclcompid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_cyclcomp_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[cyclcomp] NOCHECK CONSTRAINT [FK_cyclcomp_componet];
 
 	SET IDENTITY_INSERT [dbo].[cyclcomp] ON;
 
@@ -39,7 +55,7 @@ BEGIN TRY
 	SELECT [rawUpsize_Contech].[dbo].[cyclcomp].[cyclcompid]
 		  ,[rawUpsize_Contech].[dbo].[cyclcomp].[inv_sessid]
 		  --,[rawUpsize_Contech].[dbo].[cyclcomp].[comp]
-		  ,ISNULL(componet.[componetid], 0) AS [componetid] 
+		  ,ISNULL(componet.[componetid], NULL) AS [componetid] 
 	  FROM [rawUpsize_Contech].[dbo].[cyclcomp]
 	  LEFT JOIN [componet] componet ON [rawUpsize_Contech].[dbo].[cyclcomp].[comp] = componet.[comp] 
   
@@ -61,8 +77,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.disposit: start'
 	
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'disposit'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'disposit')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('disposit')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('disposit')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[disposit]
+		PRINT 'Table [dbo].[disposit] dropped'
+    END
 
 	CREATE TABLE [dbo].[disposit](
 		[dispositid] [int] IDENTITY(1,1) NOT NULL,
@@ -89,6 +117,7 @@ BEGIN TRY
 
 -- Column changes:
 --  - Set [doc_mngrid] to be primary key
+--  - Changed [parent_id] [char](15) to [parent_id] [int] to reference (MATLIN, CORRACTN) tables depending on [parent_tbl] column value
 --  - Changed [add_user] [char](10) to [add_userid] [int] to reference [users] table
 --  - Changed [mod_user] [char](10) to [mod_userid] [int] to reference [users] table
 -- Maps:
@@ -98,43 +127,61 @@ BEGIN TRY
 
     PRINT 'Table: dbo.doc_mngr: start'
 	
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'doc_mngr'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'doc_mngr')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('doc_mngr')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('doc_mngr')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[doc_mngr]
+		PRINT 'Table [dbo].[doc_mngr] dropped'
+    END
 
 	CREATE TABLE [dbo].[doc_mngr](
 		[doc_mngrid] [int] IDENTITY(1,1) NOT NULL,
-		[parent_id] [char](15) NOT NULL DEFAULT '',			-- FK = [matlin].[matlin_key] or [corractn].[corractnid] -- used with [parent_tbl] (MATLIN, CORRACTN)
+		--[parent_id] [char](15) NULL,					-- FK = [matlin].[matlin_key] or [corractn].[corractnid] -- used with [parent_tbl] (MATLIN, CORRACTN)
+		[parent_id] [int] NULL,							-- FK = [matlin].[matlin_key] or [corractn].[corractnid] -- used with [parent_tbl] (MATLIN, CORRACTN)
 		[parent_tbl] [char](15) NOT NULL DEFAULT '',
 		[document] [char](100) NOT NULL DEFAULT '',
 		[doc_desc] [char](150) NOT NULL DEFAULT '',
 		--[add_user] [char](10) NOT NULL DEFAULT '',
-		[add_userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[add_userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
 		[add_dt] [datetime] NULL,
 		--[mod_user] [char](10) NOT NULL DEFAULT '',
-		[mod_userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[mod_userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
 		[mod_dt] [datetime] NULL,
 		CONSTRAINT [PK_doc_mngr] PRIMARY KEY CLUSTERED 
 		(
 			[doc_mngrid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_doc_mngr_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_doc_mngr_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[doc_mngr] NOCHECK CONSTRAINT [FK_doc_mngr_add_user];
+	ALTER TABLE [dbo].[doc_mngr] NOCHECK CONSTRAINT [FK_doc_mngr_mod_user];
 
 	SET IDENTITY_INSERT [doc_mngr] ON;
 
 	INSERT INTO [doc_mngr] ([doc_mngrid],[parent_id],[parent_tbl],[document],[doc_desc],[add_userid],[add_dt],[mod_userid],[mod_dt])
 	SELECT [rawUpsize_Contech].[dbo].[doc_mngr].[doc_mngrid]
 		  --,[rawUpsize_Contech].[dbo].[doc_mngr].[parent_id]
-		  ,CASE WHEN [parent_tbl] = 'CORRACTN' THEN ISNULL(corractn.[corractnid], 0)	-- FK = [corractn].[car_no] --> corractn.[corractnid]
-		  WHEN [parent_tbl] = 'MATLIN' THEN ISNULL(matlin.[matlin_key], 0)
-		  ELSE '' END AS [parent_id]
+		  ,CASE WHEN [parent_tbl] = 'CORRACTN' THEN ISNULL(corractn.[corractnid], NULL)	-- FK = [corractn].[car_no] --> corractn.[corractnid]
+		  WHEN [parent_tbl] = 'MATLIN' THEN ISNULL(matlin.[matlin_key], NULL)
+		  ELSE NULL END AS [parent_id]
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[parent_tbl]
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[document]
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[doc_desc]
 		  --,[rawUpsize_Contech].[dbo].[doc_mngr].[add_user]
-		  ,ISNULL(add_user.[userid] , 0) as [add_userid]		-- FK = [users].[userid]	
+		  ,ISNULL(add_user.[userid] , NULL) as [add_userid]		-- FK = [users].[userid]	
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[add_dt]
 		  --,[rawUpsize_Contech].[dbo].[doc_mngr].[mod_user]
-		  ,ISNULL(mod_user.[userid] , 0) as [mod_userid]		-- FK = [users].[userid]	
+		  ,ISNULL(mod_user.[userid] , NULL) as [mod_userid]		-- FK = [users].[userid]	
 		  ,[rawUpsize_Contech].[dbo].[doc_mngr].[mod_dt]
 	  FROM [rawUpsize_Contech].[dbo].[doc_mngr]
 	  LEFT JOIN [rawUpsize_Contech].[dbo].[matlin] matlin ON [rawUpsize_Contech].[dbo].[doc_mngr].[parent_id] = matlin.[matlin_key]		-- [parent_tbl] = 'CORRACTN'

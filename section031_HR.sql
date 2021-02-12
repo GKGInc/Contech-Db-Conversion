@@ -2,6 +2,7 @@
 --USE [Contech_Test]
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section031_HR.sql'
+DECLARE @SQL varchar(4000)=''
 
 BEGIN TRAN;
 
@@ -54,12 +55,24 @@ BEGIN TRY
 
     PRINT 'Table: dbo.dspnsers: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'dspnsers'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'dspnsers')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('dspnsers')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('dspnsers')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[dspnsers]
+		PRINT 'Table [dbo].[dspnsers] dropped'
+    END
 
 	CREATE TABLE [dbo].[dspnsers](
 		[dspnsersid] [int] IDENTITY(1,1) NOT NULL,
-		[bom_hdrid] [int] NOT NULL DEFAULT 0,				-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+		[bom_hdrid] [int] NULL,								-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 		--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_no]
 		--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,		-- FK = [bom_hdr].[bom_rev]
 		[coil_od] [char](20) NOT NULL DEFAULT '',
@@ -80,12 +93,15 @@ BEGIN TRY
 		(
 			[dspnsersid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_dspnsers_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION
 	) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[dspnsers] NOCHECK CONSTRAINT [FK_dspnsers_bom_hdr];
 
 	INSERT INTO [dbo].[dspnsers] ([bom_hdrid],[coil_od],[qtypolybag],[no_twist],[qty_bag],[qty_corr],[lbl_corr],[start],[ending],[window],[luer_req],[luer_fit],[luer_place],[j_req],[j_place])
 	SELECT --[rawUpsize_Contech].[dbo].[dspnsers].[bom_no]		-- FK = [bom_hdr].[bom_no]
 		  --,[rawUpsize_Contech].[dbo].[dspnsers].[bom_rev]		-- FK = [bom_hdr].[bom_rev]
-		  ISNULL(bom_hdr.[bom_hdrid], 0) AS [bom_hdrid]			-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
+		  ISNULL(bom_hdr.[bom_hdrid], NULL) AS [bom_hdrid]		-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] == [bom_hdr].[bom_hdrid]
 		  ,[rawUpsize_Contech].[dbo].[dspnsers].[coil_od]
 		  ,[rawUpsize_Contech].[dbo].[dspnsers].[qtypolybag]
 		  ,[rawUpsize_Contech].[dbo].[dspnsers].[no_twist]
@@ -121,35 +137,52 @@ BEGIN TRY
 
     PRINT 'Table: dbo.ecoc: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecoc'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecoc')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ecoc')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ecoc')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[ecoc]
+		PRINT 'Table [dbo].[ecoc] dropped'
+    END
 
 	CREATE TABLE [dbo].[ecoc](
 		[ecocid] [int] IDENTITY(1,1) NOT NULL,
 		--[invoice_no] [numeric](9, 0) NOT NULL DEFAULT 0,	-- FK = [aropen].[invoice_no]
-		[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,								-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[add_dt] [datetime] NULL,
 		[gen_dt] [datetime] NULL,
-		--[gen_user] [char](10) NOT NULL DEFAULT '',	-- FK = [employee].[empnumber] 
-		[employeeid] [int] NOT NULL DEFAULT 0,			-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		--[gen_user] [char](10) NOT NULL DEFAULT '',		-- FK = [employee].[empnumber] 
+		[employeeid] [int] NULL,							-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		[sent_dt] [datetime] NULL,
 		[type] [char](3) NOT NULL DEFAULT '',
 		CONSTRAINT [PK_ecoc] PRIMARY KEY CLUSTERED 
 		(
 			[ecocid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ecoc_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_ecoc_employee FOREIGN KEY ([employeeid]) REFERENCES [dbo].[employee] ([employeeid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[ecoc] NOCHECK CONSTRAINT [FK_ecoc_aropen];
+	ALTER TABLE [dbo].[ecoc] NOCHECK CONSTRAINT [FK_ecoc_employee];
 
 	SET IDENTITY_INSERT [dbo].[ecoc] ON;
 
 	INSERT INTO [dbo].[ecoc] ([ecocid],[aropenid],[add_dt],[gen_dt],[employeeid],[sent_dt],[type])
 	SELECT [rawUpsize_Contech].[dbo].[ecoc].[ecocid]
 		  --,[rawUpsize_Contech].[dbo].[ecoc].[invoice_no]
-		  ,ISNULL(aropen.[aropenid] , 0) as [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) as [aropenid]			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		  ,[rawUpsize_Contech].[dbo].[ecoc].[add_dt]
 		  ,[rawUpsize_Contech].[dbo].[ecoc].[gen_dt]
 		  --,[rawUpsize_Contech].[dbo].[ecoc].[gen_user]
-		  ,ISNULL(employee.[employeeid], 0) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
+		  ,ISNULL(employee.[employeeid], NULL) AS [employeeid]		-- FK = [employee].[empnumber] -> [employee].[employeeid]
 		  ,[rawUpsize_Contech].[dbo].[ecoc].[sent_dt]
 		  ,[rawUpsize_Contech].[dbo].[ecoc].[type]
 	  FROM [rawUpsize_Contech].[dbo].[ecoc]
@@ -177,13 +210,25 @@ BEGIN TRY
 
     PRINT 'Table: dbo.ecust: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecust'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'ecust')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('ecust')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('ecust')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[ecust]
+		PRINT 'Table [dbo].[ecust] dropped'
+    END
 
 	CREATE TABLE [dbo].[ecust](
 		[ecustid] [int] IDENTITY(1,1) NOT NULL,
 		--[cust_no] [char](5) NOT NULL DEFAULT '',	-- FK = [customer].[cust_no] 
-		[customerid] [int] NOT NULL DEFAULT 0,		-- FK = [customer].[cust_no] --> [customer].[customerid]
+		[customerid] [int] NULL,					-- FK = [customer].[cust_no] --> [customer].[customerid]
 		[emodule] [char](2) NOT NULL DEFAULT '',
 		[ecode] varchar(2000) NOT NULL DEFAULT '',
 		[equery] varchar(2000) NOT NULL DEFAULT '',
@@ -191,14 +236,17 @@ BEGIN TRY
 		(
 			[ecustid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_ecust_customer FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[ecust] NOCHECK CONSTRAINT [FK_ecust_customer];
 
 	SET IDENTITY_INSERT [dbo].[ecust] ON;
 
 	INSERT INTO [dbo].[ecust] ([ecustid],[customerid],[emodule],[ecode],[equery])
 	SELECT [rawUpsize_Contech].[dbo].[ecust].[ecustid]
 		  --,[rawUpsize_Contech].[dbo].[ecust].[cust_no]
-		  ,ISNULL(customer.[customerid], 0) as [customerid]
+		  ,ISNULL(customer.[customerid], NULL) as [customerid]
 		  ,[rawUpsize_Contech].[dbo].[ecust].[emodule]
 		  ,[rawUpsize_Contech].[dbo].[ecust].[ecode]
 		  ,[rawUpsize_Contech].[dbo].[ecust].[equery]
@@ -225,33 +273,50 @@ BEGIN TRY
 
     PRINT 'Table: dbo.einvoice: start'
 
-	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'einvoice'))
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'einvoice')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('einvoice')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('einvoice')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
 		DROP TABLE [dbo].[einvoice]
+		PRINT 'Table [dbo].[einvoice] dropped'
+    END
 
 	CREATE TABLE [dbo].[einvoice](
 		[einvoiceid] [int] IDENTITY(1,1) NOT NULL,
 		--[invoice_no] [numeric](9, 0) NOT NULL,		-- FK = [aropen].[invoice_no] 
-		[aropenid] [int] NOT NULL DEFAULT 0,			-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
+		[aropenid] [int] NULL,							-- FK = [aropen].[invoice_no] --> [aropen].[aropenid]
 		[gen_dt] [datetime] NULL,
 		--[gen_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[userid] [int] NOT NULL DEFAULT 0,				-- FK = [users].[username] --> [users].[userid]
+		[userid] [int] NULL,							-- FK = [users].[username] --> [users].[userid]
 		[sent_dt] [datetime] NULL,
 		[invoice_hd] [numeric](9, 0) NOT NULL,
 		CONSTRAINT [PK_einvoice] PRIMARY KEY CLUSTERED 
 		(
 			[einvoiceid] ASC
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_einvoice_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_einvoice_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
 	) ON [PRIMARY] 
+	
+	ALTER TABLE [dbo].[einvoice] NOCHECK CONSTRAINT [FK_einvoice_aropen];
+	ALTER TABLE [dbo].[einvoice] NOCHECK CONSTRAINT [FK_einvoice_users];
 
 	SET IDENTITY_INSERT [dbo].[einvoice] ON;
 
 	INSERT INTO [dbo].[einvoice] ([einvoiceid],[aropenid],[gen_dt],[userid],[sent_dt],[invoice_hd])
 	SELECT [rawUpsize_Contech].[dbo].[einvoice].[einvoiceid]
 		  --,[rawUpsize_Contech].[dbo].[einvoice].[invoice_no]
-		  ,ISNULL(aropen.[aropenid] , 0) as [aropenid]
+		  ,ISNULL(aropen.[aropenid], NULL) as [aropenid]
 		  ,[rawUpsize_Contech].[dbo].[einvoice].[gen_dt]
 		  --,[rawUpsize_Contech].[dbo].[einvoice].[gen_user]
-		  ,ISNULL(users.[userid] , 0) as [userid]		
+		  ,ISNULL(users.[userid], NULL) as [userid]		
 		  ,[rawUpsize_Contech].[dbo].[einvoice].[sent_dt]
 		  ,[rawUpsize_Contech].[dbo].[einvoice].[invoice_hd]
 	  FROM [rawUpsize_Contech].[dbo].[einvoice]
