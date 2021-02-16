@@ -1,4 +1,4 @@
-sqlcmd -S CONTECH -d TEST2 -U sa -P edi@GKG -b ^
+sqlcmd -S CONTECH -d TEST6 -U sa -P edi@GKG -b ^
 -i section001_HR.sql,^
 section002_GB.sql,^
 section003_HR.sql,^
@@ -44,4 +44,4 @@ section042_HR.sql,^
 section043_GB.sql,^
 section044_HR.sql,^
 section045_HR.sql,^
-section046_HR.sql -o dbconv_20210205.log
+section046_HR.sql -o dbconv_20210216.log

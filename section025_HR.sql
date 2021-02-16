@@ -70,7 +70,7 @@ BEGIN TRY
     PRINT 'Table: dbo.changelog: start'
 
     --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'customer')
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'changelog')
     BEGIN
 		-- Check for Foreign Key Contraints and remove them
 		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('changelog')) > 0)

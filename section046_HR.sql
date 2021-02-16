@@ -78,7 +78,7 @@ BEGIN TRY
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wipshipd'))
 	BEGIN
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wipshipd')) > 0)
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wipshipd')) > 0)
 		BEGIN		
 			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wipshipd')
@@ -148,7 +148,7 @@ BEGIN TRY
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbaghdr'))
 	BEGIN
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbaghdr')) > 0)
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbaghdr')) > 0)
 		BEGIN		
 			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbaghdr')
@@ -224,7 +224,7 @@ BEGIN TRY
 	IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'wpbagdtl'))
 	BEGIN
 		-- Check for Foreign Key Contraints and remove them
-		IF ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbagdtl')) > 0)
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('wpbagdtl')) > 0)
 		BEGIN		
 			--DECLARE @SQL varchar(4000)=''
 			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('wpbagdtl')

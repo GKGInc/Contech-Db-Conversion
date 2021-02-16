@@ -1,5 +1,5 @@
 -- ***************************************************
--- Section 008: custpohd, custpodt
+-- Section 008: custpohd, custpodt, cmpcases
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section008_GB.sql'
@@ -203,6 +203,104 @@ begin try
     set identity_insert dbo.custpodt OFF
 
     print 'table: dbo.custpodt: end'
+
+	-- ***************************************************
+    -- table: cmpcases -- Moved from section010
+    -- ***************************************************
+
+    -- column name changes:
+    --  cmpcasesid -> cmpcaseid  (PK)
+    --  matlin_key -> matlinid,  (FK to matlin)
+    --  comp -> componetid  (FK to componet)
+    --  userid (char) -> userid (int)  (FK to user)
+
+    -- table PK:
+    -- cmpcaseid: converted to identity pk
+
+    -- notes:
+    -- (1)
+
+    print 'table: dbo.cmpcases: start'
+
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cmpcases')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cmpcases')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cmpcases')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[cmpcases]
+		PRINT 'Table [dbo].[cmpcases] dropped'
+    END
+
+    CREATE TABLE [dbo].[cmpcases](
+        [cmpcaseid] [int] identity (1, 1),
+        [bar_code] [char](9) default '' NOT NULL,
+        [case_no] [int] default 0 NOT NULL,
+        -- [matlin_key] [int] default 0 NOT NULL,
+        [matlinid] [int] NULL,
+        -- [comp] [char](5) default '' NOT NULL,
+        [componetid] [int] NULL,
+        [ct_lot] [char](4) default '' NOT NULL,
+        [loc_row] [int] default 0 NOT NULL,
+        [loc_rack] [int] default 0 NOT NULL,
+        [loc_level] [char](2) default '' NOT NULL,
+        [qty] [int] default 0 NOT NULL,
+        [aloc_qty] [int] default 0 NOT NULL,
+        [restock] [bit] default 0 NOT NULL,
+        [last_mod] [datetime] NULL,
+        -- [userid] [char](10) default '' NOT NULL,
+        [userid] [int] NULL,
+        [insp_date] [datetime] NULL,
+        [consign] [bit] default 0 NOT NULL,
+        [mfg_locid] [int] default 0 NOT NULL,
+        CONSTRAINT [PK_cmpcases] PRIMARY KEY CLUSTERED
+        (
+            [cmpcaseid] ASC
+        ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_cmpcases_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_cmpcases_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_cmpcases_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+    ) ON [PRIMARY]
+	
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_matlin];
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_componet];
+	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_users];
+
+    set identity_insert dbo.cmpcases ON
+
+    insert into dbo.cmpcases
+    (cmpcaseid, bar_code, case_no, matlinid, componetid, ct_lot, loc_row, loc_rack, loc_level, qty, aloc_qty, restock, last_mod, userid, insp_date, consign, mfg_locid)
+    select cmpcasesid,
+           bar_code,
+           case_no,
+           matlin_key,
+           isnull(cmp.componetid, 0),
+           ct_lot,
+           loc_row,
+           loc_rack,
+           loc_level,
+           qty,
+           aloc_qty,
+           restock,
+           last_mod,
+           isnull(u.userid, 0),
+           insp_date,
+           consign,
+           cmpcases.mfg_locid
+    from [rawUpsize_Contech].dbo.cmpcases
+    left outer join dbo.componet cmp ON cmpcases.comp = cmp.comp and (cmpcases.comp is not null AND cmpcases.comp != '')
+    left outer join dbo.users u on cmpcases.userid = u.username and RTRIM(cmpcases.userid) != ''
+
+    set identity_insert dbo.cmpcases OFF
+
+    print 'table: dbo.cmpcases: end'
+	
+	-- ***************************************************
 
     commit
 

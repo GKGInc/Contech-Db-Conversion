@@ -9,7 +9,7 @@ BEGIN TRAN;
 BEGIN TRY
 
 -- =========================================================
--- Section 043: samplevl
+-- Section 043: samplevl 
 -- =========================================================
 
 -- Column changes:
@@ -55,6 +55,183 @@ BEGIN TRY
 	--SELECT * FROM [dbo].[samplevl]
 
     PRINT 'Table: dbo.samplevl: end'
+
+	
+-- =========================================================
+-- Section 042: sampaql -- Moved from section042
+-- =========================================================
+
+-- Column changes:
+--  - Set [sampaqlid] to be primary key
+-- Maps:
+--	- [bom_hist].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+    PRINT 'Table: dbo.sampaql: start'
+
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'sampaql')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('sampaql')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('sampaql')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[sampaql]
+		PRINT 'Table [dbo].[sampaql] dropped'
+    END
+
+	CREATE TABLE [dbo].[sampaql](
+		[sampaqlid] [int] IDENTITY(1,1) NOT NULL,
+		[aql] [numeric](5, 3) NOT NULL DEFAULT 0.0,
+		CONSTRAINT [PK_sampaql] PRIMARY KEY CLUSTERED 
+		(
+			[sampaqlid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	SET IDENTITY_INSERT [dbo].[sampaql] ON;
+
+	INSERT INTO [dbo].[sampaql] ([sampaqlid],[aql])
+	SELECT [rawUpsize_Contech].[dbo].[sampaql].[sampaqlid]
+		  ,[rawUpsize_Contech].[dbo].[sampaql].[aql]
+	  FROM [rawUpsize_Contech].[dbo].[sampaql]
+  
+	SET IDENTITY_INSERT [dbo].[sampaql] OFF;
+
+	--SELECT * FROM [dbo].[sampaql]
+
+    PRINT 'Table: dbo.sampaql: end'
+
+-- =========================================================
+-- Section 042: sampchrt -- Moved from section042
+-- =========================================================
+
+-- Column changes:
+--  - Set [sampchrtid] to be primary key
+-- Maps:
+--	- [bom_hist].[empnumber]	-- FK = [employee].[empnumber] -> [employee].[employeeid]
+
+    PRINT 'Table: dbo.sampchrt: start'
+
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'sampchrt')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('sampchrt')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('sampchrt')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[sampchrt]
+		PRINT 'Table [dbo].[sampchrt] dropped'
+    END
+
+	CREATE TABLE [dbo].[sampchrt](
+		[sampchrtid] [int] IDENTITY(1,1) NOT NULL,
+		[descript] [char](30) NOT NULL DEFAULT '',
+		CONSTRAINT [PK_sampchrt] PRIMARY KEY CLUSTERED 
+		(
+			[sampchrtid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	SET IDENTITY_INSERT [dbo].[sampchrt] ON;
+
+	INSERT INTO [dbo].[sampchrt] ([sampchrtid],[descript])
+	SELECT [rawUpsize_Contech].[dbo].[sampchrt].[sampchrtid]
+		  ,[rawUpsize_Contech].[dbo].[sampchrt].[descript]
+	  FROM [rawUpsize_Contech].[dbo].[sampchrt]
+  
+	SET IDENTITY_INSERT [dbo].[sampchrt] OFF;
+
+	--SELECT * FROM [dbo].[sampchrt]
+
+    PRINT 'Table: dbo.sampchrt: end'
+
+-- =========================================================
+-- Section 042: sampdtl -- Moved from section042
+-- =========================================================
+
+-- Column changes:
+--  - Set [sampdtlid] to be primary key
+--  - Changed [plan] [char](2) to [samplansid] [int] to reference [samplans] table
+-- Maps:
+--	- [sampdtl].[plan] --> [samplanid]	-- FK = [samplans].[code] --> [samplans].[samplanid]
+--	- [sampdtl].[class]					-- FK = [clsficat].[clsficatid]
+--	- [sampdtl].[chart]					-- FK = [sampchrt].[sampchrtid]
+--	- [sampdtl].[insp_lev]				-- FK = [samplevl].[samplevlid]
+--	- [sampdtl].[aql]					-- FK = [samplacql].[sampaqlid]
+
+    PRINT 'Table: dbo.sampdtl: start'
+
+    --DECLARE @SQL varchar(4000)=''
+    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'sampdtl')
+    BEGIN
+		-- Check for Foreign Key Contraints and remove them
+		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('sampdtl')) > 0)
+		BEGIN				
+			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('sampdtl')
+			EXEC (@SQL)
+			PRINT (@SQL)
+		END
+            
+		DROP TABLE [dbo].[sampdtl]
+		PRINT 'Table [dbo].[sampdtl] dropped'
+    END
+
+	CREATE TABLE [dbo].[sampdtl](
+		[sampdtlid] [int] IDENTITY(1,1) NOT NULL,
+		--[plan] [char](2) NOT NULL DEFAULT '',		-- FK = [samplans].[code] 
+		[samplanid] [int] NULL,						-- FK = [samplans].[code] --> [samplans].[samplanid]
+		[order] [numeric](2, 0) NOT NULL DEFAULT 0,
+		[class] [int] NULL,							-- FK = [clsficat].[clsficatid]
+		[chart] [int] NULL,							-- FK = [sampchrt].[sampchrtid]
+		[insp_lev] [int] NULL,						-- FK = [samplevl].[samplevlid]
+		[aql] [int] NOT NULL DEFAULT 0,				-- FK = [samplacql].[sampaqlid]
+		[measure] [bit] NOT NULL DEFAULT 0,
+		CONSTRAINT [PK_sampdtl] PRIMARY KEY CLUSTERED 
+		(
+			[sampdtlid] ASC
+		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+		,CONSTRAINT FK_sampdtl_samplans FOREIGN KEY ([samplanid]) REFERENCES [dbo].[samplans] ([samplanid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_sampdtl_clsficat FOREIGN KEY ([class]) REFERENCES [dbo].[clsficat] ([clsficatid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_sampdtl_sampchrt FOREIGN KEY ([chart]) REFERENCES [dbo].[sampchrt] ([sampchrtid]) ON DELETE NO ACTION
+		,CONSTRAINT FK_sampdtl_samplevl FOREIGN KEY ([insp_lev]) REFERENCES [dbo].[samplevl] ([samplevlid]) ON DELETE NO ACTION
+		--,CONSTRAINT FK_sampdtl_samplacql FOREIGN KEY ([aql]) REFERENCES [dbo].[samplacql] ([sampaqlid]) ON DELETE NO ACTION
+	) ON [PRIMARY]
+	
+
+	ALTER TABLE [dbo].[sampdtl] NOCHECK CONSTRAINT [FK_sampdtl_samplans];
+	ALTER TABLE [dbo].[sampdtl] NOCHECK CONSTRAINT [FK_sampdtl_clsficat];
+	ALTER TABLE [dbo].[sampdtl] NOCHECK CONSTRAINT [FK_sampdtl_sampchrt];
+	ALTER TABLE [dbo].[sampdtl] NOCHECK CONSTRAINT [FK_sampdtl_samplevl];
+	--ALTER TABLE [dbo].[sampdtl] NOCHECK CONSTRAINT [FK_sampdtl_samplacql];
+
+	SET IDENTITY_INSERT [dbo].[sampdtl] ON;
+
+	INSERT INTO [dbo].[sampdtl] ([sampdtlid],[samplanid],[order],[class],[chart],[insp_lev],[aql],[measure])
+	SELECT [rawUpsize_Contech].[dbo].[sampdtl].[sampdtlid]
+		  --,[rawUpsize_Contech].[dbo].[sampdtl].[plan]
+		  ,ISNULL(samplans.[samplanid], NULL) as [samplanid]	-- FK = [samplans].[code] --> [samplans].[samplanid]		
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[order]
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[class]
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[chart]
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[insp_lev]
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[aql]
+		  ,[rawUpsize_Contech].[dbo].[sampdtl].[measure]
+	  FROM [rawUpsize_Contech].[dbo].[sampdtl]
+	  LEFT JOIN [dbo].[samplans] samplans ON [rawUpsize_Contech].[dbo].[sampdtl].[plan] = samplans.[code]	
+  
+	SET IDENTITY_INSERT [dbo].[sampdtl] OFF;
+
+	--SELECT * FROM [dbo].[sampdtl]
+
+    PRINT 'Table: dbo.sampdtl: end'
 
 -- =========================================================
 -- Section 043: shortcmp

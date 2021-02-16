@@ -11,7 +11,7 @@ begin tran
 begin try
 
     -- ***************************************************
-    -- table: cmpcases
+    -- table: cmpcases -- Moved to section008
     -- ***************************************************
 
     -- column name changes:
@@ -26,85 +26,85 @@ begin try
     -- notes:
     -- (1)
 
-    print 'table: dbo.cmpcases: start'
+ --   print 'table: dbo.cmpcases: start'
 
-    --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cmpcases')
-    BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cmpcases')) > 0)
-		BEGIN				
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cmpcases')
-			EXEC (@SQL)
-			PRINT (@SQL)
-		END
+ --   --DECLARE @SQL varchar(4000)=''
+ --   IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'cmpcases')
+ --   BEGIN
+	--	-- Check for Foreign Key Contraints and remove them
+	--	WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('cmpcases')) > 0)
+	--	BEGIN				
+	--		SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('cmpcases')
+	--		EXEC (@SQL)
+	--		PRINT (@SQL)
+	--	END
             
-		DROP TABLE [dbo].[cmpcases]
-		PRINT 'Table [dbo].[cmpcases] dropped'
-    END
+	--	DROP TABLE [dbo].[cmpcases]
+	--	PRINT 'Table [dbo].[cmpcases] dropped'
+ --   END
 
-    CREATE TABLE [dbo].[cmpcases](
-        [cmpcaseid] [int] identity (1, 1),
-        [bar_code] [char](9) default '' NOT NULL,
-        [case_no] [int] default 0 NOT NULL,
-        -- [matlin_key] [int] default 0 NOT NULL,
-        [matlinid] [int] NULL,
-        -- [comp] [char](5) default '' NOT NULL,
-        [componetid] [int] NULL,
-        [ct_lot] [char](4) default '' NOT NULL,
-        [loc_row] [int] default 0 NOT NULL,
-        [loc_rack] [int] default 0 NOT NULL,
-        [loc_level] [char](2) default '' NOT NULL,
-        [qty] [int] default 0 NOT NULL,
-        [aloc_qty] [int] default 0 NOT NULL,
-        [restock] [bit] default 0 NOT NULL,
-        [last_mod] [datetime] NULL,
-        -- [userid] [char](10) default '' NOT NULL,
-        [userid] [int] NULL,
-        [insp_date] [datetime] NULL,
-        [consign] [bit] default 0 NOT NULL,
-        [mfg_locid] [int] default 0 NOT NULL,
-        CONSTRAINT [PK_cmpcases] PRIMARY KEY CLUSTERED
-        (
-            [cmpcaseid] ASC
-        ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		,CONSTRAINT FK_cmpcases_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
-		,CONSTRAINT FK_cmpcases_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
-		,CONSTRAINT FK_cmpcases_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
-    ) ON [PRIMARY]
+ --   CREATE TABLE [dbo].[cmpcases](
+ --       [cmpcaseid] [int] identity (1, 1),
+ --       [bar_code] [char](9) default '' NOT NULL,
+ --       [case_no] [int] default 0 NOT NULL,
+ --       -- [matlin_key] [int] default 0 NOT NULL,
+ --       [matlinid] [int] NULL,
+ --       -- [comp] [char](5) default '' NOT NULL,
+ --       [componetid] [int] NULL,
+ --       [ct_lot] [char](4) default '' NOT NULL,
+ --       [loc_row] [int] default 0 NOT NULL,
+ --       [loc_rack] [int] default 0 NOT NULL,
+ --       [loc_level] [char](2) default '' NOT NULL,
+ --       [qty] [int] default 0 NOT NULL,
+ --       [aloc_qty] [int] default 0 NOT NULL,
+ --       [restock] [bit] default 0 NOT NULL,
+ --       [last_mod] [datetime] NULL,
+ --       -- [userid] [char](10) default '' NOT NULL,
+ --       [userid] [int] NULL,
+ --       [insp_date] [datetime] NULL,
+ --       [consign] [bit] default 0 NOT NULL,
+ --       [mfg_locid] [int] default 0 NOT NULL,
+ --       CONSTRAINT [PK_cmpcases] PRIMARY KEY CLUSTERED
+ --       (
+ --           [cmpcaseid] ASC
+ --       ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	--	,CONSTRAINT FK_cmpcases_matlin FOREIGN KEY ([matlinid]) REFERENCES [dbo].[matlin] ([matlinid]) ON DELETE NO ACTION
+	--	,CONSTRAINT FK_cmpcases_componet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] ([componetid]) ON DELETE NO ACTION
+	--	,CONSTRAINT FK_cmpcases_users FOREIGN KEY ([userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
+ --   ) ON [PRIMARY]
 	
-	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_matlin];
-	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_componet];
-	ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_users];
+	--ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_matlin];
+	--ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_componet];
+	--ALTER TABLE [dbo].[cmpcases] NOCHECK CONSTRAINT [FK_cmpcases_users];
 
-    set identity_insert dbo.cmpcases ON
+ --   set identity_insert dbo.cmpcases ON
 
-    insert into dbo.cmpcases
-    (cmpcaseid, bar_code, case_no, matlinid, componetid, ct_lot, loc_row, loc_rack, loc_level, qty, aloc_qty, restock, last_mod, userid, insp_date, consign, mfg_locid)
-    select cmpcasesid,
-           bar_code,
-           case_no,
-           matlin_key,
-           isnull(cmp.componetid, 0),
-           ct_lot,
-           loc_row,
-           loc_rack,
-           loc_level,
-           qty,
-           aloc_qty,
-           restock,
-           last_mod,
-           isnull(u.userid, 0),
-           insp_date,
-           consign,
-           cmpcases.mfg_locid
-    from [rawUpsize_Contech].dbo.cmpcases
-    left outer join dbo.componet cmp ON cmpcases.comp = cmp.comp and (cmpcases.comp is not null AND cmpcases.comp != '')
-    left outer join dbo.users u on cmpcases.userid = u.username and RTRIM(cmpcases.userid) != ''
+ --   insert into dbo.cmpcases
+ --   (cmpcaseid, bar_code, case_no, matlinid, componetid, ct_lot, loc_row, loc_rack, loc_level, qty, aloc_qty, restock, last_mod, userid, insp_date, consign, mfg_locid)
+ --   select cmpcasesid,
+ --          bar_code,
+ --          case_no,
+ --          matlin_key,
+ --          isnull(cmp.componetid, 0),
+ --          ct_lot,
+ --          loc_row,
+ --          loc_rack,
+ --          loc_level,
+ --          qty,
+ --          aloc_qty,
+ --          restock,
+ --          last_mod,
+ --          isnull(u.userid, 0),
+ --          insp_date,
+ --          consign,
+ --          cmpcases.mfg_locid
+ --   from [rawUpsize_Contech].dbo.cmpcases
+ --   left outer join dbo.componet cmp ON cmpcases.comp = cmp.comp and (cmpcases.comp is not null AND cmpcases.comp != '')
+ --   left outer join dbo.users u on cmpcases.userid = u.username and RTRIM(cmpcases.userid) != ''
 
-    set identity_insert dbo.cmpcases OFF
+ --   set identity_insert dbo.cmpcases OFF
 
-    print 'table: dbo.cmpcases: end'
+ --   print 'table: dbo.cmpcases: end'
 
     -- ***************************************************
     -- table: ralabel
@@ -293,6 +293,7 @@ begin try
     -- notes:
     -- (1) as of 1/27/2021, complnts.car_no had no values. 
 	--	   not pulling in these values because circular reference with complnts
+	-- (2) removed on 02/16/2021 since there were no values
 
     print 'table: dbo.complnts: start'
 
@@ -329,7 +330,7 @@ begin try
         [date2] [datetime] NULL,
         [cnfrm_code] [char](2) default '' NOT NULL,
         -- [car_no] [char](8) default '' NOT NULL,
-        [corractnid] [int] NULL,
+        --[corractnid] [int] NULL,
         [complnt_dt] [datetime] NULL,
         [complainer] [int] default 0 NOT NULL,
         [complnttyp] [char](3) default '' NOT NULL,
@@ -343,11 +344,11 @@ begin try
             [complntid] ASC
         ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 		,CONSTRAINT FK_complnts_aropen FOREIGN KEY ([aropenid]) REFERENCES [dbo].[aropen] ([aropenid]) ON DELETE NO ACTION
-		,CONSTRAINT FK_complnts_corractn FOREIGN KEY ([corractnid]) REFERENCES [dbo].[corractn] ([corractnid]) ON DELETE NO ACTION
+		--,CONSTRAINT FK_complnts_corractn FOREIGN KEY ([corractnid]) REFERENCES [dbo].[corractn] ([corractnid]) ON DELETE NO ACTION
     ) ON [PRIMARY]
 	
 	ALTER TABLE [dbo].[complnts] NOCHECK CONSTRAINT [FK_complnts_aropen];
-	ALTER TABLE [dbo].[complnts] NOCHECK CONSTRAINT [FK_complnts_corractn];
+	--ALTER TABLE [dbo].[complnts] NOCHECK CONSTRAINT [FK_complnts_corractn];
 
     insert into dbo.complnts
     select complnts.complnt_no,
@@ -365,7 +366,7 @@ begin try
            date2,
            cnfrm_code,
            -- car_no,
-           NULL, -- see note(1)
+           --NULL, -- see note(1)(2)
            complnt_dt,
            complainer,
            complnttyp,
@@ -550,7 +551,8 @@ begin try
 	--SELECT * FROM [dbo].[corractn]
 
     PRINT 'Table: dbo.corractn: end'
-
+	
+    -- ***************************************************
 
     COMMIT
 
