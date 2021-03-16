@@ -129,7 +129,7 @@ BEGIN TRY
     --      50398	15
     --      The script only imports the first instance of these bom_dtl records.
 
-    print 'table: dbo.bom_hdr: start'
+    print 'table: dbo.bom_hdr: start';
 
   --  IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'bom_hdr')
   --  BEGIN
