@@ -1,5 +1,5 @@
 -- ***************************************************
--- Section 2: customer, users, buyer
+-- Section 020: customer, users, buyer
 -- ***************************************************
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section002_GB.sql'
@@ -144,51 +144,6 @@ begin try
     -- (1) converted memo column type to varchar(1000) queries showed that the max len for existing values was < 500
 
     print 'table: dbo.customer: start'
-
-  --  IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'customer')
-  --  BEGIN
-		---- Check for Foreign Key Contraints and remove them
-		--WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('customer')) > 0)
-		--BEGIN				
-		--	SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' 
-		--				+ k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('customer')
-			
-		--	PRINT (@SQL)	
-		--	EXEC (@SQL)
-		--END
-            
-		--DROP TABLE [dbo].[customer]
-  --  END
-
-  --  create table [dbo].[customer]
-  --  (
-  --      customerid int NOT NULL IDENTITY (1, 1),
-  --      cust_no char(5) not null,
-  --      active bit default 0 not null,
-  --      name char(75) not null,
-  --      address char(35) default '' not null,
-  --      address2 char(35) default '' not null,
-  --      city char(30) default '' not null,
-  --      state char(3) default '' not null,
-  --      zip char(11) default '' not null,
-  --      terms char(10) default '' not null,
-  --      country char(15) default '' not null,
-  --      phone char(17) default '' not null,
-  --      fax char(17) default '' not null,
-  --      email char(100) default '' not null,
-  --      memo varchar(1000) default '' not null,
-  --      vat char(25) default '' not null,
-  --      b_address char(35) default '' not null,
-  --      b_address2 char(35) default '' not null,
-  --      b_city char(30) default '' not null,
-  --      b_state char(3) default '' not null,
-  --      b_zip char(11) default '' not null,
-  --      b_country char(15) default '' not null,
-  --      CONSTRAINT [PK_customer] PRIMARY KEY CLUSTERED
-  --      (
-  --          [customerid] ASC
-  --      ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-  --  ) ON [PRIMARY]
 
     INSERT into dbo.customer 
 	  ([cust_no]

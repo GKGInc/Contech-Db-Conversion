@@ -1,16 +1,20 @@
+-- ***************************************************
+-- Section 040: mfgcat, mfg_loc, bom_hdr, bom_dtl
+-- ***************************************************
+
 
 print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section004_GB.sql'
-
--- =========================================================
--- Section 004: mfgcat -- Moved from Section 007
--- =========================================================
-
--- Column changes:
---  - Added [mfgcatid] as primary key
 
 BEGIN TRAN;
 
 BEGIN TRY
+
+    -- =========================================================
+    -- Table: mfgcat
+    -- =========================================================
+
+    -- Column changes:
+    --  - Added [mfgcatid] as primary key
 
     PRINT 'Table: dbo.mfgcat: start'
 
@@ -41,18 +45,16 @@ BEGIN TRY
 		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] 
 
-	INSERT INTO [dbo].[mfgcat] SELECT * FROM [rawUpsize_Contech].[dbo].[mfgcat] 
-
-	--SELECT * FROM [dbo].[mfgcat]
+	INSERT INTO [dbo].[mfgcat] SELECT * FROM [rawUpsize_Contech].[dbo].[mfgcat]
 
     PRINT 'Table: dbo.mfgcat: end'
 
--- =========================================================
--- Section 004: mfg_loc -- Moved from Section 007
--- =========================================================
+    -- =========================================================
+    -- Table: mfg_loc
+    -- =========================================================
 
--- Column changes:
---  - Changed [mfg_locid] to be primary key
+    -- Column changes:
+    --  - Changed [mfg_locid] to be primary key
 
     PRINT 'Table: dbo.mfg_loc: start'
 
@@ -102,23 +104,36 @@ BEGIN TRY
   
 	SET IDENTITY_INSERT [dbo].[mfg_loc] OFF;
 
-	--SELECT * FROM [dbo].[mfg_loc]
-
     PRINT 'Table: dbo.mfg_loc: end'
 
--- ***************************************************
--- Section 004: bom_hdr, bom_dtl -- Moved from Section 006
--- ***************************************************
 
-    -- bom_hdr PK:
-    --      bom_dtl.bom_hdrid (new)
+    -- ***************************************************
+    -- Table bom_hdr
+    -- ***************************************************
+
+    PRINT 'Table: dbo.bom_hdr: start'
+
+    INSERT into dbo.bom_hdr (bom_no, ScreenCode)
+    SELECT bom_no,
+           max(scr_code)
+    FROM [rawUpsize_Contech].dbo.bom_hdr
+    GROUP BY bom_no;
+
+    PRINT 'Table: dbo.bom_hdr: end'
+
+
+    -- ***************************************************
+    -- Table: bom_hdr_rev
+    -- ***************************************************
+
+    -- bom_hdr_rev PK:
+    --      bom_hdr_revid INT (new)
 
     -- field data type changes:
     -- notes (text) -> notes (varchar(2000))
     -- price_note (text) -> price_note (varchar(2000))
 
     -- FK fields:
-    -- customerid: customer.customerid
     -- mfgcatid: mfgcat.mfgcatid (on bom_hdr.mfg_cat = mfgcat.mfg_cat
 
     -- notes:
@@ -128,73 +143,9 @@ BEGIN TRY
     --      53622	4
     --      50398	15
     --      The script only imports the first instance of these bom_dtl records.
+    -- (2) removed the customer field, only using bom_cust table to relate to customers
 
-    print 'table: dbo.bom_hdr: start';
-
-  --  IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'bom_hdr')
-  --  BEGIN
-		---- Check for Foreign Key Contraints and remove them
-		----DECLARE @SQL varchar(4000)=''
-		--WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_hdr')) > 0)
-		--BEGIN
-		--	SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_hdr')
-		--	PRINT (@SQL)	
-		--	EXEC (@SQL)
-		--END
-
-		--DROP TABLE [dbo].[bom_hdr]
-		--PRINT 'Table [dbo].[bom_hdr] dropped'
-
-  --  END
-
-  --  CREATE TABLE [dbo].[bom_hdr](
-  --      [bom_hdrid] [int] identity(1, 1),
-  --      [bom_no] [numeric](5, 0) NOT NULL DEFAULT 0.0,
-  --      [bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0.0,
-  --      [part_no] [char](15) NOT NULL DEFAULT '',
-  --      [part_rev] [char](10) NOT NULL DEFAULT '',
-  --      [part_desc] [char](50) NOT NULL DEFAULT '',
-  --      [price] [numeric](8, 4) NOT NULL DEFAULT 0.0,
-  --      [price_ire] [numeric](8, 4) NOT NULL DEFAULT 0.0,
-  --      [price_rev] [datetime] NULL,
-  --      [unit] [char](4) NOT NULL DEFAULT '',
-  --      [date_rev] [datetime] NULL,
-  --      [sts] [char](1) NOT NULL DEFAULT '',
-  --      -- [cust_no] [char](5) NOT NULL,				
-  --      [customerid] [int] NULL,						-- FK = [customer].[cust_no] --> [customer].[customerid]
-  --      [date_ent] [datetime] NULL,
-  --      [code_info] [numeric](1, 0) NOT NULL DEFAULT 0,
-  --      [tube_lenth] [char](40) NOT NULL DEFAULT '',
-  --      [tube_dim] [char](50) NOT NULL DEFAULT '',
-  --      [assembly] [char](15) NOT NULL DEFAULT '',
-  --      [scr_code] [char](1) NOT NULL DEFAULT '',
-  --      [quota] [char](5) NOT NULL DEFAULT '',
-  --      -- [notes] [text] NOT NULL,
-  --      [notes] varchar(2000) default '' NOT NULL,
-  --      [mfg_no] [numeric](5, 0) NOT NULL DEFAULT 0,
-  --      [spec_no] [char](5) NOT NULL DEFAULT '',
-  --      [spec_rev] [char](2) NOT NULL DEFAULT '',
-  --      [dspec_rev] [datetime] NULL,
-  --      [doc_no] [char](5) NOT NULL DEFAULT '',
-  --      [doc_rev] [char](2) NOT NULL DEFAULT '',
-  --      [ddoc_rev] [datetime] NULL,
-  --      [computer] [char](1) NOT NULL DEFAULT '',
-  --      [waste] [char](10) NOT NULL DEFAULT '',
-  --      [qty_case] [numeric](6, 0) NOT NULL DEFAULT 0.0,
-  --      -- [price_note] [text] NOT NULL,
-  --      [price_note] varchar(2000) NOT NULL DEFAULT '',
-  --      -- [mfg_cat] [char](2) NOT NULL,
-  --      [mfgcatid] [int] NULL,							-- FK = [mfgcat].[mfg_cat] -> [mfgcat].[mfgcatid]
-  --      [expfactor] [int] NOT NULL DEFAULT 0,
-  --      [sts_loc] [char](20) NOT NULL DEFAULT '',
-  --      [expunit] [char](1) NOT NULL DEFAULT '',
-  --      CONSTRAINT [PK_bom_hdr] PRIMARY KEY CLUSTERED
-  --      (
-  --          [bom_hdrid] ASC
-  --      ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		--,CONSTRAINT [FK_bom_hdrcustomer] FOREIGN KEY ([customerid]) REFERENCES [dbo].[customer] ([customerid]) ON DELETE NO ACTION
-		--,CONSTRAINT [FK_bom_hdrmfgcat] FOREIGN KEY ([mfgcatid]) REFERENCES [dbo].[mfgcat] ([mfgcatid]) ON DELETE NO ACTION
-  --  ) ON [PRIMARY];
+    print 'table: dbo.bom_rev: start';
 
     with cte_bom_hdr
         as (select *, row_number() over(partition by bom_no, bom_rev order by bom_no, bom_rev) rowrank
@@ -202,8 +153,8 @@ BEGIN TRY
 	cte_dspnsers 
 		as (select *, row_number() over(partition by bom_no, bom_rev order by bom_no, bom_rev) rowrank 
 			from [rawUpsize_Contech].dbo.dspnsers)
-    insert into [dbo].[bom_hdr] (
-		[bom_no]
+    insert into [dbo].[bom_rev] (
+        [bom_hdrid]
 		,[bom_rev]
 		,[part_no]
 		,[part_rev]
@@ -214,12 +165,10 @@ BEGIN TRY
 		,[unit]
 		,[date_rev]
 		,[sts]
-		,[customerid]
 		,[date_ent]
 		,[code_info]
 		,[tube_lenth]
 		,[TubeDiameter]
-		,[scr_code]
 		,[quota]
 		,[notes]
 		,[mfg_no]
@@ -272,8 +221,9 @@ BEGIN TRY
 		,[NumLabelsPerOvershipper]
 		,[NumLabelsPerUnitBox]		
 		)
-    select bom_hdr.[bom_no],
-		bom_hdr.[bom_rev],
+    select
+        newhdr.bom_hdrid,
+        bom_hdr.[bom_rev],
 		bom_hdr.[part_no],
 		bom_hdr.[part_rev],
 		bom_hdr.[part_desc],
@@ -284,13 +234,11 @@ BEGIN TRY
 		bom_hdr.[date_rev],
 		bom_hdr.[sts],
 		-- cust_no,
-		cus.customerid,
 		bom_hdr.[date_ent],
 		bom_hdr.[code_info],
 		bom_hdr.[tube_lenth],
 		bom_hdr.tube_dim,
 		-- bom_hdr.assembly,
-		bom_hdr.[scr_code],
 		bom_hdr.[quota],
 		bom_hdr.[notes],
 		bom_hdr.[mfg_no],
@@ -345,13 +293,13 @@ BEGIN TRY
 		,ISNULL(p.[lbl_disp], '')
 
     FROM cte_bom_hdr bom_hdr
-		left outer join dbo.customer cus ON bom_hdr.cust_no = cus.cust_no
+        inner join dbo.bom_hdr newhdr ON bom_hdr.bom_no = newhdr.bom_no
 		left outer join dbo.mfgcat mc ON bom_hdr.mfg_cat = mc.mfg_cat and RTRIM(bom_hdr.mfg_cat) != ''
 		left outer join [rawUpsize_Contech].dbo.pouches p ON bom_hdr.bom_no = p.bom_no AND bom_hdr.bom_rev = p.bom_rev
 		left outer join cte_dspnsers d on bom_hdr.bom_no = d.bom_no and bom_hdr.bom_rev = d.bom_rev
     where bom_hdr.rowrank = 1 and (d.rowrank is null OR d.rowrank = 1)
 
-    print 'table: dbo.bom_hdr: end'
+    print 'table: dbo.bom_rev: end'
 
 
     -- ***************************************************
@@ -382,57 +330,22 @@ BEGIN TRY
     -- https://gkginc.slack.com/archives/G01JTKDEAUQ/p1611778528034300
 
     print 'table: dbo.bom_dtl: start'
-
-	--declare @sql_bom_dtl varchar(4000);
-
-	--IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'bom_dtl')
-	--BEGIN
-	--		-- Check for Foreign Key Contraints and remove them
-	--	--DECLARE @SQL varchar(4000)=''
-	--	WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_dtl')) > 0)
-	--	BEGIN
-	--		SELECT @sql_bom_dtl = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('[bom_dtl]')
-	--		PRINT (@sql_bom_dtl)	
-	--		EXEC (@sql_bom_dtl)
-	--	END
-
-	--	PRINT 'Table [dbo].[bom_dtl] dropped'
-	--	DROP TABLE [dbo].[bom_dtl]
-	--END
-
-  --  CREATE TABLE [dbo].[bom_dtl](
-  --      -- [bom_dtlid] [int] NOT NULL
-  --      [bom_dtlid] int identity(1, 1),
-  --      -- [bom_no] [numeric](5, 0) NOT NULL,
-  --      -- [bom_rev] [numeric](2, 0) NOT NULL,
-  --      [bom_hdrid] int NOT NULL DEFAULT 0,
-  --      [bom_dtlref] int not null, -- values come from the original bom_dtl.bom_dtlid (not unique)
-  --      [order] [numeric](2, 0) NOT NULL DEFAULT 0,
-  --      -- [comp] [char](5) NOT NULL,
-  --      [componetid] [int] NULL,		-- FK = [componet].[comp] --> [componet].[componetid]
-  --      [quan] [numeric](8, 6) NOT NULL DEFAULT 0.0,
-  --      [coc] [char](1) NOT NULL DEFAULT '',
-  --      CONSTRAINT [PK_bom_dtl] PRIMARY KEY CLUSTERED
-  --      (
-  --          [bom_dtlid] ASC
-  --      ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		--,CONSTRAINT FK_bom_dtlbom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] (bom_hdrid) ON DELETE CASCADE NOT FOR REPLICATION 
-		--,CONSTRAINT FK_bom_dtlcomponet FOREIGN KEY ([componetid]) REFERENCES [dbo].[componet] (componetid) ON DELETE NO ACTION
-  --  ) ON [PRIMARY]
 	
     INSERT INTO [dbo].[bom_dtl]
-        ([bom_hdrid], [bom_dtlref], [SequenceNumber], [componetid], [quan], [coc])
-    SELECT bom_hdr.[bom_hdrid]
+        ([bom_revid], [bom_dtlref], [SequenceNumber], [componetid], [quan], [coc])
+    SELECT bom_rev.bom_revid
         ,bom_dtl.[bom_dtlid]
         ,bom_dtl.[order]
         ,isnull(componet.[componetid], NULL)
         ,bom_dtl.[quan]
         ,bom_dtl.[coc]
-    FROM [rawUpsize_Contech].[dbo].[bom_dtl] bom_dtl -- SELECT * FROM [rawUpsize_Contech].dbo.bom_dtl
-    INNER JOIN [dbo].[bom_hdr] bom_hdr				 -- SELECT * FROM dbo.bom_hdr
-        ON bom_dtl.[bom_no] = bom_hdr.[bom_no] AND bom_dtl.[bom_rev] = bom_hdr.[bom_rev]
-    LEFT OUTER JOIN [dbo].[componet] componet 
-		ON bom_dtl.[comp] = componet.[comp]
+    FROM [dbo].[bom_hdr] bom_hdr
+        INNER JOIN dbo.bom_rev bom_rev
+            ON bom_hdr.bom_hdrid = bom_rev.bom_hdrid
+        INNER JOIN [rawUpsize_Contech].[dbo].[bom_dtl] bom_dtl
+            ON bom_dtl.[bom_no] = bom_hdr.[bom_no] AND bom_dtl.[bom_rev] = bom_rev.[bom_rev]
+        LEFT OUTER JOIN [dbo].[componet] componet
+            ON bom_dtl.[comp] = componet.[comp]
 
     print 'table: dbo.bom_dtl: end'
 
@@ -448,4 +361,4 @@ begin catch
     raiserror ('Exiting script...', 20, -1)
 end catch
 
-print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section004_GB.sql'
+print (CONVERT( VARCHAR(24), GETDATE(), 121)) + ' END script section040.sql'
