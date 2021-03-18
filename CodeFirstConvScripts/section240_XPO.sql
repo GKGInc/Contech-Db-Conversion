@@ -1,9 +1,8 @@
 -- ***************************************************
--- Section 024: bomdocs, bompriclog, bomstage, bomtable, buyer
+-- Section 240: bomdocs, bompriclog, bomstage, bomtable, buyer
 -- ***************************************************
 
 PRINT(CONVERT( VARCHAR(24), GETDATE(), 121)) + ' START script section024_HR.sql'
-DECLARE @SQL varchar(4000)=''
 
 -- ***************************************************
 -- table: bomdocs
@@ -31,52 +30,20 @@ BEGIN TRY
 
     PRINT 'Table: dbo.bomdocs: start'
 
-    --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bomdocs')
-    BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bomdocs')) > 0)
-		BEGIN				
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bomdocs')
-			EXEC (@SQL)
-			PRINT (@SQL)
-		END
-            
-		DROP TABLE [dbo].[bomdocs]
-		PRINT 'Table [dbo].[bomdocs] dropped'
-    END
-
-	CREATE TABLE [dbo].[bomdocs](
-		bomdocsid int identity (1, 1),			-- PK = new column
-		--[document] [char](15) NOT NULL,
-		[docs_dtlid] [int] NULL,				-- FK = [docs_dtl].[document] --> [docs_dtl].[docs_dtlid]
-		-- [bom_no] [numeric](5, 0) NOT NULL,
-		-- [bom_rev] [numeric](2, 0) NOT NULL,
-		[bom_hdrid] [int] NULL,
-		[coc] [char](1) default '' NOT NULL,
-		CONSTRAINT [PK_bomdocs] PRIMARY KEY CLUSTERED
-		(
-			[bomdocsid] ASC
-		) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		,CONSTRAINT FK_bomdocs_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION --ON DELETE CASCADE NOT FOR REPLICATION 
-		,CONSTRAINT FK_bomdocs_docs_dtl FOREIGN KEY ([docs_dtlid]) REFERENCES [dbo].[docs_dtl] ([docs_dtlid]) ON DELETE NO ACTION
-	) ON [PRIMARY]
-	
-	ALTER TABLE [dbo].[bomdocs] NOCHECK CONSTRAINT [FK_bomdocs_bom_hdr];
-	ALTER TABLE [dbo].[bomdocs] NOCHECK CONSTRAINT [FK_bomdocs_docs_dtl];
-
 	insert into dbo.bomdocs
-	select --document,	
-		  ISNULL(docs_dtl.[docs_dtlid], NULL) AS [docs_dtlid], 	
-		   -- bom_no,
-		   -- bom_rev,
-			isnull(bom.bom_hdrid, NULL),
-		   coc
-	from [rawUpsize_Contech].dbo.bomdocs
-	left outer join dbo.bom_hdr bom on bomdocs.bom_no = bom.bom_no and bomdocs.bom_rev = bom.bom_rev
-	LEFT JOIN [dbo].[docs_dtl] docs_dtl ON [rawUpsize_Contech].[dbo].[bomdocs].[document] = docs_dtl.[document]
-	
-	--SELECT * FROM [bomdocs]
+	    (docs_dtlid, bom_revid, coc)
+	select
+        docs_dtl.[docs_dtlid],
+        -- bom_no,
+        -- bom_rev,
+	    bom.bom_revid,
+        coc
+	FROM [rawUpsize_Contech].dbo.bomdocs
+	INNER join (SELECT r.bom_revid, h.bom_no, r.bom_rev
+                    FROM dbo.bom_hdr h
+                    INNER JOIN dbo.bom_rev r ON h.bom_hdrid = r.bom_hdrid) bom on bomdocs.bom_no = bom.bom_no and bomdocs.bom_rev = bom.bom_rev
+	LEFT JOIN [dbo].[docs_dtl] docs_dtl ON [bomdocs].[document] = docs_dtl.[document]
+
 
     COMMIT
 
@@ -283,47 +250,17 @@ BEGIN TRY
 
     PRINT 'Table: dbo.bomtable: start'
 
-    --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bomtable')
-    BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bomtable')) > 0)
-		BEGIN				
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bomtable')
-			EXEC (@SQL)
-			PRINT (@SQL)
-		END
-            
-		DROP TABLE [dbo].[bomtable]
-		PRINT 'Table [dbo].[bomtable] dropped'
-    END
+	INSERT INTO [dbo].[bomtable] ([table], bom_revid)
+	SELECT [bomtable].[table]
+        --,[bomtable].[bom_no]
+        -- ,[bomtable].[bom_rev]
+        , bom_hdr.bom_revid
+	  FROM [rawUpsize_Contech].dbo.bomtable
+	  INNER JOIN (SELECT r.bom_revid, h.bom_no, r.bom_rev
+                    FROM dbo.bom_hdr h
+                    INNER JOIN dbo.bom_rev r ON h.bom_hdrid = r.bom_hdrid) bom_hdr
+	      ON [bomtable].[bom_no] = bom_hdr.[bom_no] AND [bomtable].[bom_rev] = bom_hdr.[bom_rev]
 
-	CREATE TABLE [dbo].[bomtable](
-		[bomtableid] [int] IDENTITY(1,1) NOT NULL,		-- new column
-		[table] [char](10) NOT NULL DEFAULT '',
-		--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,
-		--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,
-		[bom_hdrid] [int] NULL,							-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
-		CONSTRAINT [PK_bomtable] PRIMARY KEY CLUSTERED
-		(
-			[bomtableid] ASC
-		) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		,CONSTRAINT FK_bomtable_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION --ON DELETE CASCADE NOT FOR REPLICATION 
-	) ON [PRIMARY]
-	
-	ALTER TABLE [dbo].[bomtable] NOCHECK CONSTRAINT [FK_bomtable_bom_hdr];
-
-	INSERT INTO [dbo].[bomtable] ([table],[bom_hdrid])
-	SELECT [rawUpsize_Contech].[dbo].[bomtable].[table]
-		  --,[rawUpsize_Contech].[dbo].[bomtable].[bom_no]
-	   --   ,[rawUpsize_Contech].[dbo].[bomtable].[bom_rev]
-		  ,ISNULL(bom_hdr.[bom_hdrid], NULL) as [bom_hdrid]
-	  FROM [rawUpsize_Contech].[dbo].[bomtable]
-	  LEFT JOIN [dbo].[bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bomtable].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bomtable].[bom_rev] = bom_hdr.[bom_rev] 
-	WHERE bom_hdr.[bom_hdrid] > 0
-
-	--SELECT * FROM [dbo].[bomtable]
-	
     COMMIT
 
     PRINT 'Table: dbo.bomtable: end'

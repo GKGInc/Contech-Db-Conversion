@@ -95,9 +95,7 @@ BEGIN TRY
          ,[bom_cust].[suppdata]
          ,[bom_cust].[sd_loc]
     FROM [rawUpsize_Contech].dbo.bom_cust
-             LEFT JOIN (SELECT bom_rev.bom_revid, bom_hdr.bom_no
-                        FROM dbo.bom_hdr
-                        INNER JOIN dbo.bom_rev ON bom_hdr.bom_hdrid = bom_rev.bom_hdrid) bom_hdr ON [bom_cust].[bom_no] = bom_hdr.[bom_no] AND [bom_cust].[bom_rev] = bom_hdr.[bom_rev]
+             LEFT JOIN dbo.bom_hdr ON [bom_cust].[bom_no] = bom_hdr.[bom_no]
              LEFT JOIN [dbo].[customer] customer ON [bom_cust].[cust_no] = customer.[cust_no]
              LEFT JOIN [dbo].[users] users ON [bom_cust].[add_user] = users.[username]
 
@@ -119,15 +117,15 @@ BEGIN TRY
 
     PRINT 'Table: dbo.bom_hist: start'
 
-    --DECLARE @SQL varchar(4000)=''
+    DECLARE @SQL_bom_hist varchar(4000)=''
     IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_hist')
         BEGIN
             -- Check for Foreign Key Contraints and remove them
             WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_hist')) > 0)
                 BEGIN
-                    SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_hist')
-                    EXEC (@SQL)
-                    PRINT (@SQL)
+                    SELECT @SQL_bom_hist = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_hist')
+                    EXEC (@SQL_bom_hist)
+                    PRINT (@SQL_bom_hist)
                 END
 
             DROP TABLE [dbo].[bom_hist]
@@ -186,15 +184,15 @@ BEGIN TRY
 
     PRINT 'Table: dbo.bom_pend: start'
 
-    --DECLARE @SQL varchar(4000)=''
+    DECLARE @SQL_bom_pend varchar(4000)=''
     IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_pend')
         BEGIN
             -- Check for Foreign Key Contraints and remove them
             WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_pend')) > 0)
                 BEGIN
-                    SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_pend')
-                    EXEC (@SQL)
-                    PRINT (@SQL)
+                    SELECT @SQL_bom_pend = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_pend')
+                    EXEC (@SQL_bom_pend)
+                    PRINT (@SQL_bom_pend)
                 END
 
             DROP TABLE [dbo].[bom_pend]
@@ -221,19 +219,24 @@ BEGIN TRY
     ALTER TABLE [dbo].[bom_pend] NOCHECK CONSTRAINT [FK_bom_pend_bom_hdr];
     ALTER TABLE [dbo].[bom_pend] NOCHECK CONSTRAINT [FK_bom_pend_componet];
 
-    INSERT INTO [dbo].[bom_pend] ([componetid],[bom_hdrid],[status],[date])
-    SELECT --[rawUpsize_Contech].[dbo].[bom_pend].[comp]
+    INSERT INTO [dbo].[bom_pend] (
+        [componetid],
+        [bom_hdrid],
+        [status],
+        [date])
+    SELECT --[bom_pend].[comp]
         ISNULL(componet.[componetid], NULL) AS [componetid]
-         ,ISNULL(bom_hdr.[bom_hdrid], NULL) as [bom_hdrid]
-         --,[rawUpsize_Contech].[dbo].[bom_pend].[bom_no]
-         --,[rawUpsize_Contech].[dbo].[bom_pend].[bom_rev]
-         ,[rawUpsize_Contech].[dbo].[bom_pend].[status]
-         ,[rawUpsize_Contech].[dbo].[bom_pend].[date]
+        ,ISNULL(bom_hdr.bom_revid, NULL) as [bom_hdrid]
+        --,[bom_pend].[bom_no]
+        --,[bom_pend].[bom_rev]
+        ,[bom_pend].[status]
+        ,[bom_pend].[date]
     FROM [rawUpsize_Contech].dbo.bom_pend
-             LEFT JOIN [dbo].[componet] componet ON [rawUpsize_Contech].[dbo].[bom_pend].[comp] = componet.[comp]
-             LEFT JOIN [dbo].[bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[bom_pend].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[bom_pend].[bom_rev] = bom_hdr.[bom_rev]
-
-    --SELECT * FROM [dbo].[bom_pend]
+        LEFT JOIN [dbo].[componet] componet ON [bom_pend].[comp] = componet.[comp]
+        LEFT JOIN (SELECT r.bom_revid, h.bom_no, r.bom_rev
+                    FROM dbo.bom_hdr h
+                    INNER JOIN dbo.bom_rev r ON h.bom_hdrid = r.bom_hdrid) bom_hdr
+            ON [bom_pend].[bom_no] = bom_hdr.[bom_no] AND [bom_pend].[bom_rev] = bom_hdr.[bom_rev]
 
     PRINT 'Table: dbo.bom_pend: end'
 
@@ -249,50 +252,29 @@ BEGIN TRY
 
     PRINT 'Table: dbo.bom_pric: start'
 
-    --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'bom_pric')
-        BEGIN
-            -- Check for Foreign Key Contraints and remove them
-            WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('bom_pric')) > 0)
-                BEGIN
-                    SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('bom_pric')
-                    EXEC (@SQL)
-                    PRINT (@SQL)
-                END
-
-            DROP TABLE [dbo].[bom_pric]
-            PRINT 'Table [dbo].[bom_pric] dropped'
-        END
-
-    CREATE TABLE [dbo].[bom_pric](
-                                     [bom_pricid] [int] IDENTITY(1,1) NOT NULL,
-                                     [bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
-                                     [qty_from] [int] NOT NULL DEFAULT 0,
-                                     [qty_to] [int] NOT NULL DEFAULT 0,
-                                     [price] [numeric](8, 4) NOT NULL DEFAULT 0.0,
-                                     [price_rev] [datetime] NULL,
-                                     [price_note] varchar(2000) NOT NULL DEFAULT '',
-                                     CONSTRAINT [PK_bom_pric] PRIMARY KEY CLUSTERED
-                                         (
-                                          [bom_pricid] ASC
-                                             )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-    ) ON [PRIMARY]
-
     SET IDENTITY_INSERT [dbo].[bom_pric] ON;
 
-    INSERT INTO [dbo].[bom_pric] ([bom_pricid],[bom_no],[qty_from],[qty_to],[price],[price_rev],[price_note])
+    INSERT INTO [dbo].[bom_pric]
+        (
+        [bom_pricid],
+        -- [bom_no],
+        [bom_hdrid],
+        qty_from,
+        [qty_to],
+        [price],
+        [price_rev],
+        [price_note])
     SELECT [bom_pricid]
-         ,[bom_no]
+         ,bom_hdr.bom_hdrid
          ,[qty_from]
          ,[qty_to]
          ,[price]
          ,[price_rev]
          ,[price_note]
     FROM [rawUpsize_Contech].[dbo].[bom_pric]
+    inner join dbo.bom_hdr on bom_pric.bom_no = bom_hdr.bom_no
 
     SET IDENTITY_INSERT [dbo].[bom_pric] OFF;
-
-    --SELECT * FROM [dbo].[bom_pric]
 
     PRINT 'Table: dbo.bom_pric: end'
 

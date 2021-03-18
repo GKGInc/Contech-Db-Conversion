@@ -25,67 +25,34 @@ BEGIN TRY
 
     PRINT 'Table: dbo.quotas: start'
 
-    --DECLARE @SQL varchar(4000)=''
-    IF EXISTS(SELECT * FROM INFORMATION_SCHEMA.tables WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = 'quotas')
-    BEGIN
-		-- Check for Foreign Key Contraints and remove them
-		WHILE ((SELECT COUNT([name]) FROM sys.foreign_keys WHERE referenced_object_id = object_id('quotas')) > 0)
-		BEGIN				
-			SELECT @SQL = 'ALTER TABLE ' +  OBJECT_SCHEMA_NAME(k.parent_object_id) + '.[' + OBJECT_NAME(k.parent_object_id) + '] DROP CONSTRAINT ' + k.name FROM sys.foreign_keys k WHERE referenced_object_id = object_id('quotas')
-			EXEC (@SQL)
-			PRINT (@SQL)
-		END
-            
-		DROP TABLE [dbo].[quotas]
-		PRINT 'Table [dbo].[quotas] dropped'
-    END
-
-	CREATE TABLE [dbo].[quotas](
-		[quotasid] [int] IDENTITY(1,1) NOT NULL,
-		[bom_hdrid] [int] NULL,							-- FK = [bom_hdr].[bom_no] + [bom_hdr].[bom_rev] = [bom_hdr].[bom_hdrid]
-		--[bom_no] [numeric](5, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_no]
-		--[bom_rev] [numeric](2, 0) NOT NULL DEFAULT 0,	-- FK = [bom_hdr].[bom_rev]
-		[quota] [numeric](6, 0) NOT NULL DEFAULT 0,
-		[type] [char](15) NOT NULL DEFAULT '',
-		[mfgstageid] [int] NOT NULL DEFAULT 0,
-		--[add_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[add_userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
-		[add_dt] [datetime] NULL,
-		--[mod_user] [char](10) NOT NULL DEFAULT '',	-- FK = [users].[username]
-		[mod_userid] [int] NULL,						-- FK = [users].[username] --> [users].[userid]
-		[mod_dt] [datetime] NULL,
-		CONSTRAINT [PK_quotas] PRIMARY KEY CLUSTERED 
-		(
-			[quotasid] ASC
-		)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-		,CONSTRAINT FK_quotas_bom_hdr FOREIGN KEY ([bom_hdrid]) REFERENCES [dbo].[bom_hdr] ([bom_hdrid]) ON DELETE NO ACTION
-		,CONSTRAINT FK_quotas_add_user FOREIGN KEY ([add_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
-		,CONSTRAINT FK_quotas_mod_user FOREIGN KEY ([mod_userid]) REFERENCES [dbo].[users] ([userid]) ON DELETE NO ACTION
-	) ON [PRIMARY] 
-	
-	ALTER TABLE [dbo].[quotas] NOCHECK CONSTRAINT [FK_quotas_bom_hdr];
-	ALTER TABLE [dbo].[quotas] NOCHECK CONSTRAINT [FK_quotas_add_user];
-	ALTER TABLE [dbo].[quotas] NOCHECK CONSTRAINT [FK_quotas_mod_user];
-
-	INSERT INTO [dbo].[quotas] ([bom_hdrid],[quota],[type],[mfgstageid],[add_userid],[add_dt],[mod_userid],[mod_dt])
-	SELECT ISNULL(bom_hdr.[bom_hdrid], NULL) as [bom_hdrid]
-		  --,[rawUpsize_Contech].[dbo].[quotas].[bom_no]
-		  --,[rawUpsize_Contech].[dbo].[quotas].[bom_rev]
-		  ,[rawUpsize_Contech].[dbo].[quotas].[quota]
-		  ,[rawUpsize_Contech].[dbo].[quotas].[type]
-		  ,[rawUpsize_Contech].[dbo].[quotas].[mfgstageid]
-		  --,[rawUpsize_Contech].[dbo].[quotas].[add_user]
+	INSERT INTO [dbo].[quotas]
+	    (bom_revid,
+	     quota,
+	     type,
+	     mfgstageid,
+	     add_userid,
+	     add_dt,
+	     mod_userid,
+	     mod_dt)
+	SELECT bom_hdr.bom_revid
+		  --,quotas].[bom_no]
+		  --,[quotas].[bom_rev]
+		  ,[quotas].[quota]
+		  ,[quotas].[type]
+		  ,[quotas].[mfgstageid]
+		  --,[quotas].[add_user]
 		  ,ISNULL(add_user.[userid], NULL) as [add_userid]			
-		  ,[rawUpsize_Contech].[dbo].[quotas].[add_dt]
-		  --,[rawUpsize_Contech].[dbo].[quotas].[mod_user]
+		  ,[quotas].[add_dt]
+		  --,[quotas].[mod_user]
 		  ,ISNULL(mod_user.[userid], NULL) as [mod_userid]			
-		  ,[rawUpsize_Contech].[dbo].[quotas].[mod_dt]
-	  FROM [rawUpsize_Contech].[dbo].[quotas]
-	  LEFT JOIN [dbo].[bom_hdr] bom_hdr ON [rawUpsize_Contech].[dbo].[quotas].[bom_no] = bom_hdr.[bom_no] AND [rawUpsize_Contech].[dbo].[quotas].[bom_rev] = bom_hdr.[bom_rev] 
-	  LEFT JOIN [dbo].[users] add_user ON [rawUpsize_Contech].[dbo].[quotas].[add_user] = add_user.[username]	-- FK = [users].[userid]
-	  LEFT JOIN [dbo].[users] mod_user ON [rawUpsize_Contech].[dbo].[quotas].[mod_user] = mod_user.[username]	-- FK = [users].[userid]
-  
-	--SELECT * FROM [dbo].[quotas]
+		  ,[quotas].[mod_dt]
+	  FROM [rawUpsize_Contech].dbo.quotas
+	  INNER JOIN (SELECT r.bom_revid, h.bom_no, r.bom_rev
+                    FROM dbo.bom_hdr h
+                    INNER JOIN dbo.bom_rev r ON h.bom_hdrid = r.bom_hdrid) bom_hdr
+	      ON [quotas].[bom_no] = bom_hdr.[bom_no] AND [quotas].[bom_rev] = bom_hdr.[bom_rev]
+	  LEFT JOIN [dbo].[users] add_user ON [quotas].[add_user] = add_user.[username]
+	  LEFT JOIN [dbo].[users] mod_user ON [quotas].[mod_user] = mod_user.[username]
 
     PRINT 'Table: dbo.quotas: end'
 
